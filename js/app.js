@@ -261,33 +261,115 @@ document.querySelectorAll('#optList .opt').forEach(o=>o.addEventListener('click'
 }));
 
 /* =====================================================================
-   5) Fenêtre de réservation Koalendar  +  message de contact
+   5) Réservation maison : sélecteur de créneau + acompte
+   Interroge le CRM (disponibilités), collecte les infos client,
+   puis redirige vers le paiement Stripe de l'acompte.
    ===================================================================== */
 
-/* Colle ici ton lien de page Koalendar (bouton Partager dans ton tableau de bord).
-   Exemple : const KOALENDAR_URL = 'https://koalendar.com/e/mybabyshoot'; */
-const KOALENDAR_URL = 'https://koalendar.com/e/acompte-de-reservation-pour-votre-shooting';
+/* URL des fonctions du CRM (memes donnees, meme agenda). */
+const CRM_API = 'https://matt-crm.netlify.app/.netlify/functions';
 
-let koalaLoaded=false;
-function openKoala(){
-  const box=document.getElementById('koalendarEmbed');
-  if(box && !koalaLoaded){
-    if(KOALENDAR_URL){
-      const sep=KOALENDAR_URL.includes('?')?'&':'?';
-      box.innerHTML='<iframe src="'+KOALENDAR_URL+sep+'embed=true" allow="payment" loading="lazy"></iframe>';
-    }else{
-      box.innerHTML='<div class="koala-ph"><strong>Votre agenda de réservation s\'affichera ici.</strong><br>Créez votre page Koalendar, copiez le lien (bouton Partager) et collez-le dans <code>KOALENDAR_URL</code> en haut du script.</div>';
-    }
-    koalaLoaded=true;
-  }
-  document.getElementById('koalaModal').classList.add('show');
-  document.body.style.overflow='hidden';
+const BOOK_MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const BOOK_JOURS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+function bookDateLabel(iso){
+  const p=iso.split('-').map(Number);
+  const wd=new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay();
+  return BOOK_JOURS[wd]+' '+p[2]+' '+BOOK_MOIS[p[1]-1];
 }
-function closeKoala(){document.getElementById('koalaModal').classList.remove('show');document.body.style.overflow='';}
-document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openKoala();}));
-document.getElementById('koalaClose').addEventListener('click',closeKoala);
-document.getElementById('koalaModal').addEventListener('click',e=>{if(e.target.id==='koalaModal')closeKoala();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeKoala();});
+function bookTypeLabel(t){return t==='duo'?'Grossesse + naissance':t==='naissance'?'Séance naissance':'Séance grossesse';}
+function bookAcompte(t){return t==='duo'?190:90;}
+function hLabel(t){return t.replace(':','h');}
+
+const bookModal=document.getElementById('bookModal');
+const bookBody=document.getElementById('bookBody');
+let bookState=null;
+
+function openBooking(){
+  bookState={type:state.type,total:total(),acompte:bookAcompte(state.type),date:null,time:null,days:null};
+  bookModal.classList.add('show');
+  document.body.style.overflow='hidden';
+  bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
+  loadAvailability();
+}
+function closeBooking(){bookModal.classList.remove('show');document.body.style.overflow='';}
+
+async function loadAvailability(){
+  try{
+    const r=await fetch(CRM_API+'/mbs-availability',{method:'GET'});
+    const j=await r.json();
+    if(!j.ok||!j.days||!j.days.length){
+      bookBody.innerHTML='<div class="book-info">Aucun créneau disponible en ligne pour le moment. Appelez-moi au 06 47 76 54 17, on trouve une date ensemble.</div>';
+      return;
+    }
+    bookState.days=j.days;
+    if(!bookState.date||!j.days.some(d=>d.date===bookState.date))bookState.date=j.days[0].date;
+    bookState.time=null;
+    renderBookStep1();
+  }catch(e){
+    bookBody.innerHTML='<div class="book-info">Impossible de charger les créneaux pour l\'instant. Réessayez, ou appelez-moi au 06 47 76 54 17.</div>';
+  }
+}
+
+function renderBookStep1(){
+  const days=bookState.days;
+  const dateChips=days.map(d=>'<button type="button" class="book-date'+(d.date===bookState.date?' active':'')+'" data-date="'+d.date+'">'+bookDateLabel(d.date)+'</button>').join('');
+  const cur=days.find(d=>d.date===bookState.date)||days[0];
+  const slotBtns=cur.slots.map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
+  bookBody.innerHTML=
+    '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
+    +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>'
+    +'<div class="book-l">Le jour</div><div class="book-dates">'+dateChips+'</div>'
+    +'<div class="book-l">L\'heure</div><div class="book-slots">'+slotBtns+'</div>'
+    +'<button type="button" class="btn btn-coral book-full" id="bookNext"'+(bookState.time?'':' disabled')+'>Continuer</button>';
+  bookBody.querySelectorAll('.book-date').forEach(b=>b.addEventListener('click',()=>{bookState.date=b.dataset.date;bookState.time=null;renderBookStep1();}));
+  bookBody.querySelectorAll('.book-slot').forEach(b=>b.addEventListener('click',()=>{bookState.time=b.dataset.time;renderBookStep1();}));
+  const nx=document.getElementById('bookNext');
+  if(nx)nx.addEventListener('click',()=>{if(bookState.time)renderBookStep2();});
+}
+
+function renderBookStep2(){
+  const reste=bookState.total-bookState.acompte;
+  bookBody.innerHTML=
+    '<div class="book-head"><span class="book-eyebrow">Vos coordonnées</span><h3>Presque terminé</h3>'
+    +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p></div>'
+    +'<div class="frow"><div class="field"><label for="bPrenom">Prénom</label><input id="bPrenom" type="text" autocomplete="given-name"></div>'
+    +'<div class="field"><label for="bNom">Nom</label><input id="bNom" type="text" autocomplete="family-name"></div></div>'
+    +'<div class="frow"><div class="field"><label for="bEmail">Email</label><input id="bEmail" type="email" autocomplete="email"></div>'
+    +'<div class="field"><label for="bTel">Téléphone</label><input id="bTel" type="tel" autocomplete="tel"></div></div>'
+    +'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
+    +'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(bookState.acompte)+'</b></div>'
+    +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div></div>'
+    +'<div class="book-err" id="bookErr"></div>'
+    +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bookBack">Retour</button>'
+    +'<button type="button" class="btn btn-coral" id="bookPay">Payer l\'acompte de '+bookState.acompte+' €</button></div>';
+  document.getElementById('bookBack').addEventListener('click',renderBookStep1);
+  document.getElementById('bookPay').addEventListener('click',submitBooking);
+}
+
+function bookVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function bookErr(msg){const e=document.getElementById('bookErr');if(e){e.textContent=msg;e.classList.add('show');}}
+function resetPayBtn(){const b=document.getElementById('bookPay');if(b){b.disabled=false;b.textContent='Payer l\'acompte de '+bookState.acompte+' €';}}
+
+async function submitBooking(){
+  const client={prenom:bookVal('bPrenom'),nom:bookVal('bNom'),email:bookVal('bEmail'),tel:bookVal('bTel')};
+  if(!client.prenom||!client.email){bookErr('Indiquez au moins votre prénom et votre email.');return;}
+  const btn=document.getElementById('bookPay');btn.disabled=true;btn.textContent='Redirection vers le paiement...';
+  try{
+    const r=await fetch(CRM_API+'/mbs-checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client})});
+    const j=await r.json();
+    if(j.ok&&j.url){window.location.href=j.url;return;}
+    if(j.error==='slot_taken'){bookErr('Ce créneau vient d\'être pris. Choisissez-en un autre.');resetPayBtn();loadAvailability();return;}
+    bookErr('Le paiement en ligne n\'est pas encore actif. Appelez-moi au 06 47 76 54 17 pour réserver.');resetPayBtn();
+  }catch(e){
+    bookErr('Une erreur est survenue. Réessayez, ou appelez-moi au 06 47 76 54 17.');resetPayBtn();
+  }
+}
+
+document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openBooking();}));
+document.getElementById('bookClose').addEventListener('click',closeBooking);
+bookModal.addEventListener('click',e=>{if(e.target.id==='bookModal')closeBooking();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBooking();});
 
 function showMsg(t,ok){const m=document.getElementById('formMsg');m.textContent=t;m.className='fmsg '+(ok?'ok':'err');}
 function collectForm(){return{prenom:prenom.value.trim(),nom:nom.value.trim(),email:email.value.trim(),tel:tel.value.trim(),type:typeSel.value,message:message.value.trim()};}
@@ -319,5 +401,4 @@ function animateCount(el){
 const cio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){animateCount(en.target);cio.unobserve(en.target);}}),{threshold:.5});
 document.querySelectorAll('.num[data-count]').forEach(el=>cio.observe(el));
 
-document.getElementById('date').min=new Date().toISOString().split('T')[0];
 render();
