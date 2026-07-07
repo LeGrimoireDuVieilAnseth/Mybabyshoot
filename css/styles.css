@@ -342,10 +342,21 @@ footer a:hover{color:var(--coral)}
 .book-recap{margin:8px 0 0;font-size:14px;color:var(--ink-soft)}
 .book-recap span{display:inline-block;margin-left:8px;color:var(--coral-deep);font-weight:700}
 .book-l{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:18px 0 10px}
-.book-dates{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
-.book-date{flex:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 14px;font-family:var(--body);font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:.2s}
-.book-date:hover{border-color:var(--coral)}
-.book-date.active{background:var(--cta);border-color:var(--cta);color:var(--cream)}
+.book-cal{margin:6px 0 4px}
+.book-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.book-cal-title{font-family:var(--display);font-weight:800;font-size:1.05rem;text-transform:capitalize}
+.book-nav{width:38px;height:38px;border:1.5px solid var(--line);background:#fff;border-radius:50%;font-size:22px;line-height:1;color:var(--ink);cursor:pointer;transition:.2s;padding:0}
+.book-nav:hover:not(:disabled){border-color:var(--coral);color:var(--coral-deep)}
+.book-nav:disabled{opacity:.3;cursor:default}
+.book-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.book-dow-row{margin-bottom:6px}
+.book-dow{text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;padding:2px 0}
+.book-cell{aspect-ratio:1/1;border:1.5px solid var(--line);background:#fff;border-radius:10px;font-family:var(--body);font-weight:700;font-size:14px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;padding:0}
+.book-cell:hover:not(.off):not(.empty){border-color:var(--coral);transform:translateY(-1px)}
+.book-cell.active{background:var(--cta);border-color:var(--cta);color:var(--cream)}
+.book-cell.off{color:var(--line);border-color:transparent;background:transparent;cursor:default;font-weight:600}
+.book-cell.empty{border:0;background:transparent;cursor:default}
+.book-slot-hint{font-size:13.5px;color:var(--ink-soft);text-align:center;padding:14px 0 4px}
 .book-slots{display:flex;gap:10px;flex-wrap:wrap}
 .book-slot{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:13px 22px;font-family:var(--display);font-weight:800;font-size:16px;cursor:pointer;transition:.2s}
 .book-slot:hover{border-color:var(--coral)}

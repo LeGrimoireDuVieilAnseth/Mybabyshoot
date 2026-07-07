@@ -310,21 +310,54 @@ async function loadAvailability(){
   }
 }
 
+function bookPad(n){return (n<10?'0':'')+n;}
+function bookMonthLabel(ym){const p=ym.split('-').map(Number);return BOOK_MOIS[p[1]-1]+' '+p[0];}
+function bookAddMonth(ym,delta){let p=ym.split('-').map(Number),y=p[0],m=p[1]+delta;while(m<1){m+=12;y--;}while(m>12){m-=12;y++;}return y+'-'+bookPad(m);}
+
 function renderBookStep1(){
   const days=bookState.days;
-  const dateChips=days.map(d=>'<button type="button" class="book-date'+(d.date===bookState.date?' active':'')+'" data-date="'+d.date+'">'+bookDateLabel(d.date)+'</button>').join('');
-  const cur=days.find(d=>d.date===bookState.date)||days[0];
-  const slotBtns=cur.slots.map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
+  const avail={}; days.forEach(d=>avail[d.date]=d.slots);
+  const firstMonth=days[0].date.slice(0,7);
+  const lastMonth=days[days.length-1].date.slice(0,7);
+  if(!bookState.viewMonth)bookState.viewMonth=(bookState.date?bookState.date.slice(0,7):firstMonth);
+  const ym=bookState.viewMonth, p=ym.split('-').map(Number), y=p[0], m=p[1];
+  const firstWd=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7; // Lundi=0
+  const nbDays=new Date(Date.UTC(y,m,0)).getUTCDate();
+
+  const dow=['Lu','Ma','Me','Je','Ve','Sa','Di'].map(d=>'<span class="book-dow">'+d+'</span>').join('');
+  let cells='';
+  for(let i=0;i<firstWd;i++)cells+='<span class="book-cell empty"></span>';
+  for(let d=1;d<=nbDays;d++){
+    const ds=y+'-'+bookPad(m)+'-'+bookPad(d);
+    const ok=!!avail[ds], sel=ds===bookState.date;
+    cells+='<button type="button" class="book-cell'+(ok?'':' off')+(sel?' active':'')+'"'+(ok?' data-date="'+ds+'"':' disabled')+'>'+d+'</button>';
+  }
+  const prevOff=ym<=firstMonth?' disabled':'', nextOff=ym>=lastMonth?' disabled':'';
+
+  let slotsHtml;
+  if(bookState.date&&avail[bookState.date]){
+    const slotBtns=avail[bookState.date].map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
+    slotsHtml='<div class="book-l">Créneaux du '+bookDateLabel(bookState.date)+'</div><div class="book-slots">'+slotBtns+'</div>';
+  }else{
+    slotsHtml='<div class="book-slot-hint">Choisissez un jour disponible dans le calendrier.</div>';
+  }
+
   bookBody.innerHTML=
     '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
     +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>'
-    +'<div class="book-l">Le jour</div><div class="book-dates">'+dateChips+'</div>'
-    +'<div class="book-l">L\'heure</div><div class="book-slots">'+slotBtns+'</div>'
+    +'<div class="book-cal"><div class="book-cal-nav">'
+    +'<button type="button" class="book-nav" id="bookPrev"'+prevOff+' aria-label="Mois précédent">&lsaquo;</button>'
+    +'<span class="book-cal-title">'+bookMonthLabel(ym)+'</span>'
+    +'<button type="button" class="book-nav" id="bookNextM"'+nextOff+' aria-label="Mois suivant">&rsaquo;</button></div>'
+    +'<div class="book-grid book-dow-row">'+dow+'</div><div class="book-grid">'+cells+'</div></div>'
+    +slotsHtml
     +'<button type="button" class="btn btn-coral book-full" id="bookNext"'+(bookState.time?'':' disabled')+'>Continuer</button>';
-  bookBody.querySelectorAll('.book-date').forEach(b=>b.addEventListener('click',()=>{bookState.date=b.dataset.date;bookState.time=null;renderBookStep1();}));
+
+  bookBody.querySelectorAll('.book-cell[data-date]').forEach(b=>b.addEventListener('click',()=>{bookState.date=b.dataset.date;bookState.time=null;renderBookStep1();}));
   bookBody.querySelectorAll('.book-slot').forEach(b=>b.addEventListener('click',()=>{bookState.time=b.dataset.time;renderBookStep1();}));
-  const nx=document.getElementById('bookNext');
-  if(nx)nx.addEventListener('click',()=>{if(bookState.time)renderBookStep2();});
+  const prev=document.getElementById('bookPrev');if(prev)prev.addEventListener('click',()=>{if(!prev.disabled){bookState.viewMonth=bookAddMonth(ym,-1);renderBookStep1();}});
+  const nextM=document.getElementById('bookNextM');if(nextM)nextM.addEventListener('click',()=>{if(!nextM.disabled){bookState.viewMonth=bookAddMonth(ym,1);renderBookStep1();}});
+  const nx=document.getElementById('bookNext');if(nx)nx.addEventListener('click',()=>{if(bookState.time)renderBookStep2();});
 }
 
 function renderBookStep2(){
