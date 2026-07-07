@@ -188,6 +188,7 @@ section{padding:100px 0}
 .stepper .val{min-width:58px;text-align:center;font-weight:800;font-size:18px;font-family:var(--display)}
 .stepper.disabled{opacity:.45;pointer-events:none}
 .snote{margin-top:12px;font-size:13.5px;color:var(--ink-soft)}
+.photo-promo{display:block;margin-top:10px;background:var(--blush);color:var(--coral-deep);font-weight:800;font-size:13px;line-height:1.45;padding:10px 13px;border-radius:9px}
 .opt{display:flex;align-items:center;gap:15px;border:1.5px solid var(--line);border-radius:12px;padding:15px 18px;background:var(--cream);cursor:pointer;transition:.22s;margin-bottom:11px}
 .opt:hover{border-color:var(--coral)}
 .opt.active{border-color:var(--coral);background:#fff;box-shadow:0 0 0 2px var(--coral)}

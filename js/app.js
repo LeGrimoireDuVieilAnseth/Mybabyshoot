@@ -176,14 +176,16 @@ function buildLines(){
     L.push({n:base,s:inc+' photos retouchées incluses',p:PRIX.seanceBase});
   }
   const ex=Math.max(0,state.photos-inc);
-  if(state.galRetouche==='' && ex>0)L.push({n:ex+' photo'+(ex>1?'s':'')+' en plus',s:euro(PRIX.photoSupp)+' la photo',p:ex*PRIX.photoSupp});
+  const bundle=!duo && state.galRetouche==='' && state.photos>=inc+5;
+  const chargedEx=bundle?ex-5:ex; // en bundle, les 5 photos qui offrent la galerie ne sont pas refacturees
+  if(state.galRetouche==='' && chargedEx>0)L.push({n:chargedEx+' photo'+(chargedEx>1?'s':'')+' en plus',s:euro(PRIX.photoSupp)+' la photo',p:chargedEx*PRIX.photoSupp});
   if(duo){
     L.push({n:'Galerie complète au naturel',s:'Photos brutes des deux séances, offertes',p:0});
     if(state.galRetouche==='one')L.push({n:'Galerie complète retouchée (1 séance)',s:'Les photos d\'une séance retouchées',p:PRIX.galRetouche});
     else if(state.galRetouche==='two')L.push({n:'Galerie complète retouchée (2 séances)',s:'Toutes les photos des deux séances retouchées',p:PRIX.galRetoucheDuo});
   }else{
     if(state.galRetouche==='one')L.push({n:'Galerie complète retouchée',s:'Toutes vos photos retouchées, illimité',p:PRIX.galRetouche});
-    else if(state.photos>=inc+5)L.push({n:'Galerie complète au naturel',s:'Offerte avec vos 5 photos en plus',p:0});
+    else if(bundle)L.push({n:'Galerie complète au naturel',s:'+ 5 photos retouchées en plus',p:PRIX.galerie});
   }
   if(state.album)L.push({n:'Album photo',s:'Imprimé',p:PRIX.album});
   return L;
@@ -206,8 +208,8 @@ function render(){
     const bundle=state.galRetouche===''&&state.photos>=inc+5;
     state.galerie=bundle;
     galNat.classList.toggle('active',bundle);
-    natPrice.textContent=bundle?'Offert':'Offert dès +5 photos';
-    natSub.textContent='Toutes les photos brutes, offertes avec 5 photos retouchées en plus';
+    natPrice.textContent='+'+PRIX.galerie+' €';
+    natSub.textContent='5 photos retouchées en plus offertes';
   }
   const cOne=document.querySelector('.gal-ret-one'),cTwo=document.querySelector('.gal-ret-two');
   cTwo.style.display=isDuo?'':'none';
@@ -241,7 +243,7 @@ function render(){
     ?'<strong>Vos photos sont retouchées</strong> selon l\'option choisie. Le compteur ci-dessus n\'a plus d\'effet.'
     :isDuo
       ?'<strong>10 photos retouchées sont incluses</strong>, à répartir librement entre les deux séances. Chaque photo en plus est à '+ps+'.'
-      :'<strong>5 photos retouchées sont incluses</strong> dans l\'offre de base. Chaque photo en plus est à '+ps+'. À partir de 5 photos en plus, la galerie complète brute est offerte.');
+      :'<strong>5 photos retouchées sont incluses</strong> dans l\'offre de base. Chaque photo en plus est à '+ps+'.<span class="photo-promo">Bon plan : à partir de 5 photos en plus, la galerie complète au naturel est offerte.</span>');
   document.getElementById('mctaPrice').innerHTML=euro(t)+'<span>séance sur mesure</span>';
 }
 document.querySelectorAll('#typeRow .choice').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('#typeRow .choice').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.type=c.dataset.type;if(state.type!=='duo'&&state.galRetouche==='two')state.galRetouche='one';state.photos=includedPhotos();render();}));
