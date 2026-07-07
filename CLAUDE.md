@@ -53,7 +53,7 @@ Polices : Bricolage Grotesque (titres), Mulish (texte), Fraunces italique (accen
 
 ### Workflow qualite a respecter a chaque modification
 
-1. Ne jamais introduire de tiret long ou moyen. Verification : `grep -rc $'\u2014\|\u2013' index.html` doit renvoyer 0.
+1. Ne jamais introduire de tiret long ou moyen. Verification : rechercher dans index.html tout tiret long (U+2014) ou moyen (U+2013) et s'assurer qu'il n'y en a aucun.
 2. Si le JS change, verifier la syntaxe (extraire le script et lancer `node --check`).
 3. Garder index.html et images ensemble pour tout test.
 
