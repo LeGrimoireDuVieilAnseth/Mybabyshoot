@@ -1,0 +1,29 @@
+# Dependances
+node_modules/
+.pnp
+.pnp.js
+
+# Build et cache
+dist/
+.cache/
+.parcel-cache/
+
+# Netlify
+.netlify/
+
+# Variables d'environnement (ne jamais committer les cles secretes)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Systeme
+.DS_Store
+Thumbs.db
+
+# Editeurs
+.vscode/
+.idea/
