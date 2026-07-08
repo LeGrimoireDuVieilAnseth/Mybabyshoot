@@ -184,47 +184,33 @@
       <div class="steps reveal">
 
         <div class="scard">
-          <div class="scard-h"><span class="n">1</span><h3>Le type de séance</h3></div>
-          <div class="choice-row" id="typeRow">
-            <button class="choice active" data-type="grossesse"><span class="ct">Grossesse</span><span class="cs">1 séance</span><span class="cp">dès 290 €</span></button>
-            <button class="choice" data-type="naissance"><span class="ct">Naissance</span><span class="cs">1 séance</span><span class="cp">dès 290 €</span></button>
-            <button class="choice" data-type="duo"><span class="ct">Les deux</span><span class="cs">Grossesse + naissance</span><span class="cp">dès 590 €</span></button>
+          <div class="scard-h"><span class="n">1</span><h3>Séance simple</h3><span class="scard-sub">Grossesse ou naissance</span></div>
+          <div class="seg" id="typeSeg">
+            <button type="button" class="seg-btn active" data-type="grossesse">Grossesse</button>
+            <button type="button" class="seg-btn" data-type="naissance">Naissance</button>
           </div>
+          <div class="gammes" id="gammesSimple"></div>
         </div>
 
         <div class="scard">
-          <div class="scard-h"><span class="n">2</span><h3>Vos photos retouchées</h3></div>
-          <div class="stepper" id="photoStepper" role="group" aria-label="Photos retouchées">
-            <button type="button" id="photoMinus" aria-label="Retirer">&minus;</button>
-            <span class="val" id="photoVal">5</span>
-            <button type="button" id="photoPlus" aria-label="Ajouter">+</button>
-          </div>
-          <p class="snote" id="photoNote">5 photos retouchées sont incluses dans l'offre de base. Chaque photo en plus est à 20 €.</p>
+          <div class="scard-h"><span class="n">2</span><h3>Ou un pack duo</h3><span class="scard-sub">Grossesse + naissance</span></div>
+          <div class="gammes" id="gammesDuo"></div>
         </div>
 
         <div class="scard">
-          <div class="scard-h"><span class="n">3</span><h3>Vos options</h3></div>
-          <div id="optList">
-            <div class="opt active" data-opt="galerie">
-              <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
-              <div class="ob"><div class="ot">Galerie complète au naturel</div><div class="os" id="natSub">Toutes les photos, livrées le jour même</div></div>
-              <div class="op" id="natPrice">+100 €</div>
+          <div class="scard-h"><span class="n">3</span><h3>Options</h3><span class="scard-sub">Facultatif</span></div>
+          <div class="opt-row">
+            <div class="ob"><div class="ot">Photos retouchées supplémentaires</div><div class="os">20 € la photo</div></div>
+            <div class="stepper" id="photoStepper" role="group" aria-label="Photos supplémentaires">
+              <button type="button" id="photoMinus" aria-label="Retirer">&minus;</button>
+              <span class="val" id="photoVal">0</span>
+              <button type="button" id="photoPlus" aria-label="Ajouter">+</button>
             </div>
-            <div class="opt gal-ret gal-ret-one" data-ret="one">
-              <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
-              <div class="ob"><div class="ot" id="retOneTitle">Galerie complète retouchée</div><div class="os">Toutes vos photos retouchées, nombre illimité</div></div>
-              <div class="op">+250 €</div>
-            </div>
-            <div class="opt gal-ret gal-ret-two" data-ret="two">
-              <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
-              <div class="ob"><div class="ot">Galerie complète retouchée pour les deux séances</div><div class="os">Toutes les photos des deux séances retouchées, illimité</div></div>
-              <div class="op">+350 €</div>
-            </div>
-            <div class="opt" data-opt="album">
-              <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
-              <div class="ob"><div class="ot">Album photo imprimé</div><div class="os">Vos plus belles images réunies. 20 photos retouchées minimum.</div></div>
-              <div class="op">+140 €</div>
-            </div>
+          </div>
+          <div class="opt" data-opt="album" id="optAlbum">
+            <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <div class="ob"><div class="ot">Album photo imprimé</div><div class="os">Vos plus belles images réunies</div></div>
+            <div class="op">+140 €</div>
           </div>
         </div>
       </div>

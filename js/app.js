@@ -2,10 +2,21 @@
 /* =====================================================================
    1) PRIX  (modifie librement)
    ===================================================================== */
-const PRIX = { seanceBase:290, photosIncluses:5, photoSupp:20,
-  duoBase:590, duoPhotosIncluses:10,
-  galerie:100, galRetouche:250, galRetoucheDuo:350, album:140,
-  seuilAcompte:590, acompteBas:90, acompteHaut:190 };
+const PRIX = { photoSupp:20, album:140, seuilAcompte:590, acompteBas:90, acompteHaut:190 };
+
+/* Gammes (formules). Modifie librement noms, prix et inclusions. */
+const GAMMES = {
+  simple: [
+    { id:'essentielle', nom:'Essentielle', prix:290, inclus:['La séance en studio, sans limite de temps','5 photos retouchées offertes','Dressing, décors et séance guidée'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, inclus:['Tout l\'Essentielle','10 photos retouchées','Galerie complète au naturel offerte'] },
+    { id:'prestige', nom:'Prestige', prix:540, inclus:['Tout le Confort','Galerie complète retouchée, illimité'] }
+  ],
+  duo: [
+    { id:'essentiel', nom:'Duo Essentiel', prix:590, inclus:['Les 2 séances, grossesse et naissance','10 photos retouchées','Galeries au naturel des 2 séances offertes'] },
+    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, inclus:['Tout le Duo Essentiel','20 photos retouchées'] },
+    { id:'prestige', nom:'Duo Prestige', prix:990, inclus:['Tout le Duo Confort','Galeries complètes retouchées des 2 séances'] }
+  ]
+};
 
 /* =====================================================================
    2) CHIFFRES MARKETING  (mets tes vrais chiffres ici)
@@ -163,109 +174,54 @@ const COMPAROS = [
 /* =====================================================================
    4) Configurateur
    ===================================================================== */
-const state={type:'grossesse',photos:5,galerie:false,galRetouche:'',album:false};
+const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false};
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
-function includedPhotos(){return state.type==='duo'?PRIX.duoPhotosIncluses:PRIX.photosIncluses;}
-function buildLines(){
-  const L=[];const inc=includedPhotos();
-  const duo=state.type==='duo';
-  if(duo){
-    L.push({n:'Séance grossesse + naissance',s:'10 photos retouchées à répartir sur les 2 séances',p:PRIX.duoBase});
-  }else{
-    const base=state.type==='naissance'?'Séance naissance':'Séance grossesse';
-    L.push({n:base,s:inc+' photos retouchées incluses',p:PRIX.seanceBase});
-  }
-  const ex=Math.max(0,state.photos-inc);
-  const bundle=!duo && state.galRetouche==='' && state.photos>=inc+5;
-  const chargedEx=bundle?ex-5:ex; // en bundle, les 5 photos qui offrent la galerie ne sont pas refacturees
-  if(state.galRetouche==='' && chargedEx>0)L.push({n:chargedEx+' photo'+(chargedEx>1?'s':'')+' en plus',s:euro(PRIX.photoSupp)+' la photo',p:chargedEx*PRIX.photoSupp});
-  if(duo){
-    L.push({n:'Galerie complète au naturel',s:'Photos brutes des deux séances, offertes',p:0});
-    if(state.galRetouche==='one')L.push({n:'Galerie complète retouchée (1 séance)',s:'Les photos d\'une séance retouchées',p:PRIX.galRetouche});
-    else if(state.galRetouche==='two')L.push({n:'Galerie complète retouchée (2 séances)',s:'Toutes les photos des deux séances retouchées',p:PRIX.galRetoucheDuo});
-  }else{
-    if(state.galRetouche==='one')L.push({n:'Galerie complète retouchée',s:'Toutes vos photos retouchées, illimité',p:PRIX.galRetouche});
-    else if(bundle)L.push({n:'Galerie complète au naturel',s:'+ 5 photos retouchées en plus',p:PRIX.galerie});
-  }
-  if(state.album)L.push({n:'Album photo',s:'Imprimé',p:PRIX.album});
-  return L;
-}
-function total(){return buildLines().reduce((s,l)=>s+l.p,0);}
+function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
+function bookingType(){return state.section==='duo'?'duo':state.type;}
+function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0);}
 const totalEl=document.getElementById('totalVal');
+
+function renderGammes(){
+  ['simple','duo'].forEach(sec=>{
+    const box=document.getElementById(sec==='simple'?'gammesSimple':'gammesDuo');
+    box.innerHTML=GAMMES[sec].map(g=>{
+      const active=(state.section===sec && state.gamme===g.id);
+      return '<button type="button" class="gamme'+(active?' active':'')+(g.populaire?' pop':'')+'" data-sec="'+sec+'" data-gamme="'+g.id+'">'
+        +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
+        +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
+        +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+i+'</li>').join('')+'</ul>'
+        +'</button>';
+    }).join('');
+  });
+}
 function render(){
-  const inc=includedPhotos();
-  if(state.photos<inc)state.photos=inc;
-  const isDuo=state.type==='duo';
-  const galNat=document.querySelector('.opt[data-opt="galerie"]');
-  const natPrice=document.getElementById('natPrice'),natSub=document.getElementById('natSub');
-  /* galerie au naturel : toujours offerte et verrouillée en duo, payante en simple */
-  if(isDuo){
-    galNat.classList.add('active','locked');
-    natPrice.textContent='Offert';
-    natSub.textContent='Photos brutes des deux séances, toujours offertes';
-  }else{
-    galNat.classList.remove('locked');
-    const bundle=state.galRetouche===''&&state.photos>=inc+5;
-    state.galerie=bundle;
-    galNat.classList.toggle('active',bundle);
-    natPrice.textContent='+'+PRIX.galerie+' €';
-    natSub.textContent='5 photos retouchées en plus offertes';
-  }
-  const cOne=document.querySelector('.gal-ret-one'),cTwo=document.querySelector('.gal-ret-two');
-  cTwo.style.display=isDuo?'':'none';
-  document.getElementById('retOneTitle').textContent=isDuo?'Galerie complète retouchée pour une séance':'Galerie complète retouchée';
-  cOne.querySelector('.op').textContent='+'+PRIX.galRetouche+' €';
-  cTwo.querySelector('.op').textContent='+'+PRIX.galRetoucheDuo+' €';
-  cOne.classList.toggle('active',state.galRetouche==='one');
-  cTwo.classList.toggle('active',state.galRetouche==='two');
-  document.querySelector('.opt[data-opt="album"]').classList.toggle('active',state.album);
-  document.getElementById('photoStepper').classList.toggle('disabled',state.galRetouche!=='');
-  const L=buildLines();
-  document.getElementById('devisLines').innerHTML=L.map(l=>'<div class="dline"><span class="dn">'+l.n+'<span class="dsub">'+l.s+'</span></span><span class="dp">'+(l.p===0?'Offert':euro(l.p))+'</span></div>').join('');
+  renderGammes();
+  document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===state.type));
+  document.getElementById('optAlbum').classList.toggle('active',state.album);
+  document.getElementById('photoVal').textContent=state.photos;
+  const g=currentGamme();
+  const L=[];
+  const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+(state.type==='naissance'?'Naissance':'Grossesse'));
+  L.push({n:nomLigne,s:g.inclus[0],p:g.prix});
+  if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
+  if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
+  document.getElementById('devisLines').innerHTML=L.map(l=>'<div class="dline"><span class="dn">'+l.n+'<span class="dsub">'+l.s+'</span></span><span class="dp">'+euro(l.p)+'</span></div>').join('');
   const t=total();
   totalEl.textContent=euro(t);
   totalEl.classList.add('pulse');setTimeout(()=>totalEl.classList.remove('pulse'),250);
   const acompte=t>=PRIX.seuilAcompte?PRIX.acompteHaut:PRIX.acompteBas;
   document.getElementById('acompteVal').textContent=euro(acompte);
-  /* économie offre grossesse + naissance : galeries au naturel des 2 séances offertes */
-  const ecoStrike=document.getElementById('ecoNormal'),ecoSave=document.getElementById('ecoSave');
-  if(isDuo){
-    const eco=2*PRIX.galerie;
-    ecoStrike.textContent=euro(t+eco);ecoStrike.classList.add('show');
-    ecoSave.textContent='Galeries au naturel des 2 séances offertes, vous économisez '+euro(eco);
-    ecoSave.classList.add('show');
-  }else{
-    ecoStrike.classList.remove('show');ecoSave.classList.remove('show');
-  }
-  document.getElementById('photoVal').textContent=state.photos;
-  const ps=euro(PRIX.photoSupp);
-  document.getElementById('photoNote').innerHTML=(state.galRetouche!==''
-    ?'<strong>Vos photos sont retouchées</strong> selon l\'option choisie. Le compteur ci-dessus n\'a plus d\'effet.'
-    :isDuo
-      ?'<strong>10 photos retouchées sont incluses</strong>, à répartir librement entre les deux séances. Chaque photo en plus est à '+ps+'.'
-      :'<strong>5 photos retouchées sont incluses</strong> dans l\'offre de base. Chaque photo en plus est à '+ps+'.<span class="photo-promo">Bon plan : à partir de 5 photos en plus, la galerie complète au naturel est offerte.</span>');
+  const eN=document.getElementById('ecoNormal'),eS=document.getElementById('ecoSave');
+  if(eN)eN.classList.remove('show'); if(eS)eS.classList.remove('show');
   document.getElementById('mctaPrice').innerHTML=euro(t)+'<span>séance sur mesure</span>';
 }
-document.querySelectorAll('#typeRow .choice').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('#typeRow .choice').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.type=c.dataset.type;if(state.type!=='duo'&&state.galRetouche==='two')state.galRetouche='one';state.photos=includedPhotos();render();}));
-document.getElementById('photoPlus').addEventListener('click',()=>{if(state.galRetouche!=='')return;state.photos++;render();});
-document.getElementById('photoMinus').addEventListener('click',()=>{if(state.galRetouche!=='')return;if(state.photos>includedPhotos()){state.photos--;render();}});
-document.querySelectorAll('#optList .opt').forEach(o=>o.addEventListener('click',()=>{
-  const isDuo=state.type==='duo';
-  if(o.dataset.ret){
-    const r=o.dataset.ret;
-    state.galRetouche=(state.galRetouche===r)?'':r;
-    if(!isDuo && state.galRetouche!=='')state.galerie=false;
-  }else{
-    const k=o.dataset.opt;
-    if(k==='galerie'){
-      if(isDuo)return;
-      const inc=includedPhotos();
-      state.galRetouche='';
-      state.photos=(state.photos>=inc+5)?inc:inc+5;
-    }else{state[k]=!state[k];}
-  }
-  render();
-}));
+function selectGamme(sec,id){ state.section=sec; state.gamme=id; render(); }
+document.getElementById('gammesSimple').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b)selectGamme(b.dataset.sec,b.dataset.gamme);});
+document.getElementById('gammesDuo').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b)selectGamme(b.dataset.sec,b.dataset.gamme);});
+document.getElementById('typeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;state.type=b.dataset.type;if(state.section!=='simple'){state.section='simple';state.gamme='essentielle';}render();});
+document.getElementById('photoPlus').addEventListener('click',()=>{state.photos++;render();});
+document.getElementById('photoMinus').addEventListener('click',()=>{if(state.photos>0){state.photos--;render();}});
+document.getElementById('optAlbum').addEventListener('click',()=>{state.album=!state.album;render();});
 
 /* =====================================================================
    5) Réservation maison : sélecteur de créneau + acompte
@@ -292,7 +248,7 @@ const bookBody=document.getElementById('bookBody');
 let bookState=null;
 
 function openBooking(){
-  bookState={type:state.type,total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null};
+  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null};
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
   bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
