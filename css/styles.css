@@ -190,14 +190,22 @@ section{padding:100px 0}
 .snote{margin-top:12px;font-size:13.5px;color:var(--ink-soft)}
 .photo-promo{display:block;margin-top:10px;background:var(--blush);color:var(--coral-deep);font-weight:800;font-size:13px;line-height:1.45;padding:10px 13px;border-radius:9px}
 .scard-sub{margin-left:auto;font-size:12px;color:var(--ink-soft);font-weight:600}
-.seg{display:inline-flex;background:var(--cream);border:1.5px solid var(--line);border-radius:999px;padding:3px;margin-bottom:14px}
-.seg-btn{border:0;background:transparent;font-family:var(--body);font-weight:700;font-size:14px;color:var(--ink-soft);padding:9px 22px;border-radius:999px;cursor:pointer;transition:.2s}
+.seg{display:flex;flex-wrap:wrap;gap:6px;background:var(--cream);border:1.5px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px}
+.seg-btn{flex:1 1 0;border:0;background:transparent;font-family:var(--body);font-weight:700;font-size:14px;color:var(--ink-soft);padding:11px 14px;border-radius:10px;cursor:pointer;transition:.2s;white-space:nowrap}
 .seg-btn.active{background:var(--cta);color:var(--cream)}
+.seg-duo{flex-basis:100%}
 .gammes{display:flex;flex-direction:column;gap:11px}
 .gamme{position:relative;display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--cream);border-radius:14px;padding:16px 18px;cursor:pointer;font-family:var(--body);transition:.2s}
 .gamme:hover{border-color:var(--coral);transform:translateY(-2px)}
 .gamme.active{border-color:var(--coral);background:#fff;box-shadow:0 0 0 2px var(--coral)}
 .gamme.pop{border-color:var(--coral)}
+.gamme.gduo{background:var(--wine);border-color:var(--wine)}
+.gamme.gduo:hover{border-color:var(--coral)}
+.gamme.gduo.active{border-color:var(--coral);background:var(--wine-deep);box-shadow:0 0 0 2px var(--coral)}
+.gamme.gduo .gamme-nom{color:#fff}
+.gamme.gduo .gamme-prix{color:var(--gold)}
+.gamme.gduo .gamme-inc li{color:rgba(252,248,242,.82)}
+.gamme.gduo .gamme-inc li::before{border-color:var(--coral)}
 .gamme-tag{position:absolute;top:-10px;right:16px;background:var(--coral);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px}
 .gamme-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px}
 .gamme-nom{font-family:var(--display);font-weight:800;font-size:1.15rem;color:var(--ink)}

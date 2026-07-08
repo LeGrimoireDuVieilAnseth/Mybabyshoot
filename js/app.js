@@ -182,21 +182,20 @@ function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.a
 const totalEl=document.getElementById('totalVal');
 
 function renderGammes(){
-  ['simple','duo'].forEach(sec=>{
-    const box=document.getElementById(sec==='simple'?'gammesSimple':'gammesDuo');
-    box.innerHTML=GAMMES[sec].map(g=>{
-      const active=(state.section===sec && state.gamme===g.id);
-      return '<button type="button" class="gamme'+(active?' active':'')+(g.populaire?' pop':'')+'" data-sec="'+sec+'" data-gamme="'+g.id+'">'
-        +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
-        +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
-        +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+i+'</li>').join('')+'</ul>'
-        +'</button>';
-    }).join('');
-  });
+  const sec=state.section;
+  const box=document.getElementById('gammes');
+  box.innerHTML=GAMMES[sec].map(g=>{
+    const active=(state.gamme===g.id);
+    return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
+      +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
+      +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
+      +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+i+'</li>').join('')+'</ul>'
+      +'</button>';
+  }).join('');
 }
 function render(){
   renderGammes();
-  document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===state.type));
+  document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===(state.section==='duo'?'duo':state.type)));
   document.getElementById('optAlbum').classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
   const g=currentGamme();
@@ -215,10 +214,14 @@ function render(){
   if(eN)eN.classList.remove('show'); if(eS)eS.classList.remove('show');
   document.getElementById('mctaPrice').innerHTML=euro(t)+'<span>séance sur mesure</span>';
 }
-function selectGamme(sec,id){ state.section=sec; state.gamme=id; render(); }
-document.getElementById('gammesSimple').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b)selectGamme(b.dataset.sec,b.dataset.gamme);});
-document.getElementById('gammesDuo').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b)selectGamme(b.dataset.sec,b.dataset.gamme);});
-document.getElementById('typeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;state.type=b.dataset.type;if(state.section!=='simple'){state.section='simple';state.gamme='essentielle';}render();});
+document.getElementById('gammes').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b){state.gamme=b.dataset.gamme;render();}});
+document.getElementById('typeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.seg-btn'); if(!b)return;
+  const mode=b.dataset.mode;
+  if(mode==='duo'){ state.section='duo'; state.gamme='essentiel'; }
+  else { state.section='simple'; state.type=mode; if(!GAMMES.simple.some(g=>g.id===state.gamme)) state.gamme='essentielle'; }
+  render();
+});
 document.getElementById('photoPlus').addEventListener('click',()=>{state.photos++;render();});
 document.getElementById('photoMinus').addEventListener('click',()=>{if(state.photos>0){state.photos--;render();}});
 document.getElementById('optAlbum').addEventListener('click',()=>{state.album=!state.album;render();});
