@@ -7,14 +7,14 @@ const PRIX = { photoSupp:20, album:140, seuilAcompte:590, acompteBas:90, acompte
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
-    { id:'essentielle', nom:'Essentielle', prix:290, inclus:['La séance en studio, sans limite de temps','5 photos retouchées offertes','Dressing, décors et séance guidée'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, inclus:['Tout l\'Essentielle','10 photos retouchées','Galerie complète au naturel offerte'] },
-    { id:'prestige', nom:'Prestige', prix:540, inclus:['Tout le Confort','Galerie complète retouchée, illimité'] }
+    { id:'essentielle', nom:'Essentielle', prix:290, inclus:['Séance @T en studio','5 photos retouchées'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, inclus:['Séance @T en studio','10 photos retouchées','Galerie complète au naturel (toutes les photos de la séance, brutes)'] },
+    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','Toutes les plus belles photos retouchées, sans limite'] }
   ],
   duo: [
-    { id:'essentiel', nom:'Duo Essentiel', prix:590, inclus:['Les 2 séances, grossesse et naissance','10 photos retouchées','Galeries au naturel des 2 séances offertes'] },
-    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, inclus:['Tout le Duo Essentiel','20 photos retouchées'] },
-    { id:'prestige', nom:'Duo Prestige', prix:990, inclus:['Tout le Duo Confort','Galeries complètes retouchées des 2 séances'] }
+    { id:'essentiel', nom:'Duo Essentiel', prix:590, inclus:['2 séances : grossesse et naissance','10 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
+    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, inclus:['2 séances : grossesse et naissance','20 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
+    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances'] }
   ]
 };
 
@@ -178,6 +178,7 @@ const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,albu
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
 function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
 function bookingType(){return state.section==='duo'?'duo':state.type;}
+function resolveInc(i){return i.replace('@T', state.type==='naissance'?'naissance':'grossesse');}
 function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0);}
 const totalEl=document.getElementById('totalVal');
 
@@ -189,7 +190,7 @@ function renderGammes(){
     return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
       +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
       +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
-      +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+i+'</li>').join('')+'</ul>'
+      +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+resolveInc(i)+'</li>').join('')+'</ul>'
       +'</button>';
   }).join('');
 }
@@ -201,7 +202,7 @@ function render(){
   const g=currentGamme();
   const L=[];
   const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+(state.type==='naissance'?'Naissance':'Grossesse'));
-  L.push({n:nomLigne,s:g.inclus[0],p:g.prix});
+  L.push({n:nomLigne,s:resolveInc(g.inclus[0]),p:g.prix});
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
   document.getElementById('devisLines').innerHTML=L.map(l=>'<div class="dline"><span class="dn">'+l.n+'<span class="dsub">'+l.s+'</span></span><span class="dp">'+euro(l.p)+'</span></div>').join('');
@@ -373,7 +374,25 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBooking();});
 function showMsg(t,ok){const m=document.getElementById('formMsg');m.textContent=t;m.className='fmsg '+(ok?'ok':'err');}
 function collectForm(){return{prenom:prenom.value.trim(),nom:nom.value.trim(),email:email.value.trim(),tel:tel.value.trim(),type:typeSel.value,message:message.value.trim()};}
 function validForm(d){if(!d.prenom||!d.email){showMsg("Indiquez au moins votre prénom et votre email.",false);return false;}return true;}
-document.getElementById('sendOnly').addEventListener('click',e=>{e.preventDefault();const d=collectForm();if(!validForm(d))return;showMsg("Merci, votre message est parti. Matteo revient vers vous très vite.",true);});
+document.getElementById('sendOnly').addEventListener('click',async e=>{
+  e.preventDefault();
+  const d=collectForm(); if(!validForm(d))return;
+  const btn=e.currentTarget; btn.style.pointerEvents='none';
+  showMsg("Envoi en cours...",true);
+  try{
+    const r=await fetch(CRM_API+'/mbs-lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    const j=await r.json().catch(()=>null);
+    if(j&&j.ok){
+      showMsg("Merci, votre message est bien parti. Je reviens vers vous très vite.",true);
+      prenom.value='';nom.value='';email.value='';tel.value='';message.value='';
+    }else{
+      showMsg("Une erreur est survenue. Réessayez, ou appelez le 06 47 76 54 17.",false);
+    }
+  }catch(err){
+    showMsg("Une erreur est survenue. Réessayez, ou appelez le 06 47 76 54 17.",false);
+  }
+  btn.style.pointerEvents='';
+});
 
 /* =====================================================================
    6) UI : header, menu, reveals, compteurs
