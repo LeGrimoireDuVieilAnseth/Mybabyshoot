@@ -68,9 +68,11 @@ const GLOGO='<svg class="rev-g" viewBox="0 0 48 48" aria-label="Avis Google"><pa
     const stars='★★★★★'.slice(0,a.note)+'☆☆☆☆☆'.slice(0,5-a.note);
     const initiale=(a.nom||'?').trim().charAt(0).toUpperCase();
     const meta=[a.type,a.date].filter(Boolean).join(' · ');
-    return '<article class="rev"><div class="rev-top"><div class="stars">'+stars+'</div>'+GLOGO+'</div>'+
-      '<p>'+a.texte+'</p>'+
-      '<div class="who"><span class="ava">'+initiale+'</span><div><b>'+a.nom+'</b><span>'+meta+'</span></div></div></article>';
+    return '<article class="rev">'+
+      '<div class="rev-head"><span class="ava">'+initiale+'</span>'+
+        '<div class="who"><b>'+a.nom+'</b><span>'+meta+'</span></div>'+GLOGO+'</div>'+
+      '<div class="stars">'+stars+'<span class="rate5">'+a.note+' sur 5</span></div>'+
+      '<p>'+a.texte+'</p></article>';
   };
   // liste dupliquee : permet un defilement en boucle continue et sans coupure
   g.innerHTML=AVIS.map(card).join('')+AVIS.map(card).join('');
