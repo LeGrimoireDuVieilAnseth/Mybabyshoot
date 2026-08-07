@@ -30,18 +30,30 @@ document.getElementById('heroRating').textContent=CHIFFRES.note;
    ils s'affichent automatiquement (note de 1 à 5).
    ===================================================================== */
 const AVIS = [
-  { nom:'Prénom N.', note:5, type:'Séance grossesse', texte:'Colle ici ton premier avis Google.' },
-  { nom:'Prénom N.', note:5, type:'Séance naissance', texte:'Colle ici ton deuxième avis Google.' },
-  { nom:'Prénom N.', note:5, type:'Pack duo', texte:'Colle ici ton troisième avis Google.' }
+  { nom:'Marie B.', note:5, type:'Séance grossesse', date:'il y a 3 mois', texte:'Encore merci Mattéo pour ces superbes photos ! Enceinte de notre premier enfant, nous avons fait 1h de route après avoir parcouru son portfolio et nous avons eu raison. Accueillis par un café, nous avons appris à faire connaissance et décrit l’ambiance voulue, ce qui nous a permis de nous détendre. Nous avons reçu toutes les photos le soir même : le travail est déjà extraordinaire !' },
+  { nom:'Eva D.', note:5, type:'Séance grossesse', date:'il y a 7 mois', texte:'Super accueil et séance géniale ! C’était notre premier shooting et il a su nous mettre à l’aise et nous guider pour les poses. Il y a un énorme choix de tenues pour les mamans ! En plus, super sympa humainement. On recommande à 100 % et on reviendra pour la naissance !' },
+  { nom:'L. F.', note:5, type:'Séance naissance', date:'il y a 5 mois', texte:'Shooting naissance avec notre petite fille de 15 jours et tout s’est très bien passé ! Mattéo est très patient et à l’écoute, ça se voit qu’il a l’habitude des bébés. Les photos sont magnifiques et nous avons passé un super moment en famille.' },
+  { nom:'Marine', note:5, type:'Séance grossesse', date:'il y a 7 mois', texte:'J’ai fait un shooting grossesse et je suis très satisfaite du résultat. Matteo est très professionnel et sait mettre à l’aise. Vous avez un large choix de jolies tenues. Les photos sont magnifiques. Vous pouvez y aller les yeux fermés, vous ne serez pas déçus !' },
+  { nom:'Aurélie & Kévin', note:5, type:'Séance grossesse', date:'il y a 8 mois', texte:'Nous avons réalisé un shooting grossesse et tout a été parfait du début à la fin. Il nous a guidés pour chaque pose et mis totalement à l’aise ! Ce que j’ai particulièrement apprécié, c’est qu’il ne regarde pas la montre : il prend vraiment le temps, sans stress. On a aussi beaucoup discuté, ce qui a rendu la séance naturelle. Je recommande à 100 % !' },
+  { nom:'Camille & Clément', note:5, type:'Séance grossesse', date:'il y a 7 mois', texte:'Nous avons réalisé une séance photo grossesse. Tout s’est très bien passé, c’était une première pour moi et j’avais pas mal d’appréhensions mais le photographe a su me mettre à l’aise. C’était au final très plaisant. Nous reviendrons avec plaisir !' },
+  { nom:'Angelique D.', note:5, type:'Pack grossesse + naissance', date:'il y a 9 mois', texte:'Nous avons eu 2 expériences extraordinaires : le shooting grossesse à Lyon et le shooting naissance. Photographe professionnel, à l’écoute, patient et de très bon conseils, même pour les personnes peu photogéniques. Merci encore pour ces moments partagés et ces magnifiques photos !' },
+  { nom:'Joanna D.', note:5, type:'Séance naissance', date:'il y a un an', texte:'Nous avons réalisé un shooting de naissance pour notre fille, Matteo est top ! Patient, professionnel. Un décor sur mesure spécialement pour nous. Il avance au rythme de bébé et c’est très appréciable ! Résultat des photos ultra rapide ! Nous recommandons à 100 %.' },
+  { nom:'Gautier S.', note:5, type:'Séance grossesse', date:'il y a un an', texte:'Nous avons passé une excellente séance photo de grossesse avec notre fille de 2 ans et demi. Matteo s’est montré très attentionné. Les prises sont naturelles, efficaces, et le résultat est totalement à la hauteur de nos espérances. Nous y retournerons pour les photos de naissance !' },
+  { nom:'Laurence', note:5, type:'Pack grossesse + naissance', date:'il y a un an', texte:'Très satisfaits de notre première séance photo grossesse, nous avons renouvelé l’expérience avec une séance naissance ! Matteo a su s’adapter à nos attentes. Disponible, arrangeant, à l’écoute, patient (surtout quand bébé a faim). On s’est senti à l’aise. Merci pour ces souvenirs immortalisés !' }
 ];
+const GLOGO='<svg class="rev-g" viewBox="0 0 48 48" aria-label="Avis Google"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34A21.99 21.99 0 0 0 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>';
 (function renderAvis(){
   const g=document.getElementById('revGrid'); if(!g) return;
-  g.innerHTML=AVIS.map(a=>{
+  const card=a=>{
     const stars='★★★★★'.slice(0,a.note)+'☆☆☆☆☆'.slice(0,5-a.note);
     const initiale=(a.nom||'?').trim().charAt(0).toUpperCase();
-    return '<div class="rev"><div class="stars">'+stars+'</div><p>'+a.texte+'</p>'+
-      '<div class="who"><span class="ava">'+initiale+'</span><div><b>'+a.nom+'</b><span>'+(a.type||'')+'</span></div></div></div>';
-  }).join('');
+    const meta=[a.type,a.date].filter(Boolean).join(' · ');
+    return '<article class="rev"><div class="rev-top"><div class="stars">'+stars+'</div>'+GLOGO+'</div>'+
+      '<p>'+a.texte+'</p>'+
+      '<div class="who"><span class="ava">'+initiale+'</span><div><b>'+a.nom+'</b><span>'+meta+'</span></div></div></article>';
+  };
+  // liste dupliquee : permet un defilement en boucle continue et sans coupure
+  g.innerHTML=AVIS.map(card).join('')+AVIS.map(card).join('');
 })();
 
 /* =====================================================================
