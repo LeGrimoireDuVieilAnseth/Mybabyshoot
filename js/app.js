@@ -402,7 +402,9 @@ function renderBookStep1(){
 }
 
 function renderBookStep2(){
-  const reste=bookState.total-bookState.acompte;
+  const remise=bookState.remise||0;
+  const totalNet=bookState.total-remise;
+  const reste=totalNet-bookState.acompte;
   bookBody.innerHTML=
     '<div class="book-head"><span class="book-eyebrow">Vos coordonnées</span><h3>Presque terminé</h3>'
     +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p></div>'
@@ -410,7 +412,13 @@ function renderBookStep2(){
     +'<div class="field"><label for="bNom">Nom</label><input id="bNom" type="text" autocomplete="family-name"></div></div>'
     +'<div class="frow"><div class="field"><label for="bEmail">Email</label><input id="bEmail" type="email" autocomplete="email"></div>'
     +'<div class="field"><label for="bTel">Téléphone</label><input id="bTel" type="tel" autocomplete="tel"></div></div>'
+    +'<div class="field promo-field"><label for="bPromo">Code de réduction <span class="opt">(facultatif)</span></label>'
+    +'<div class="promo-row"><input id="bPromo" type="text" autocomplete="off" placeholder="Ex : ABCD-1234" value="'+(bookState.coupon||'')+'">'
+    +'<button type="button" class="btn btn-ghost" id="bPromoBtn">'+(remise?'Retirer':'Appliquer')+'</button></div>'
+    +'<div class="promo-msg'+(remise?' ok':'')+'" id="bPromoMsg">'+(remise?'Code appliqué : '+euro(remise)+' de remise.':'')+'</div></div>'
     +'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
+    +(remise?'<div class="book-sum-l promo"><span>Code de réduction</span><b>- '+euro(remise)+'</b></div>'
+            +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
     +'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(bookState.acompte)+'</b></div>'
     +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div></div>'
     +'<div class="book-err" id="bookErr"></div>'
@@ -418,6 +426,28 @@ function renderBookStep2(){
     +'<button type="button" class="btn btn-coral" id="bookPay">Payer l\'acompte de '+bookState.acompte+' €</button></div>';
   document.getElementById('bookBack').addEventListener('click',renderBookStep1);
   document.getElementById('bookPay').addEventListener('click',submitBooking);
+  document.getElementById('bPromoBtn').addEventListener('click',togglePromo);
+  document.getElementById('bPromo').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();togglePromo();}});
+}
+
+/* Applique ou retire un code de reduction (la remise est revalidee au paiement). */
+async function togglePromo(){
+  const inp=document.getElementById('bPromo');
+  const msg=document.getElementById('bPromoMsg');
+  const btn=document.getElementById('bPromoBtn');
+  if(bookState.remise){ bookState.remise=0; bookState.coupon=''; renderBookStep2(); return; }
+  const code=(inp.value||'').trim();
+  if(!code){ msg.className='promo-msg err'; msg.textContent='Entrez votre code.'; return; }
+  btn.disabled=true; msg.className='promo-msg'; msg.textContent='Vérification...';
+  try{
+    const r=await fetch(CRM_API+'/mbs-coupon',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code,total:bookState.total})});
+    const j=await r.json();
+    if(j&&j.valide){ bookState.remise=j.remise; bookState.coupon=code; renderBookStep2(); }
+    else { msg.className='promo-msg err'; msg.textContent=(j&&j.message)||"Ce code n'est pas valable."; btn.disabled=false; }
+  }catch(e){
+    msg.className='promo-msg err'; msg.textContent='Vérification impossible, réessayez.'; btn.disabled=false;
+  }
 }
 
 function bookVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
@@ -430,10 +460,12 @@ async function submitBooking(){
   const btn=document.getElementById('bookPay');btn.disabled=true;btn.textContent='Redirection vers le paiement...';
   try{
     const r=await fetch(CRM_API+'/mbs-checkout',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client})});
+      body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client,
+        coupon:bookState.coupon||''})});
     const j=await r.json();
     if(j.ok&&j.url){window.location.href=j.url;return;}
     if(j.error==='slot_taken'){bookErr('Ce créneau vient d\'être pris. Choisissez-en un autre.');resetPayBtn();loadAvailability();return;}
+    if(j.error==='coupon'){bookErr(j.message||"Ce code de réduction n'est pas valable.");bookState.remise=0;bookState.coupon='';renderBookStep2();return;}
     bookErr('Le paiement en ligne n\'est pas encore actif. Appelez-moi au 06 47 76 54 17 pour réserver.');resetPayBtn();
   }catch(e){
     bookErr('Une erreur est survenue. Réessayez, ou appelez-moi au 06 47 76 54 17.');resetPayBtn();

@@ -411,6 +411,15 @@ footer a:hover{color:var(--coral)}
 .book-slot:hover{border-color:var(--coral)}
 .book-slot.active{background:var(--cta);border-color:var(--cta);color:var(--cream)}
 .book-slot.ro{cursor:default;background:var(--cream);color:var(--ink-soft);border-style:dashed}
+.promo-field{margin-top:2px}
+.promo-field .opt{font-weight:400;color:var(--ink-soft);font-size:12.5px}
+.promo-row{display:flex;gap:8px}
+.promo-row input{flex:1;text-transform:uppercase}
+.promo-row .btn{flex:none;padding:12px 18px;white-space:nowrap}
+.promo-msg{font-size:13px;margin-top:6px;color:var(--ink-soft);min-height:1px}
+.promo-msg.ok{color:#2E7D52;font-weight:700}
+.promo-msg.err{color:#B3402F;font-weight:600}
+.book-sum-l.promo b{color:#2E7D52}
 .book-full{width:100%;margin-top:22px}
 .book-full:disabled{opacity:.45;cursor:default;transform:none}
 .book-sum{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:18px 0 6px}
