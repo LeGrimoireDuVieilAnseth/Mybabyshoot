@@ -248,7 +248,8 @@ function render(){
   document.getElementById('acompteVal').textContent=euro(acompte);
   const eN=document.getElementById('ecoNormal'),eS=document.getElementById('ecoSave');
   if(eN)eN.classList.remove('show'); if(eS)eS.classList.remove('show');
-  document.getElementById('mctaPrice').innerHTML=euro(t)+'<span>séance sur mesure</span>';
+  const mp=document.getElementById('mctaPrice');
+  if(mp)mp.innerHTML=euro(t)+'<span>séance sur mesure</span>';
 }
 document.getElementById('gammes').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b){state.gamme=b.dataset.gamme;render();}});
 document.getElementById('typeSeg').addEventListener('click',e=>{
