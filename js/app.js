@@ -536,9 +536,16 @@ render();
   const HELLO="Bonjour ! Je suis l'assistant du studio. Posez-moi vos questions : tarifs, déroulement des séances, conseils grossesse ou naissance... je réponds tout de suite !";
   let hist=[];
   try{ hist=JSON.parse(sessionStorage.getItem('mbsChat')||'[]'); }catch(e){ hist=[]; }
-  let busy=false;
+  let convId=null;
+  try{ convId=sessionStorage.getItem('mbsChatId')||null; }catch(e){}
+  let busy=false, poll=null;
 
-  function save(){ try{ sessionStorage.setItem('mbsChat',JSON.stringify(hist.slice(-16))); }catch(e){} }
+  function save(){
+    try{
+      sessionStorage.setItem('mbsChat',JSON.stringify(hist.slice(-16)));
+      if(convId) sessionStorage.setItem('mbsChatId',convId);
+    }catch(e){}
+  }
   function bubble(role,text,wait){
     const d=document.createElement('div');
     d.className='chat-b '+(role==='user'?'moi':'ia')+(wait?' wait':'');
@@ -552,8 +559,31 @@ render();
     bubble('assistant',HELLO);
     hist.forEach(m=>bubble(m.role,m.content));
   }
-  function openChat(){ panel.classList.add('open'); panel.setAttribute('aria-hidden','false'); paint(); setTimeout(()=>input.focus(),120); }
-  function closeChat(){ panel.classList.remove('open'); panel.setAttribute('aria-hidden','true'); }
+  function openChat(){ panel.classList.add('open'); panel.setAttribute('aria-hidden','false'); paint(); startPoll(); setTimeout(()=>input.focus(),120); }
+  function closeChat(){ panel.classList.remove('open'); panel.setAttribute('aria-hidden','true'); stopPoll(); }
+
+  /* Matt peut reprendre la main depuis son CRM : on va chercher ses reponses */
+  function startPoll(){
+    stopPoll();
+    if(!convId) return;
+    poll=setInterval(async ()=>{
+      if(busy||!convId) return;
+      try{
+        const r=await fetch(CRM_API+'/mbs-chat?conv='+encodeURIComponent(convId)+'&after='+hist.length,{cache:'no-store'});
+        if(!r.ok) return;
+        const j=await r.json();
+        if(j&&j.ok&&j.messages&&j.messages.length){
+          j.messages.forEach(m=>{
+            const role=m.role==='user'?'user':'assistant';
+            hist.push({role,content:m.content});
+            if(panel.classList.contains('open')) bubble(role,m.content);
+          });
+          save();
+        }
+      }catch(e){}
+    },7000);
+  }
+  function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
 
   fab.addEventListener('click',()=>{ panel.classList.contains('open')?closeChat():openChat(); });
   document.getElementById('chatClose').addEventListener('click',closeChat);
@@ -570,13 +600,19 @@ render();
       const r=await fetch(CRM_API+'/mbs-chat',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:hist.slice(-16)})
+        body:JSON.stringify({convId,message:text,history:hist.slice(0,-1).slice(-12)})
       });
       const j=await r.json();
       waitB.remove();
-      const reply=(j&&j.reply)?j.reply:"Je n'arrive pas à répondre pour le moment. Appelez Matt au 06 47 76 54 17 !";
-      hist.push({role:'assistant',content:reply}); save();
-      bubble('assistant',reply);
+      if(j&&j.convId){ convId=j.convId; save(); startPoll(); }
+      if(j&&j.manual){
+        // Matt a repris la main : pas de reponse automatique
+        bubble('assistant',"Message transmis à Matt. Restez sur cette fenêtre, il vous répond ici même.",true);
+      }else{
+        const reply=(j&&j.reply)?j.reply:"Je n'arrive pas à répondre pour le moment. Appelez Matt au 06 47 76 54 17 !";
+        hist.push({role:'assistant',content:reply}); save();
+        bubble('assistant',reply);
+      }
     }catch(e){
       waitB.remove();
       bubble('assistant',"Petit souci de connexion. Réessayez, ou appelez Matt au 06 47 76 54 17.");
