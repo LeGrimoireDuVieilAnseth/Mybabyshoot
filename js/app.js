@@ -134,7 +134,8 @@ const galItems=ALL.map(id=>{
   galleryEl.appendChild(im);
   const it={el:im,ar:1};
   const grab=()=>{ if(im.naturalWidth){ it.ar=im.naturalWidth/im.naturalHeight; layoutGallery(); } };
-  if(im.complete&&im.naturalWidth) grab(); else im.addEventListener('load',grab);
+  // image deja en cache : on differe, sinon layoutGallery lit galItems avant sa creation (plantage du script)
+  if(im.complete&&im.naturalWidth) setTimeout(grab,0); else im.addEventListener('load',grab);
   return it;
 });
 function rowH(){ const w=window.innerWidth; return w<560?170:w<980?210:250; }
@@ -284,8 +285,11 @@ function hLabel(t){return t.replace(':','h');}
 const bookModal=document.getElementById('bookModal');
 const bookBody=document.getElementById('bookBody');
 let bookState=null;
+/* mode consultation : on montre les creneaux libres, sans permettre de reserver */
+let bookViewOnly=false;
 
-function openBooking(){
+function openBooking(viewOnly){
+  bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null};
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
@@ -337,28 +341,39 @@ function renderBookStep1(){
 
   let slotsHtml;
   if(bookState.date&&avail[bookState.date]){
-    const slotBtns=avail[bookState.date].map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
+    const slotBtns=bookViewOnly
+      ? avail[bookState.date].map(t=>'<span class="book-slot ro">'+hLabel(t)+'</span>').join('')
+      : avail[bookState.date].map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
     slotsHtml='<div class="book-l">Créneaux du '+bookDateLabel(bookState.date)+'</div><div class="book-slots">'+slotBtns+'</div>';
   }else{
     slotsHtml='<div class="book-slot-hint">Choisissez un jour disponible dans le calendrier.</div>';
   }
 
-  bookBody.innerHTML=
-    '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
-    +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>'
+  const head=bookViewOnly
+    ? '<div class="book-head"><span class="book-eyebrow">Mes disponibilités</span><h3>Les créneaux encore libres</h3>'
+      +'<p class="book-recap">Repérez la date qui vous convient, puis choisissez votre formule pour réserver.</p></div>'
+    : '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
+      +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>';
+
+  const foot=bookViewOnly
+    ? '<button type="button" class="btn btn-coral book-full" id="bookPick">Choisir une formule</button>'
+    : '<button type="button" class="btn btn-coral book-full" id="bookNext"'+(bookState.time?'':' disabled')+'>Continuer</button>';
+
+  bookBody.innerHTML=head
     +'<div class="book-cal"><div class="book-cal-nav">'
     +'<button type="button" class="book-nav" id="bookPrev"'+prevOff+' aria-label="Mois précédent">&lsaquo;</button>'
     +'<span class="book-cal-title">'+bookMonthLabel(ym)+'</span>'
     +'<button type="button" class="book-nav" id="bookNextM"'+nextOff+' aria-label="Mois suivant">&rsaquo;</button></div>'
     +'<div class="book-grid book-dow-row">'+dow+'</div><div class="book-grid">'+cells+'</div></div>'
     +slotsHtml
-    +'<button type="button" class="btn btn-coral book-full" id="bookNext"'+(bookState.time?'':' disabled')+'>Continuer</button>';
+    +foot;
 
   bookBody.querySelectorAll('.book-cell[data-date]').forEach(b=>b.addEventListener('click',()=>{bookState.date=b.dataset.date;bookState.time=null;renderBookStep1();}));
-  bookBody.querySelectorAll('.book-slot').forEach(b=>b.addEventListener('click',()=>{bookState.time=b.dataset.time;renderBookStep1();}));
+  bookBody.querySelectorAll('.book-slot[data-time]').forEach(b=>b.addEventListener('click',()=>{bookState.time=b.dataset.time;renderBookStep1();}));
   const prev=document.getElementById('bookPrev');if(prev)prev.addEventListener('click',()=>{if(!prev.disabled){bookState.viewMonth=bookAddMonth(ym,-1);renderBookStep1();}});
   const nextM=document.getElementById('bookNextM');if(nextM)nextM.addEventListener('click',()=>{if(!nextM.disabled){bookState.viewMonth=bookAddMonth(ym,1);renderBookStep1();}});
   const nx=document.getElementById('bookNext');if(nx)nx.addEventListener('click',()=>{if(bookState.time)renderBookStep2();});
+  const pick=document.getElementById('bookPick');if(pick)pick.addEventListener('click',()=>{closeBooking();gotoComposer();});
 }
 
 function renderBookStep2(){
@@ -401,6 +416,30 @@ async function submitBooking(){
 }
 
 document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openBooking();}));
+
+/* "Disponibilites" : on descend vers les formules, puis on ouvre le planning en consultation.
+   On attend la FIN du defilement avant d'ouvrir (la modale bloque le scroll du fond). */
+function gotoComposer(done){
+  const el=document.getElementById('composer');
+  if(!el){ if(done)done(); return; }
+  const dejaLa=Math.abs(el.getBoundingClientRect().top)<40;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  if(!done) return;
+  if(dejaLa){done();return;}
+  let last=-1, stable=0, tries=0, bouge=false, fini=false;
+  const timer=setInterval(()=>{
+    const y=Math.round(window.scrollY);
+    if(y!==last){bouge=true;stable=0;last=y;}else{stable++;}
+    // on ouvre quand le defilement a demarre PUIS s'est arrete (ou apres 3 s au pire)
+    if((bouge&&stable>=3)||++tries>60){
+      if(fini)return; fini=true; clearInterval(timer); done();
+    }
+  },50);
+}
+document.querySelectorAll('.js-availability').forEach(b=>b.addEventListener('click',e=>{
+  e.preventDefault();
+  gotoComposer(()=>openBooking(true));
+}));
 document.getElementById('bookClose').addEventListener('click',closeBooking);
 bookModal.addEventListener('click',e=>{if(e.target.id==='bookModal')closeBooking();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBooking();});
