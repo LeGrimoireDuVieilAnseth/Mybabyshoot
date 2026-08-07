@@ -522,8 +522,8 @@ render();
 /* =====================================================================
    ASSISTANT DE CHAT (IA)
    Repond aux questions des visiteurs via la fonction mbs-chat du CRM.
-   L'historique reste dans l'onglet (sessionStorage), rien de personnel
-   n'est conserve cote site.
+   L'historique est conserve sur l'appareil du visiteur (localStorage,
+   30 jours) : il retrouve sa conversation meme apres avoir ferme le site.
    ===================================================================== */
 (function(){
   const fab=document.getElementById('chatFab');
@@ -534,17 +534,28 @@ render();
   if(!fab||!panel) return;
 
   const HELLO="Bonjour ! Je suis l'assistant du studio. Posez-moi vos questions : tarifs, déroulement des séances, conseils grossesse ou naissance... je réponds tout de suite !";
-  let hist=[];
-  try{ hist=JSON.parse(sessionStorage.getItem('mbsChat')||'[]'); }catch(e){ hist=[]; }
-  let convId=null;
-  try{ convId=sessionStorage.getItem('mbsChatId')||null; }catch(e){}
+  const MAX_AGE=30*24*3600*1000; // on oublie la conversation au bout de 30 jours
+  let hist=[], convId=null;
+  try{
+    const saved=JSON.parse(localStorage.getItem('mbsChat')||'null');
+    if(saved&&saved.t&&(Date.now()-saved.t)<MAX_AGE){
+      hist=Array.isArray(saved.hist)?saved.hist:[];
+      convId=saved.convId||null;
+    }else{
+      localStorage.removeItem('mbsChat');
+    }
+  }catch(e){ hist=[]; convId=null; }
   let busy=false, poll=null;
 
   function save(){
     try{
-      sessionStorage.setItem('mbsChat',JSON.stringify(hist.slice(-16)));
-      if(convId) sessionStorage.setItem('mbsChatId',convId);
+      localStorage.setItem('mbsChat',JSON.stringify({t:Date.now(),convId,hist:hist.slice(-30)}));
     }catch(e){}
+  }
+  function reset(){
+    hist=[]; convId=null; stopPoll();
+    try{ localStorage.removeItem('mbsChat'); }catch(e){}
+    paint();
   }
   function bubble(role,text,wait){
     const d=document.createElement('div');
@@ -587,6 +598,10 @@ render();
 
   fab.addEventListener('click',()=>{ panel.classList.contains('open')?closeChat():openChat(); });
   document.getElementById('chatClose').addEventListener('click',closeChat);
+  const newBtn=document.getElementById('chatNew');
+  if(newBtn) newBtn.addEventListener('click',()=>{
+    if(!hist.length||confirm('Effacer cette conversation et repartir de zéro ?')) reset();
+  });
 
   async function send(){
     const text=input.value.trim();
