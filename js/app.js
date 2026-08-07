@@ -557,10 +557,17 @@ render();
     try{ localStorage.removeItem('mbsChat'); }catch(e){}
     paint();
   }
+  const QUI={user:'Vous',assistant:'Assistant Mybabyshoot',matt:'Matt de Mybabyshoot'};
   function bubble(role,text,wait){
+    const cls=role==='user'?'moi':(role==='matt'?'matt':'ia');
     const d=document.createElement('div');
-    d.className='chat-b '+(role==='user'?'moi':'ia')+(wait?' wait':'');
-    d.textContent=text;
+    d.className='chat-b '+cls+(wait?' wait':'');
+    const w=document.createElement('div');
+    w.className='chat-who';
+    w.textContent=QUI[role]||QUI.assistant;
+    const p=document.createElement('div');
+    p.textContent=text;
+    d.appendChild(w); d.appendChild(p);
     msgsEl.appendChild(d);
     msgsEl.scrollTop=msgsEl.scrollHeight;
     return d;
@@ -585,7 +592,8 @@ render();
         const j=await r.json();
         if(j&&j.ok&&j.messages&&j.messages.length){
           j.messages.forEach(m=>{
-            const role=m.role==='user'?'user':'assistant';
+            // on garde le role "matt" pour afficher que c'est bien lui qui repond
+            const role=(m.role==='user'||m.role==='matt')?m.role:'assistant';
             hist.push({role,content:m.content});
             if(panel.classList.contains('open')) bubble(role,m.content);
           });
@@ -615,7 +623,8 @@ render();
       const r=await fetch(CRM_API+'/mbs-chat',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({convId,message:text,history:hist.slice(0,-1).slice(-12)})
+        body:JSON.stringify({convId,message:text,
+          history:hist.slice(0,-1).slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}))})
       });
       const j=await r.json();
       waitB.remove();
