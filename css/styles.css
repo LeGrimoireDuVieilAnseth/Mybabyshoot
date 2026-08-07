@@ -130,7 +130,13 @@ section{padding:100px 0}
 .rev .stars{color:var(--gold);letter-spacing:2px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .rev .stars .rate5{font-family:var(--body);letter-spacing:0;font-size:12.5px;font-weight:700;color:var(--ink-soft)}
 .rev p{font-size:15.5px;flex:1;margin:0}
-@media (prefers-reduced-motion:reduce){.rev-track{animation:none;overflow-x:auto;max-width:100%;padding-bottom:8px}}
+.rev p.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.rev-more{align-self:flex-start;margin-top:8px;border:0;background:none;color:var(--coral-deep);font-family:var(--body);font-weight:700;font-size:13px;cursor:pointer;padding:0}
+.rev-more:hover{text-decoration:underline}
+.philo-txt{max-width:680px;margin:0 auto;text-align:center}
+.philo-txt p{font-size:16.5px;line-height:1.8;color:var(--ink-soft);margin:0 0 18px}
+.philo-txt p:last-child{margin-bottom:0}
+.gal-more{text-align:center;margin-top:28px}
 
 /* Galerie */
 .gallery{background:var(--cream)}
@@ -364,7 +370,10 @@ footer a:hover{color:var(--coral)}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .reveal{opacity:1;transform:none}.marquee{animation:none}
+  .reveal{opacity:1;transform:none}
+  /* les deux rubans continuent de defiler (plus lentement) meme si le telephone reduit les animations */
+  .marquee{animation:slide 45s linear infinite!important}
+  .rev-track{animation:revscroll 150s linear infinite!important}
 }
 .book-modal{position:fixed;inset:0;background:rgba(40,30,20,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1200;padding:18px}
 .book-modal.show{display:flex}

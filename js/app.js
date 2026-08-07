@@ -68,14 +68,24 @@ const GLOGO='<svg class="rev-g" viewBox="0 0 48 48" aria-label="Avis Google"><pa
     const stars='★★★★★'.slice(0,a.note)+'☆☆☆☆☆'.slice(0,5-a.note);
     const initiale=(a.nom||'?').trim().charAt(0).toUpperCase();
     const meta=[a.type,a.date].filter(Boolean).join(' · ');
+    const long=(a.texte||'').length>190;
     return '<article class="rev">'+
       '<div class="rev-head"><span class="ava">'+initiale+'</span>'+
         '<div class="who"><b>'+a.nom+'</b><span>'+meta+'</span></div>'+GLOGO+'</div>'+
       '<div class="stars">'+stars+'<span class="rate5">'+a.note+' sur 5</span></div>'+
-      '<p>'+a.texte+'</p></article>';
+      '<p'+(long?' class="clamp"':'')+'>'+a.texte+'</p>'+
+      (long?'<button type="button" class="rev-more">Voir plus</button>':'')+
+      '</article>';
   };
   // liste dupliquee : permet un defilement en boucle continue et sans coupure
   g.innerHTML=AVIS.map(card).join('')+AVIS.map(card).join('');
+  // "Voir plus" : deplie ou replie le texte de l'avis
+  g.addEventListener('click',e=>{
+    const b=e.target.closest('.rev-more'); if(!b)return;
+    const p=b.parentNode.querySelector('p');
+    const replie=p.classList.toggle('clamp');
+    b.textContent=replie?'Voir plus':'Voir moins';
+  });
 })();
 
 /* =====================================================================
@@ -126,8 +136,12 @@ function buildGallery(){
 const ALL=buildGallery();
 const galleryEl=document.getElementById('masonry');
 
-/* Galerie justifiée : rangées alignées, hauteur régulière, sans rognage */
-const galItems=ALL.map(id=>{
+/* Galerie justifiée : rangées alignées, hauteur régulière, sans rognage.
+   On n'affiche d'abord qu'un aperçu (mélange grossesse + naissance),
+   le bouton "Voir plus de photos" charge le reste. */
+const GAL_APERCU=10;
+const galItems=[];
+function addGalPhoto(id){
   const im=document.createElement('img');
   im.src=srcOf(id); im.loading='lazy'; im.alt='Photographie grossesse ou naissance, Mybabyshoot';
   im.addEventListener('click',()=>openLightbox(im.src));
@@ -136,8 +150,18 @@ const galItems=ALL.map(id=>{
   const grab=()=>{ if(im.naturalWidth){ it.ar=im.naturalWidth/im.naturalHeight; layoutGallery(); } };
   // image deja en cache : on differe, sinon layoutGallery lit galItems avant sa creation (plantage du script)
   if(im.complete&&im.naturalWidth) setTimeout(grab,0); else im.addEventListener('load',grab);
-  return it;
-});
+  galItems.push(it);
+}
+ALL.slice(0,GAL_APERCU).forEach(addGalPhoto);
+const galMore=document.getElementById('galMore');
+if(galMore){
+  if(ALL.length<=GAL_APERCU) galMore.parentNode.style.display='none';
+  galMore.addEventListener('click',()=>{
+    ALL.slice(GAL_APERCU).forEach(addGalPhoto);
+    galMore.parentNode.style.display='none';
+    layoutGallery();
+  });
+}
 function rowH(){ const w=window.innerWidth; return w<560?170:w<980?210:250; }
 function layoutGallery(){
   const W=galleryEl.clientWidth, GAP=10, H=rowH();
