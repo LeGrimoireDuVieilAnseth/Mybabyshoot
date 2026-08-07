@@ -565,7 +565,7 @@ render();
   const sendBtn=document.getElementById('chatSend');
   if(!fab||!panel) return;
 
-  const HELLO="Bonjour ! Je suis l'assistant du studio. Posez-moi vos questions : tarifs, déroulement des séances, conseils grossesse ou naissance... je réponds tout de suite !";
+  const HELLO="Bonjour ! Je suis l'assistant du studio. Comment vous appelez-vous ? Ensuite, posez-moi toutes vos questions : tarifs, déroulement des séances, conseils grossesse ou naissance.";
   const MAX_AGE=30*24*3600*1000; // on oublie la conversation au bout de 30 jours
   let hist=[], convId=null;
   try{
