@@ -518,3 +518,71 @@ const cio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){ani
 document.querySelectorAll('.num[data-count]').forEach(el=>cio.observe(el));
 
 render();
+
+/* =====================================================================
+   ASSISTANT DE CHAT (IA)
+   Repond aux questions des visiteurs via la fonction mbs-chat du CRM.
+   L'historique reste dans l'onglet (sessionStorage), rien de personnel
+   n'est conserve cote site.
+   ===================================================================== */
+(function(){
+  const fab=document.getElementById('chatFab');
+  const panel=document.getElementById('chatPanel');
+  const msgsEl=document.getElementById('chatMsgs');
+  const input=document.getElementById('chatInput');
+  const sendBtn=document.getElementById('chatSend');
+  if(!fab||!panel) return;
+
+  const HELLO="Bonjour ! Je suis l'assistant du studio. Posez-moi vos questions : tarifs, déroulement des séances, conseils grossesse ou naissance... je réponds tout de suite !";
+  let hist=[];
+  try{ hist=JSON.parse(sessionStorage.getItem('mbsChat')||'[]'); }catch(e){ hist=[]; }
+  let busy=false;
+
+  function save(){ try{ sessionStorage.setItem('mbsChat',JSON.stringify(hist.slice(-16))); }catch(e){} }
+  function bubble(role,text,wait){
+    const d=document.createElement('div');
+    d.className='chat-b '+(role==='user'?'moi':'ia')+(wait?' wait':'');
+    d.textContent=text;
+    msgsEl.appendChild(d);
+    msgsEl.scrollTop=msgsEl.scrollHeight;
+    return d;
+  }
+  function paint(){
+    msgsEl.innerHTML='';
+    bubble('assistant',HELLO);
+    hist.forEach(m=>bubble(m.role,m.content));
+  }
+  function openChat(){ panel.classList.add('open'); panel.setAttribute('aria-hidden','false'); paint(); setTimeout(()=>input.focus(),120); }
+  function closeChat(){ panel.classList.remove('open'); panel.setAttribute('aria-hidden','true'); }
+
+  fab.addEventListener('click',()=>{ panel.classList.contains('open')?closeChat():openChat(); });
+  document.getElementById('chatClose').addEventListener('click',closeChat);
+
+  async function send(){
+    const text=input.value.trim();
+    if(!text||busy) return;
+    input.value='';
+    hist.push({role:'user',content:text}); save();
+    bubble('user',text);
+    busy=true; sendBtn.disabled=true;
+    const waitB=bubble('assistant','L\'assistant écrit...',true);
+    try{
+      const r=await fetch(CRM_API+'/mbs-chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({messages:hist.slice(-16)})
+      });
+      const j=await r.json();
+      waitB.remove();
+      const reply=(j&&j.reply)?j.reply:"Je n'arrive pas à répondre pour le moment. Appelez Matt au 06 47 76 54 17 !";
+      hist.push({role:'assistant',content:reply}); save();
+      bubble('assistant',reply);
+    }catch(e){
+      waitB.remove();
+      bubble('assistant',"Petit souci de connexion. Réessayez, ou appelez Matt au 06 47 76 54 17.");
+    }
+    busy=false; sendBtn.disabled=false; input.focus();
+  }
+  sendBtn.addEventListener('click',send);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') send(); });
+})();
