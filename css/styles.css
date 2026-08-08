@@ -169,13 +169,19 @@ section{padding:100px 0}
 .included .wrap{position:relative}
 .included .head h2{color:#fff}.included .head h2 .ser{color:var(--coral)}
 .included .eyebrow{color:var(--coral)}
-.incl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.incl{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:30px 26px;transition:.3s}
-.incl:hover{background:rgba(255,255,255,.1);transform:translateY(-4px)}
-.incl .ic{width:44px;height:44px;border-radius:12px;background:var(--coral);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
-.incl .ic svg{width:22px;height:22px;stroke:#fff}
-.incl h3{font-size:1.2rem;color:#fff;margin-bottom:8px;font-weight:700}
-.incl p{color:rgba(252,248,242,.72);font-size:14.5px;margin:0}
+.included{padding:52px 0}
+.incl-head{text-align:center;margin-bottom:24px}
+.incl-head .eyebrow{margin-bottom:6px}
+.incl-head h2{font-size:clamp(1.5rem,3vw,2rem);color:#fff;margin:0}
+.incl-head h2 .ser{color:var(--coral)}
+.incl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.incl{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;transition:.3s;flex-wrap:wrap}
+.incl b{font-size:14px;color:#fff;font-weight:700;line-height:1.25}
+.incl .d{font-size:12.5px;color:rgba(252,248,242,.6);width:100%;padding-left:39px;line-height:1.35;margin-top:-4px}
+.incl:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.incl .ic{width:28px;height:28px;border-radius:8px;background:var(--coral);display:flex;align-items:center;justify-content:center;flex:none}
+.incl .ic svg{width:15px;height:15px;stroke:#fff}
 .incl-link{color:var(--coral);font-weight:700;text-decoration:underline;text-underline-offset:2px}
 .incl-link:hover{color:#fff}
 
@@ -355,7 +361,10 @@ footer a:hover{color:var(--coral)}
   .hero-grid,.config-layout,.reserve-grid{grid-template-columns:1fr;gap:40px}
   .bento{height:420px}
   .stats-grid{grid-template-columns:1fr 1fr}
-  .rev-grid,.incl-grid{grid-template-columns:1fr}
+  .rev-grid{grid-template-columns:1fr}
+  .incl-grid{grid-template-columns:1fr 1fr}
+  .incl{flex-direction:column;align-items:flex-start;gap:7px;padding:12px}
+  .incl .d{padding-left:0;margin-top:0}
   .packs-grid{grid-template-columns:1fr 1fr}
   .howto{grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px}
   .fgrid{grid-template-columns:1fr 1fr}

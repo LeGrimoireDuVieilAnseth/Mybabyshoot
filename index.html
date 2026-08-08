@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=16">
+<link rel="stylesheet" href="css/styles.css?v=17">
 </head>
 <body>
 
@@ -121,59 +121,20 @@
   </div>
 </section>
 
-<!-- LE PHOTOGRAPHE -->
-<section class="about" id="photographe">
-  <div class="wrap about-grid reveal">
-    <div class="about-photo">
-      <img src="images/photographe.jpg" alt="Matt, photographe grossesse et naissance à Lyon" loading="lazy"
-        onerror="this.style.display='none';this.parentNode.classList.add('about-photo-empty');">
-      <div class="about-ph-msg">Ajoutez votre photo : <code>images/photographe.jpg</code></div>
-    </div>
-    <div class="about-text">
-      <span class="eyebrow">Le photographe</span>
-      <h2>Un univers <span class="ser">tendre et joyeux</span></h2>
-      <p>Cela fait maintenant sept ans que je photographie la grossesse et la naissance. C'est un domaine que j'aime profondément, parce qu'il est sain, doux et porteur de belles émotions.</p>
-      <p>Ici, les gens viennent heureux. Ils attendent un enfant ou viennent de l'accueillir, et cette joie se ressent à chaque séance. C'est un vrai plaisir de capturer ces instants avec des personnes contentes d'être là, dans une ambiance détendue et bienveillante.</p>
-      <p>Mon rôle, c'est de vous mettre à l'aise et de vous guider, pour que vous repartiez avec des images qui vous ressemblent et que vous garderez toute votre vie.</p>
-      <a href="#composer" class="btn btn-coral js-availability">Disponibilités et réservation</a>
-    </div>
-  </div>
-</section>
-
 <!-- INCLUS -->
 <section class="included">
   <div class="wrap">
-    <div class="head reveal">
+    <div class="incl-head reveal">
       <span class="eyebrow">Compris dans chaque séance</span>
       <h2>Tout est <span class="ser">déjà inclus</span></h2>
     </div>
     <div class="incl-grid reveal">
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Durée de séance confortable</h3><p>Créneaux espacés de 4h pour ne jamais être pressé. Durée réelle entre 1h et 2h30 selon la séance.</p></div>
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7l4-3h8l4 3-3 3v9H7v-9z"/></svg></div><h3>Dressing à disposition</h3><p>Robes, kimonos, voilages et bodys prêtés. Aucune limite de tenue, vous pouvez aussi ramener vos tenues.</p></div>
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></div><h3>Décors multiples</h3><p>Plusieurs décors pour les shootings naissance. Vos envies et vos idées sont les bienvenues.</p></div>
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div><h3>Galerie privée en ligne</h3><p>Visionnez et sélectionnez vos photos sur une galerie sécurisée. <a class="incl-link" href="https://matt-la-photo.pelli.io/galerie-naissance" target="_blank" rel="noopener">Découvrir un exemple.</a></p></div>
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><h3>Séances guidées</h3><p>Je vous guide dans chaque pose, en restant ouvert à vos idées.</p></div>
-      <div class="incl"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2 4 4 0 017 2c0 5.5-7 10-7 10z"/></svg></div><h3>Toute la famille</h3><p>Aînés, conjoint et animaux de compagnie peuvent participer.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- AVANT APRES -->
-<section class="compare" id="avantapres">
-  <div class="wrap">
-    <div class="head center reveal">
-      <span class="eyebrow">La retouche</span>
-      <h2>Avant, <span class="ser">après</span></h2>
-      <p>Faites glisser la tirette pour découvrir le travail de retouche.</p>
-      <p class="retouche-info">La retouche ajuste la lumière, la colorimétrie, le contraste, le recadrage et corrige la peau (rougeurs, petites imperfections). Aucune retouche corporelle n'est effectuée sans votre accord, par respect du corps de la personne photographiée.</p>
-    </div>
-    <div class="ba-tabs" id="baTabs"></div>
-    <div class="ba reveal" id="ba">
-      <span class="lab lab-av">Avant</span>
-      <span class="lab lab-ap">Après</span>
-      <div class="layer"><img id="baAfter" alt="Photo retouchée"></div>
-      <div class="layer" id="baBeforeLayer"><img id="baBefore" alt="Photo brute"></div>
-      <div class="handle" id="baHandle"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><b>Sans limite de temps</b><span class="d">Créneaux espacés de 4h</span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7l4-3h8l4 3-3 3v9H7v-9z"/></svg></span><b>Dressing complet</b><span class="d">Robes, kimonos, bodys prêtés</span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></span><b>Décors multiples</b><span class="d">Vos idées sont bienvenues</span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span><b>Galerie privée</b><span class="d"><a class="incl-link" href="https://matt-la-photo.pelli.io/galerie-naissance" target="_blank" rel="noopener">Voir un exemple</a></span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><b>Séances guidées</b><span class="d">Guidé pose après pose</span></div>
+      <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2 4 4 0 017 2c0 5.5-7 10-7 10z"/></svg></span><b>Toute la famille</b><span class="d">Aînés, conjoint et animaux</span></div>
     </div>
   </div>
 </section>
@@ -246,6 +207,45 @@
           <span class="dbadge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Sans engagement</span>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- LE PHOTOGRAPHE -->
+<section class="about" id="photographe">
+  <div class="wrap about-grid reveal">
+    <div class="about-photo">
+      <img src="images/photographe.jpg" alt="Matt, photographe grossesse et naissance à Lyon" loading="lazy"
+        onerror="this.style.display='none';this.parentNode.classList.add('about-photo-empty');">
+      <div class="about-ph-msg">Ajoutez votre photo : <code>images/photographe.jpg</code></div>
+    </div>
+    <div class="about-text">
+      <span class="eyebrow">Le photographe</span>
+      <h2>Un univers <span class="ser">tendre et joyeux</span></h2>
+      <p>Cela fait maintenant sept ans que je photographie la grossesse et la naissance. C'est un domaine que j'aime profondément, parce qu'il est sain, doux et porteur de belles émotions.</p>
+      <p>Ici, les gens viennent heureux. Ils attendent un enfant ou viennent de l'accueillir, et cette joie se ressent à chaque séance. C'est un vrai plaisir de capturer ces instants avec des personnes contentes d'être là, dans une ambiance détendue et bienveillante.</p>
+      <p>Mon rôle, c'est de vous mettre à l'aise et de vous guider, pour que vous repartiez avec des images qui vous ressemblent et que vous garderez toute votre vie.</p>
+      <a href="#composer" class="btn btn-coral js-availability">Disponibilités et réservation</a>
+    </div>
+  </div>
+</section>
+
+<!-- AVANT APRES -->
+<section class="compare" id="avantapres">
+  <div class="wrap">
+    <div class="head center reveal">
+      <span class="eyebrow">La retouche</span>
+      <h2>Avant, <span class="ser">après</span></h2>
+      <p>Faites glisser la tirette pour découvrir le travail de retouche.</p>
+      <p class="retouche-info">La retouche ajuste la lumière, la colorimétrie, le contraste, le recadrage et corrige la peau (rougeurs, petites imperfections). Aucune retouche corporelle n'est effectuée sans votre accord, par respect du corps de la personne photographiée.</p>
+    </div>
+    <div class="ba-tabs" id="baTabs"></div>
+    <div class="ba reveal" id="ba">
+      <span class="lab lab-av">Avant</span>
+      <span class="lab lab-ap">Après</span>
+      <div class="layer"><img id="baAfter" alt="Photo retouchée"></div>
+      <div class="layer" id="baBeforeLayer"><img id="baBefore" alt="Photo brute"></div>
+      <div class="handle" id="baHandle"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></span></div>
     </div>
   </div>
 </section>
