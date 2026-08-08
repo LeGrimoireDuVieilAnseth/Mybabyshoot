@@ -241,6 +241,72 @@ function resolveInc(i){return i.replace('@T', state.type==='naissance'?'naissanc
 function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0);}
 const totalEl=document.getElementById('totalVal');
 
+/* ---------------------------------------------------------------
+   Disponibilite reelle : prochaine date libre, et alerte de rareté
+   UNIQUEMENT quand elle est vraie (jamais de faux compte a rebours).
+   --------------------------------------------------------------- */
+const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const JOURS_FR=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const SEUIL_RARETE=12; // en dessous, on signale qu'il reste peu de place ce mois-la
+
+function dateLongue(iso){
+  const p=String(iso).split('-').map(Number);
+  const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));
+  return JOURS_FR[d.getUTCDay()]+' '+p[2]+' '+MOIS_FR[p[1]-1];
+}
+async function chargerDispoNote(){
+  const box=document.getElementById('dispoNote');
+  if(!box) return;
+  try{
+    const r=await fetch(CRM_API+'/mbs-availability',{cache:'no-store'});
+    const j=await r.json();
+    const days=(j&&j.days)||[];
+    if(!days.length){
+      box.innerHTML='<span class="dispo-ic">•</span> Plus de créneau en ligne pour le moment. Appelez-moi au 06 47 76 54 17.';
+      box.className='dispo-note show';
+      return;
+    }
+    const prochaine=days[0];
+    // nombre de creneaux restants sur le mois de la prochaine date
+    const mois=prochaine.date.slice(0,7);
+    const restants=days.filter(d=>d.date.slice(0,7)===mois).reduce((n,d)=>n+d.slots.length,0);
+    const nomMois=MOIS_FR[Number(mois.slice(5,7))-1];
+    let txt='<b>Prochaine disponibilité : '+dateLongue(prochaine.date)+'</b>';
+    if(restants<=SEUIL_RARETE){
+      txt+=' <span class="dispo-rare">Plus que '+restants+' créneau'+(restants>1?'x':'')+' en '+nomMois+'.</span>';
+    }
+    box.innerHTML='<span class="dispo-ic">•</span> '+txt;
+    box.className='dispo-note show';
+  }catch(e){ /* silencieux : on n'affiche rien plutot qu'une info fausse */ }
+}
+
+/* Equivalent duo d'une formule simple, pour proposer le pack au bon moment.
+   L'economie affichee est TOUJOURS calculee, jamais inventee. */
+const DUO_EQUIV={essentielle:'essentiel',confort:'confort',prestige:'prestige'};
+function renderDuoNudge(){
+  const box=document.getElementById('duoNudge');
+  if(!box) return;
+  if(state.section==='duo'){ box.innerHTML=''; box.classList.remove('show'); return; }
+  const g=currentGamme();
+  const duo=(GAMMES.duo||[]).find(d=>d.id===DUO_EQUIV[g.id]);
+  if(!duo){ box.innerHTML=''; box.classList.remove('show'); return; }
+  const deuxSeances=g.prix*2;
+  const eco=deuxSeances-duo.prix;
+  const autre=state.type==='naissance'?'grossesse':'naissance';
+  box.innerHTML='<div class="duo-in">'
+    +'<div class="duo-txt"><b>Vous pensez aussi faire la '+autre+' ?</b>'
+    +'<span>'+duo.nom+' : les 2 séances pour '+euro(duo.prix)
+    +(eco>0?', soit <b class="duo-eco">'+euro(eco)+' d\'économie</b> par rapport à 2 séances séparées.'
+           :'. Les galeries complètes au naturel des 2 séances sont offertes.')+'</span></div>'
+    +'<button type="button" class="btn btn-ghost" id="duoGo">Voir le pack duo</button></div>';
+  box.classList.add('show');
+  const b=document.getElementById('duoGo');
+  if(b) b.addEventListener('click',()=>{
+    state.section='duo'; state.gamme=DUO_EQUIV[g.id]||'confort'; render();
+    document.getElementById('gammes').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+}
+
 function renderGammes(){
   const sec=state.section;
   const box=document.getElementById('gammes');
@@ -255,6 +321,7 @@ function renderGammes(){
 }
 function render(){
   renderGammes();
+  renderDuoNudge();
   document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===(state.section==='duo'?'duo':state.type)));
   document.getElementById('optAlbum').classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
@@ -550,6 +617,7 @@ const cio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){ani
 document.querySelectorAll('.num[data-count]').forEach(el=>cio.observe(el));
 
 render();
+chargerDispoNote();
 
 /* =====================================================================
    ASSISTANT DE CHAT (IA)

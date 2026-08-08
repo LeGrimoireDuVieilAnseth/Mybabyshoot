@@ -420,6 +420,25 @@ footer a:hover{color:var(--coral)}
 .book-slot:hover{border-color:var(--coral)}
 .book-slot.active{background:var(--cta);border-color:var(--cta);color:var(--cream)}
 .book-slot.ro{cursor:default;background:var(--cream);color:var(--ink-soft);border-style:dashed}
+/* incitation au pack duo (economie reelle) */
+.duo-nudge{display:none;margin-top:14px}
+.duo-nudge.show{display:block}
+.duo-in{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--blush);
+  border:1px dashed var(--coral);border-radius:14px;padding:14px 16px}
+.duo-txt{flex:1;min-width:220px;display:flex;flex-direction:column;gap:3px}
+.duo-txt b{font-size:14.5px;color:var(--ink)}
+.duo-txt span{font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+.duo-eco{color:var(--coral-deep)}
+.duo-in .btn{flex:none;padding:11px 18px;font-size:14px}
+
+/* disponibilite reelle */
+.dispo-note{display:none;font-size:13.5px;line-height:1.5;color:var(--ink-soft);
+  margin:14px 0 0;padding:10px 13px;background:var(--cream-2);border-radius:10px}
+.dispo-note.show{display:block}
+.dispo-note b{color:var(--ink)}
+.dispo-ic{color:#2E7D52;font-size:18px;line-height:0;vertical-align:-1px}
+.dispo-rare{color:#B3402F;font-weight:700}
+
 .promo-field{margin-top:2px}
 .promo-field .opt{font-weight:400;color:var(--ink-soft);font-size:12.5px}
 .promo-row{display:flex;gap:8px}
