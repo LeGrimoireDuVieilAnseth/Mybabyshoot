@@ -376,19 +376,71 @@ function hLabel(t){return t.replace(':','h');}
 
 const bookModal=document.getElementById('bookModal');
 const bookBody=document.getElementById('bookBody');
+/* echappement : ces valeurs (code saisi, messages) partent dans du innerHTML */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let bookState=null;
 /* mode consultation : on montre les creneaux libres, sans permettre de reserver */
 let bookViewOnly=false;
 
 function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
-  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:''};
+  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:''};
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
   bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
   loadAvailability();
 }
 function closeBooking(){bookModal.classList.remove('show');document.body.style.overflow='';}
+
+/* ---------- Reservation avec un bon cadeau deja paye ----------
+   La formule est fixee par le bon : la personne ne choisit que sa date. */
+function openBookingBon(){
+  bookViewOnly=false;
+  bookState={type:'grossesse',total:0,acompte:0,date:null,time:null,days:null,remise:0,coupon:'',kind:'cadeau',giftOnly:true,giftFormule:''};
+  bookModal.classList.add('show');
+  document.body.style.overflow='hidden';
+  renderBonCode();
+}
+
+function renderBonCode(msg,err){
+  bookBody.innerHTML=
+    '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Votre code</h3>'
+    +'<p class="book-recap">Saisissez le code de votre bon <span>La séance est déjà réglée</span></p></div>'
+    +'<div class="field"><label for="bonCode">Code du bon cadeau</label>'
+    +'<input id="bonCode" type="text" autocomplete="off" placeholder="Ex : CADEAU-7K4-MP2" value="'+esc(bookState.coupon||'')+'"></div>'
+    +'<div class="book-err'+(err?' show':'')+'" id="bonErr">'+(err?esc(err):'')+'</div>'
+    +(msg?'<div class="book-info">'+esc(msg)+'</div>':'')
+    +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bonCancel">Annuler</button>'
+    +'<button type="button" class="btn btn-coral" id="bonGo">Voir les dates disponibles</button></div>';
+  const go=document.getElementById('bonGo');
+  go.addEventListener('click',validerBon);
+  document.getElementById('bonCancel').addEventListener('click',closeBooking);
+  document.getElementById('bonCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validerBon();}});
+}
+
+async function validerBon(){
+  const inp=document.getElementById('bonCode');
+  const btn=document.getElementById('bonGo');
+  const code=(inp.value||'').trim();
+  if(!code){ renderBonCode('', 'Entrez le code inscrit sur votre bon.'); return; }
+  btn.disabled=true; btn.textContent='Vérification...';
+  try{
+    const r=await fetch(CRM_API+'/mbs-gift-view?code='+encodeURIComponent(code),{cache:'no-store'});
+    const j=await r.json();
+    if(!j||!j.ok){ bookState.coupon=code; renderBonCode('', "Ce code n'existe pas. Vérifiez la saisie, ou appelez le 06 47 76 54 17."); return; }
+    const b=j.bon;
+    if(b.utilise){ bookState.coupon=code; renderBonCode('', 'Ce bon a déjà été utilisé pour une réservation.'); return; }
+    if(b.desactive){ bookState.coupon=code; renderBonCode('', "Ce bon n'est plus valable. Appelez le 06 47 76 54 17."); return; }
+    bookState.coupon=b.code;
+    bookState.giftFormule=b.formule||'';
+    bookState.type=(b.seance==='duo'||b.seance==='naissance')?b.seance:'grossesse';
+    bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
+    loadAvailability();
+  }catch(e){
+    bookState.coupon=code;
+    renderBonCode('', 'Vérification impossible pour le moment. Réessayez, ou appelez le 06 47 76 54 17.');
+  }
+}
 
 async function loadAvailability(){
   try{
@@ -444,6 +496,11 @@ function renderBookStep1(){
   const head=bookViewOnly
     ? '<div class="book-head"><span class="book-eyebrow">Mes disponibilités</span><h3>Les créneaux encore libres</h3>'
       +'<p class="book-recap">Repérez la date qui vous convient, puis choisissez votre formule pour réserver.</p></div>'
+    : bookState.giftOnly
+    ? '<div class="book-head"><span class="book-eyebrow">Votre bon cadeau</span><h3>Choisissez votre créneau</h3>'
+      +'<p class="book-recap">'+bookTypeLabel(bookState.type)
+      +(bookState.giftFormule?' · formule '+bookState.giftFormule:'')
+      +' <span>Séance déjà réglée</span></p></div>'
     : '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
       +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>';
 
@@ -476,6 +533,14 @@ function renderBookStep2(){
   const reste=totalNet-aPayer;
   const cadeau=bookState.kind==='cadeau';
   const libRemise=cadeau?'Bon cadeau':'Code de réduction';
+  // venu avec un bon cadeau : le code est deja validé, on ne remontre pas le champ
+  const champCode=bookState.giftOnly
+    ? '<div class="promo-fixe">Bon cadeau <b>'+esc(bookState.coupon)+'</b> appliqué'
+      +(bookState.giftFormule?' · formule '+esc(bookState.giftFormule):'')+'</div>'
+    : '<div class="field promo-field"><label for="bPromo">Code de réduction ou bon cadeau <span class="opt">(facultatif)</span></label>'
+      +'<div class="promo-row"><input id="bPromo" type="text" autocomplete="off" placeholder="Ex : ABCD-1234" value="'+(bookState.coupon||'')+'">'
+      +'<button type="button" class="btn btn-ghost" id="bPromoBtn">'+(remise?'Retirer':'Appliquer')+'</button></div>'
+      +'<div class="promo-msg'+(remise?' ok':'')+'" id="bPromoMsg">'+(remise?libRemise+' appliqué : '+euro(remise)+' déduits.':'')+'</div></div>';
   bookBody.innerHTML=
     '<div class="book-head"><span class="book-eyebrow">Vos coordonnées</span><h3>Presque terminé</h3>'
     +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p></div>'
@@ -483,26 +548,30 @@ function renderBookStep2(){
     +'<div class="field"><label for="bNom">Nom</label><input id="bNom" type="text" autocomplete="family-name"></div></div>'
     +'<div class="frow"><div class="field"><label for="bEmail">Email</label><input id="bEmail" type="email" autocomplete="email"></div>'
     +'<div class="field"><label for="bTel">Téléphone</label><input id="bTel" type="tel" autocomplete="tel"></div></div>'
-    +'<div class="field promo-field"><label for="bPromo">Code de réduction ou bon cadeau <span class="opt">(facultatif)</span></label>'
-    +'<div class="promo-row"><input id="bPromo" type="text" autocomplete="off" placeholder="Ex : ABCD-1234" value="'+(bookState.coupon||'')+'">'
-    +'<button type="button" class="btn btn-ghost" id="bPromoBtn">'+(remise?'Retirer':'Appliquer')+'</button></div>'
-    +'<div class="promo-msg'+(remise?' ok':'')+'" id="bPromoMsg">'+(remise?libRemise+' appliqué : '+euro(remise)+' déduits.':'')+'</div></div>'
-    +'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
-    +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
-            +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
-    +(aPayer>0
-        ?'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
-         +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div>'
-        :'<div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
-         +'<div class="book-sum-note">Votre bon cadeau couvre la totalité de la séance : il n\'y a rien à payer, ni maintenant, ni le jour J.</div>')
-    +'</div>'
+    +champCode
+    // sur un bon cadeau on n'affiche aucun montant : la personne qui l'a recu
+    // n'a pas a decouvrir le prix de son cadeau
+    +(bookState.giftOnly
+      ?'<div class="book-sum"><div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
+       +'<div class="book-sum-note">Votre séance est déjà réglée par le bon cadeau. Rien à payer, ni maintenant, ni le jour J.</div></div>'
+      :'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
+       +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
+               +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
+       +(aPayer>0
+           ?'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
+            +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div>'
+           :'<div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
+            +'<div class="book-sum-note">Votre bon cadeau couvre la totalité de la séance : il n\'y a rien à payer, ni maintenant, ni le jour J.</div>')
+       +'</div>')
     +'<div class="book-err" id="bookErr"></div>'
     +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bookBack">Retour</button>'
     +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?'Payer l\'acompte de '+aPayer+' €':'Confirmer ma réservation')+'</button></div>';
   document.getElementById('bookBack').addEventListener('click',renderBookStep1);
   document.getElementById('bookPay').addEventListener('click',submitBooking);
-  document.getElementById('bPromoBtn').addEventListener('click',togglePromo);
-  document.getElementById('bPromo').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();togglePromo();}});
+  const pb=document.getElementById('bPromoBtn');
+  if(pb) pb.addEventListener('click',togglePromo);
+  const pi=document.getElementById('bPromo');
+  if(pi) pi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();togglePromo();}});
 }
 
 /* Applique ou retire un code de reduction (la remise est revalidee au paiement). */
@@ -527,7 +596,10 @@ async function togglePromo(){
 
 function bookVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function bookErr(msg){const e=document.getElementById('bookErr');if(e){e.textContent=msg;e.classList.add('show');}}
-function bookAPayer(){return Math.max(0,Math.min(bookState.acompte,bookState.total-(bookState.remise||0)));}
+function bookAPayer(){
+  if(bookState.giftOnly) return 0;
+  return Math.max(0,Math.min(bookState.acompte,bookState.total-(bookState.remise||0)));
+}
 function resetPayBtn(){const b=document.getElementById('bookPay');if(b){const p=bookAPayer();b.disabled=false;b.textContent=p>0?'Payer l\'acompte de '+p+' €':'Confirmer ma réservation';}}
 
 async function submitBooking(){
@@ -539,13 +611,16 @@ async function submitBooking(){
   try{
     const r=await fetch(CRM_API+'/mbs-checkout',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client,
-        coupon:bookState.coupon||''})});
+        coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly})});
     const j=await r.json();
     if(j.ok&&j.url){window.location.href=j.url;return;}
     // bon cadeau couvrant tout : pas de passage par Stripe, c'est deja confirme
     if(j.ok&&j.gratuit){renderBookGratuit(client);return;}
     if(j.error==='slot_taken'){bookErr('Ce créneau vient d\'être pris. Choisissez-en un autre.');resetPayBtn();loadAvailability();return;}
-    if(j.error==='coupon'){bookErr(j.message||"Ce code n'est pas valable.");bookState.remise=0;bookState.coupon='';bookState.kind='';renderBookStep2();return;}
+    if(j.error==='coupon'){
+      if(bookState.giftOnly){ renderBonCode('', j.message||"Ce bon n'est plus utilisable."); return; }
+      bookErr(j.message||"Ce code n'est pas valable.");bookState.remise=0;bookState.coupon='';bookState.kind='';renderBookStep2();return;
+    }
     bookErr('Le paiement en ligne n\'est pas encore actif. Appelez-moi au 06 47 76 54 17 pour réserver.');resetPayBtn();
   }catch(e){
     bookErr('Une erreur est survenue. Réessayez, ou appelez-moi au 06 47 76 54 17.');resetPayBtn();
@@ -557,15 +632,17 @@ function renderBookGratuit(client){
   bookBody.innerHTML=
     '<div class="book-head"><span class="book-eyebrow">C\'est confirmé</span><h3>Votre séance est réservée</h3>'
     +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p></div>'
-    +'<div class="book-sum"><div class="book-sum-l"><span>Réglé par bon cadeau</span><b>'+euro(bookState.remise||0)+'</b></div>'
+    +'<div class="book-sum"><div class="book-sum-l"><span>Réglé par bon cadeau</span><b>Oui</b></div>'
     +'<div class="book-sum-l"><span>Reste à payer</span><b>0 €</b></div>'
-    +'<div class="book-sum-note">Un email de confirmation part vers '+(client.email||'votre adresse')+'. À très vite au studio.</div></div>'
+    +'<div class="book-sum-note">Un email de confirmation part vers '+esc(client.email||'votre adresse')+'. À très vite au studio.</div></div>'
     +'<div class="book-actions"><button type="button" class="btn btn-coral" id="bookDone">Parfait</button></div>';
   const d=document.getElementById('bookDone');
   if(d)d.addEventListener('click',()=>{closeBooking();loadAvailability();});
 }
 
 document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openBooking();}));
+const btnBon=document.getElementById('giftUse');
+if(btnBon) btnBon.addEventListener('click',openBookingBon);
 
 /* "Disponibilites" : on descend vers les formules, puis on ouvre le planning en consultation.
    On attend la FIN du defilement avant d'ouvrir (la modale bloque le scroll du fond). */
@@ -784,7 +861,6 @@ chargerDispoNote();
   const body=document.getElementById('giftBody');
   const openBtn=document.getElementById('giftOpen');
   const closeBtn=document.getElementById('giftClose');
-  const chips=document.getElementById('giftAmounts');
   if(!modal||!body||!openBtn) return;
 
   // les 5 offres ; le prix reste fixe cote serveur (GIFT_OFFRES du CRM)
@@ -805,7 +881,6 @@ chargerDispoNote();
 
   let offre=OFFRES[1], seance='grossesse';
 
-  if(chips) chips.innerHTML=OFFRES.map(o=>'<span class="gift-chip">'+o.nom+' · '+euro(o.prix)+'</span>').join('');
 
   /* ---------- etape 1 : quelle seance offrir ---------- */
   function renderChoix(){

@@ -18,9 +18,9 @@ const OFFRES_CADEAU = [
 ];
 
 const SEANCES = {
-  grossesse: 'Séance grossesse',
-  naissance: 'Séance naissance',
-  duo:       'Grossesse et naissance'
+  grossesse: 'Séance photo grossesse',
+  naissance: 'Séance photo naissance',
+  duo:       'Séances photo grossesse et naissance'
 };
 
 /* Une ambiance par type de seance : la couleur d'accent et le motif changent,
@@ -131,21 +131,21 @@ function dessiner(canvas, data){
   c.fillStyle=ENCRE; c.font='italic 400 176px '+SERIF;
   c.fillText('Bon cadeau',W/2,540);
 
-  // formule + type de seance
-  c.fillStyle=ENCRE; c.font='700 96px '+DISPLAY;
-  c.fillText(data.formule,W/2,700);
-  c.fillStyle=DOUX; c.font='400 50px '+CORPS;
-  c.fillText(SEANCES[data.seance]||'',W/2,772);
-
-  // valeur
-  c.fillStyle=CTA; c.font='800 120px '+DISPLAY;
-  c.fillText(data.montant+' €',W/2,920);
+  // la prestation offerte (le montant n'apparait jamais sur un bon cadeau)
+  const seanceTxt=SEANCES[data.seance]||'';
+  c.fillStyle=ENCRE;
+  c.font=(seanceTxt.length>28?'700 76px ':'700 96px ')+DISPLAY;
+  c.fillText(seanceTxt,W/2,706);
+  if(data.formule){
+    c.fillStyle=DOUX; c.font='400 52px '+CORPS;
+    c.fillText('Formule '+data.formule,W/2,784);
+  }
 
   // destinataire et petit mot
-  let y=1010;
+  let y=920;
   if(data.pour){
-    c.fillStyle=ENCRE; c.font='italic 400 66px '+SERIF;
-    c.fillText('Pour '+data.pour,W/2,y); y+=76;
+    c.fillStyle=ENCRE; c.font='italic 400 68px '+SERIF;
+    c.fillText('Pour '+data.pour,W/2,y); y+=78;
   }
   if(data.message){
     c.fillStyle=DOUX; c.font='italic 400 46px '+SERIF;
@@ -159,7 +159,7 @@ function dessiner(canvas, data){
   }
 
   // code
-  const bw=1150, bh=206, bx=(W-bw)/2, by=1216;
+  const bw=1150, bh=206, bx=(W-bw)/2, by=1180;
   c.fillStyle='#ffffff'; arrondi(c,bx,by,bw,bh,26); c.fill();
   c.strokeStyle=CTA; c.lineWidth=5; arrondi(c,bx,by,bw,bh,26); c.stroke();
   c.fillStyle=DOUX; c.font='700 32px '+CORPS;

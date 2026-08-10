@@ -273,7 +273,14 @@ section{padding:100px 0}
 .eco-strike.show{display:block}
 .eco-save{display:none;margin-top:12px;background:var(--blush);color:var(--coral-deep);font-weight:800;font-size:13.5px;text-align:center;padding:9px 12px;border-radius:9px;font-family:var(--body)}
 .eco-save.show{display:block}
-.devis-cta{padding:18px 26px 8px}.devis-cta .btn{width:100%}
+.devis-cta{padding:18px 26px 6px;display:flex;flex-direction:column;gap:9px}.devis-cta .btn{width:100%}
+.devis-bon{margin:0;padding:0 26px 10px;text-align:center}
+.lienbon{background:none;border:0;padding:4px 2px;font-family:var(--body);font-size:13.5px;font-weight:600;
+  color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.lienbon:hover{color:var(--coral-deep)}
+.promo-fixe{background:var(--blush);border:1px solid var(--line);border-radius:12px;padding:12px 15px;
+  font-size:14px;color:var(--ink);margin-bottom:4px}
+.promo-fixe b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
 .dbadges{display:flex;gap:14px;justify-content:center;padding:6px 26px 22px;flex-wrap:wrap}
 .dbadge{font-size:11.5px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
 .dbadge svg{width:13px;height:13px;stroke:var(--coral)}
@@ -520,19 +527,7 @@ footer a:hover{color:var(--coral)}
   .chat-panel{bottom:152px;height:min(480px,calc(100dvh - 180px))}
 }
 
-/* ---------- Bon cadeau ---------- */
-.gift{padding:12px 0 4px}
-.gift-card{display:grid;grid-template-columns:1.35fr .9fr;gap:34px;align-items:center;
-  background:linear-gradient(135deg,var(--blush),var(--cream-2));border:1px solid var(--line);
-  border-radius:26px;padding:34px 38px;box-shadow:var(--shadow-soft)}
-.gift-txt h2{font-size:clamp(26px,3vw,36px);margin-bottom:12px}
-.gift-txt p{margin:0;color:var(--ink-soft);font-size:15.5px;max-width:52ch}
-.gift-act{display:flex;flex-direction:column;gap:14px;align-items:stretch}
-.gift-amounts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.gift-chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;
-  font-size:14px;font-weight:700;color:var(--wine)}
-.gift-act .btn{width:100%}
-.gift-note{font-size:13px;color:var(--ink-soft);text-align:center;margin:0}
+/* ---------- Bon cadeau (modale) ---------- */
 .gift-list{display:flex;flex-direction:column;gap:9px;margin:4px 0 14px}
 .gift-offre{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);
   border-radius:14px;padding:13px 16px;cursor:pointer;font-family:var(--body);
@@ -549,7 +544,3 @@ footer a:hover{color:var(--coral)}
 .gs-btn{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 10px;
   cursor:pointer;font-family:var(--body);font-weight:700;font-size:15px;color:var(--ink);transition:border-color .2s}
 .gs-btn.on{border-color:var(--cta);background:var(--blush);box-shadow:0 0 0 3px rgba(94,68,48,.1)}
-@media(max-width:860px){
-  .gift-card{grid-template-columns:1fr;padding:26px 22px;gap:20px}
-  .gift-act{align-items:stretch}
-}

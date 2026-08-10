@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20">
+<link rel="stylesheet" href="css/styles.css?v=21">
 </head>
 <body>
 
@@ -18,7 +18,6 @@
     <a href="#avis">Avis</a>
     <a href="#galerie">Galerie</a>
     <a href="#composer">Tarif et réservation</a>
-    <a href="#cadeau">Offrir</a>
     <a href="#" class="btn btn-coral js-reserve">Réserver ma date</a>
   </nav>
   <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -26,7 +25,7 @@
 
 <div class="mobile-nav" id="mobileNav">
   <button class="close" id="closeNav" aria-label="Fermer">&times;</button>
-  <a href="#avis">Avis</a><a href="#galerie">Galerie</a><a href="#composer">Tarif et réservation</a><a href="#cadeau">Offrir</a><a href="#" class="js-reserve">Réserver</a>
+  <a href="#avis">Avis</a><a href="#galerie">Galerie</a><a href="#composer">Tarif et réservation</a><a href="#" class="js-reserve">Réserver</a>
 </div>
 
 <!-- HERO -->
@@ -189,7 +188,7 @@
       </div>
 
       <div class="devis reveal" id="devis">
-        <div class="devis-h"><span class="eyebrow">Votre devis</span><h3>Séance sur mesure</h3></div>
+        <div class="devis-h"><h3>Votre formule</h3></div>
         <div class="devis-b" id="devisLines"></div>
         <div class="devis-t">
           <div class="dt">
@@ -204,28 +203,11 @@
           <div class="dac-note">Solde réglé le jour de la séance.</div>
         </div>
         <div class="dispo-note" id="dispoNote"></div>
-        <div class="devis-cta"><a href="#" class="btn btn-coral js-reserve" id="goReserve">Réserver cette séance</a></div>
+        <div class="devis-cta"><a href="#" class="btn btn-coral js-reserve" id="goReserve">Réserver cette séance</a><button type="button" class="btn btn-ghost" id="giftOpen">Offrir un bon cadeau</button></div><p class="devis-bon"><button type="button" class="lienbon" id="giftUse">J'ai reçu un bon cadeau</button></p>
         <div class="dbadges">
           <span class="dbadge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l7 3v6c0 5-3 7-7 9-4-2-7-4-7-9V6z"/></svg>Paiement sécurisé</span>
           <span class="dbadge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Sans engagement</span>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- BON CADEAU -->
-<section class="gift" id="cadeau">
-  <div class="wrap reveal">
-    <div class="gift-card">
-      <div class="gift-txt">
-        <span class="eyebrow">Offrir</span>
-        <h2>Un bon cadeau pour <span class="ser">une future maman</span></h2>
-        <p>Le cadeau de naissance ou de baby shower que l'on garde toute une vie. Vous choisissez la formule et la séance, la personne choisit sa date. Vous recevez un <strong>bon à imprimer</strong> avec son code, juste après le paiement. Valable 18 mois.</p>
-      </div>
-      <div class="gift-act">
-        <div class="gift-amounts" id="giftAmounts"></div>
-        <button type="button" class="btn btn-coral" id="giftOpen">Offrir une séance</button>
       </div>
     </div>
   </div>
@@ -371,7 +353,7 @@
   </div>
 </div>
 
-<script src="js/bon.js?v=1"></script>
-<script src="js/app.js?v=19"></script>
+<script src="js/bon.js?v=2"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>
