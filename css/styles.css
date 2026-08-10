@@ -519,3 +519,32 @@ footer a:hover{color:var(--coral)}
   .chat-fab{bottom:86px}
   .chat-panel{bottom:152px;height:min(480px,calc(100dvh - 180px))}
 }
+
+/* ---------- Bon cadeau ---------- */
+.gift{padding:12px 0 4px}
+.gift-card{display:grid;grid-template-columns:1.35fr .9fr;gap:34px;align-items:center;
+  background:linear-gradient(135deg,var(--blush),var(--cream-2));border:1px solid var(--line);
+  border-radius:26px;padding:34px 38px;box-shadow:var(--shadow-soft)}
+.gift-txt h2{font-size:clamp(26px,3vw,36px);margin-bottom:12px}
+.gift-txt p{margin:0;color:var(--ink-soft);font-size:15.5px;max-width:52ch}
+.gift-act{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.gift-amounts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.gift-chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;
+  font-size:14px;font-weight:700;color:var(--wine)}
+.gift-act .btn{width:100%}
+.gift-note{font-size:13px;color:var(--ink-soft);text-align:center;margin:0}
+.gift-pick{display:flex;flex-wrap:wrap;gap:9px;margin:4px 0 6px}
+.gift-opt{flex:1 1 140px;background:#fff;border:1.5px solid var(--line);border-radius:14px;
+  padding:12px 14px;cursor:pointer;text-align:left;font-family:var(--body);transition:border-color .2s,transform .2s}
+.gift-opt:hover{transform:translateY(-2px)}
+.gift-opt.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.12)}
+.gift-opt .go-n{display:block;font-weight:700;font-size:14.5px;color:var(--ink)}
+.gift-opt .go-p{display:block;font-size:20px;font-weight:700;color:var(--cta);margin-top:2px}
+.gift-libre{display:flex;align-items:center;gap:10px;margin:2px 0 6px}
+.gift-libre input{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+  font-family:var(--body);font-size:15px;outline:none}
+.gift-libre input:focus{border-color:var(--coral)}
+@media(max-width:860px){
+  .gift-card{grid-template-columns:1fr;padding:26px 22px;gap:20px}
+  .gift-act{align-items:stretch}
+}
