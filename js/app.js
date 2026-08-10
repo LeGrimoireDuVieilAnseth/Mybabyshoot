@@ -818,7 +818,7 @@ chargerDispoNote();
       +'<div class="field"><label for="gMot">Petit mot sur le bon</label><input id="gMot" type="text" maxlength="120" placeholder="Ex : Félicitations !"></div></div>'
       +'<p class="gift-note">Ces deux champs sont facultatifs.</p>'
       +'<div class="book-sum"><div class="book-sum-l"><span>'+label()+'</span><b>'+euro(montant())+'</b></div>'
-      +'<div class="book-sum-note">Le bénéficiaire choisit ensuite sa formule et sa date. Si sa séance coûte plus cher que le bon, il ne règle que la différence.</div></div>'
+      +'<div class="book-sum-note">Le bénéficiaire choisit ensuite sa formule et sa date. Si sa séance coûte plus cher que le bon, il ne règle que la différence. Le bon s\'utilise en une seule fois : si elle coûte moins cher, la différence n\'est pas remboursée.</div></div>'
       +'<div class="book-err" id="giftErr"></div>'
       +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
       +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(montant())+'</button></div>';
