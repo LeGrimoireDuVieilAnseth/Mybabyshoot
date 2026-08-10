@@ -775,8 +775,9 @@ chargerDispoNote();
 
 /* =====================================================================
    9) BON CADEAU
-   L'acheteur paie la totalite tout de suite ; le code lui est envoye par
-   email et le beneficiaire choisit sa formule et sa date lui-meme.
+   Deux etapes : 1) choix de l'offre (et grossesse ou naissance),
+   2) coordonnees puis paiement. L'acheteur paie la totalite tout de suite
+   et recoit un bon imprimable (bon.html) portant un code unique.
    ===================================================================== */
 (function(){
   const modal=document.getElementById('giftModal');
@@ -786,56 +787,74 @@ chargerDispoNote();
   const chips=document.getElementById('giftAmounts');
   if(!modal||!body||!openBtn) return;
 
-  // les montants proposes suivent les formules du studio
-  const OFFRES=[
-    {nom:'Essentielle', prix:GAMMES.simple[0].prix},
-    {nom:'Confort',     prix:GAMMES.simple[1].prix},
-    {nom:'Prestige',    prix:GAMMES.simple[2].prix},
-    {nom:'Duo Confort', prix:GAMMES.duo[1].prix}
+  // les 5 offres ; le prix reste fixe cote serveur (GIFT_OFFRES du CRM)
+  const OFFRES=(window.MBS_BON&&MBS_BON.OFFRES_CADEAU)||[
+    { id:'essentielle',  nom:'Essentielle',  prix:290, duo:false },
+    { id:'confort',      nom:'Confort',      prix:390, duo:false },
+    { id:'prestige',     nom:'Prestige',     prix:490, duo:false },
+    { id:'duo-confort',  nom:'Duo Confort',  prix:690, duo:true  },
+    { id:'duo-prestige', nom:'Duo Prestige', prix:890, duo:true  }
   ];
-  let choix=OFFRES[1], libre=0;
+  const DETAIL={
+    'essentielle':'5 photos retouchées',
+    'confort':'10 photos retouchées + galerie complète au naturel',
+    'prestige':'toutes les plus belles photos retouchées, sans limite',
+    'duo-confort':'2 séances, 20 photos retouchées + galeries complètes',
+    'duo-prestige':'2 séances, toutes les plus belles photos retouchées'
+  };
+
+  let offre=OFFRES[1], seance='grossesse';
 
   if(chips) chips.innerHTML=OFFRES.map(o=>'<span class="gift-chip">'+o.nom+' · '+euro(o.prix)+'</span>').join('');
 
-  function montant(){ return libre>0?libre:choix.prix; }
-  function label(){ return libre>0?'Montant libre':choix.nom; }
-
-  function render(){
+  /* ---------- etape 1 : quelle seance offrir ---------- */
+  function renderChoix(){
     body.innerHTML=
-      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Offrir une séance</h3>'
-      +'<p class="book-recap">Valable 18 mois <span>Envoyé par email tout de suite</span></p></div>'
-      +'<div class="gift-pick">'
-      +OFFRES.map((o,i)=>'<button type="button" class="gift-opt'+(!libre&&o===choix?' on':'')+'" data-i="'+i+'">'
-        +'<span class="go-n">'+o.nom+'</span><span class="go-p">'+euro(o.prix)+'</span></button>').join('')
+      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Quelle séance offrir ?</h3>'
+      +'<p class="book-recap">Valable 18 mois <span>Bon imprimable envoyé tout de suite</span></p></div>'
+      +'<div class="gift-list">'
+      +OFFRES.map(o=>'<button type="button" class="gift-offre'+(o.id===offre.id?' on':'')+'" data-id="'+o.id+'">'
+        +'<span class="go-h"><span class="go-n">'+o.nom+'</span><span class="go-p">'+euro(o.prix)+'</span></span>'
+        +'<span class="go-d">'+(DETAIL[o.id]||'')+'</span></button>').join('')
       +'</div>'
-      +'<div class="gift-libre"><input id="gLibre" type="number" min="90" max="1500" step="10" inputmode="numeric" '
-        +'placeholder="Ou un montant libre (90 à 1500 €)" value="'+(libre>0?libre:'')+'"></div>'
+      +(offre.duo
+        ?'<p class="gift-note">Le duo couvre les deux séances : grossesse, puis naissance.</p>'
+        :'<div class="gift-seance"><span class="gs-lab">Pour quelle séance ?</span><div class="gs-row">'
+          +'<button type="button" class="gs-btn'+(seance==='grossesse'?' on':'')+'" data-s="grossesse">Grossesse</button>'
+          +'<button type="button" class="gs-btn'+(seance==='naissance'?' on':'')+'" data-s="naissance">Naissance</button>'
+          +'</div></div>')
+      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
+      +'<button type="button" class="btn btn-coral" id="gNext">Continuer</button></div>';
+
+    body.querySelectorAll('.gift-offre').forEach(b=>b.addEventListener('click',()=>{
+      offre=OFFRES.find(o=>o.id===b.dataset.id)||offre; renderChoix();
+    }));
+    body.querySelectorAll('.gs-btn').forEach(b=>b.addEventListener('click',()=>{
+      seance=b.dataset.s; renderChoix();
+    }));
+    document.getElementById('gCancel').addEventListener('click',close);
+    document.getElementById('gNext').addEventListener('click',renderInfos);
+  }
+
+  /* ---------- etape 2 : coordonnees et paiement ---------- */
+  function renderInfos(){
+    const quoi=offre.duo?'Grossesse et naissance':(seance==='naissance'?'Séance naissance':'Séance grossesse');
+    body.innerHTML=
+      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Vos coordonnées</h3>'
+      +'<p class="book-recap">'+offre.nom+' <span>'+quoi+' · '+euro(offre.prix)+'</span></p></div>'
       +'<div class="frow"><div class="field"><label for="gPrenom">Votre prénom</label><input id="gPrenom" type="text" autocomplete="given-name"></div>'
       +'<div class="field"><label for="gNom">Votre nom</label><input id="gNom" type="text" autocomplete="family-name"></div></div>'
       +'<div class="frow"><div class="field"><label for="gEmail">Votre email</label><input id="gEmail" type="email" autocomplete="email"></div>'
       +'<div class="field"><label for="gTel">Votre téléphone</label><input id="gTel" type="tel" autocomplete="tel"></div></div>'
       +'<div class="frow"><div class="field"><label for="gPour">Pour qui ?</label><input id="gPour" type="text" placeholder="Son prénom"></div>'
       +'<div class="field"><label for="gMot">Petit mot sur le bon</label><input id="gMot" type="text" maxlength="120" placeholder="Ex : Félicitations !"></div></div>'
-      +'<p class="gift-note">Ces deux champs sont facultatifs.</p>'
-      +'<div class="book-sum"><div class="book-sum-l"><span>'+label()+'</span><b>'+euro(montant())+'</b></div>'
-      +'<div class="book-sum-note">Le bénéficiaire choisit ensuite sa formule et sa date. Si sa séance coûte plus cher que le bon, il ne règle que la différence. Le bon s\'utilise en une seule fois : si elle coûte moins cher, la différence n\'est pas remboursée.</div></div>'
+      +'<p class="gift-note">Ces deux champs sont facultatifs ; ils seront imprimés sur le bon.</p>'
+      +'<div class="book-sum"><div class="book-sum-l"><span>'+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
+      +'<div class="book-sum-note">Après le paiement, vous recevez le bon à imprimer avec son code unique. Le bénéficiaire choisit sa date lui-même. Le bon s\'utilise en une seule fois.</div></div>'
       +'<div class="book-err" id="giftErr"></div>'
-      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
-      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(montant())+'</button></div>';
-
-    body.querySelectorAll('.gift-opt').forEach(b=>b.addEventListener('click',()=>{
-      choix=OFFRES[Number(b.dataset.i)]; libre=0; render();
-    }));
-    const li=document.getElementById('gLibre');
-    li.addEventListener('input',()=>{
-      const v=Math.round(Number(li.value)||0);
-      libre=(v>=90&&v<=1500)?v:0;
-      const sum=body.querySelector('.book-sum-l');
-      if(sum){ sum.querySelector('span').textContent=label(); sum.querySelector('b').textContent=euro(montant()); }
-      const pay=document.getElementById('gPay'); if(pay) pay.textContent='Payer '+euro(montant());
-      body.querySelectorAll('.gift-opt').forEach(b=>b.classList.toggle('on',!libre&&OFFRES[Number(b.dataset.i)]===choix));
-    });
-    document.getElementById('gCancel').addEventListener('click',close);
+      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gBack">Retour</button>'
+      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>';
+    document.getElementById('gBack').addEventListener('click',renderChoix);
     document.getElementById('gPay').addEventListener('click',payer);
   }
 
@@ -849,30 +868,32 @@ chargerDispoNote();
     btn.disabled=true; btn.textContent='Redirection vers le paiement...';
     try{
       const r=await fetch(CRM_API+'/mbs-gift',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({montant:montant(),label:label(),prenom,nom:val('gNom'),email,tel:val('gTel'),
+        body:JSON.stringify({offre:offre.id,seance:offre.duo?'duo':seance,prenom,nom:val('gNom'),email,tel:val('gTel'),
           pour:val('gPour'),message:val('gMot')})});
       const j=await r.json();
       if(j&&j.ok&&j.url){ window.location.href=j.url; return; }
       err("Le paiement en ligne n'est pas disponible pour le moment. Appelez Matt au 06 47 76 54 17.");
     }catch(e){ err('Une erreur est survenue. Réessayez, ou appelez le 06 47 76 54 17.'); }
-    btn.disabled=false; btn.textContent='Payer '+euro(montant());
+    btn.disabled=false; btn.textContent='Payer '+euro(offre.prix);
   }
 
-  function open(){ modal.classList.add('show'); document.body.style.overflow='hidden'; render(); }
+  function open(){ modal.classList.add('show'); document.body.style.overflow='hidden'; renderChoix(); }
   function close(){ modal.classList.remove('show'); document.body.style.overflow=''; }
 
   openBtn.addEventListener('click',open);
   if(closeBtn) closeBtn.addEventListener('click',close);
   modal.addEventListener('click',e=>{ if(e.target===modal) close(); });
 
-  // retour de Stripe apres l'achat d'un bon
-  if(/[?&]cadeau=ok/.test(location.search)){
+  // retour de Stripe apres l'achat : on renvoie vers la page du bon imprimable
+  if(/[?&]cadeau=ok(&|$)/.test(location.search)){
+    const sid=(location.search.match(/[?&]session_id=([^&]+)/)||[])[1]||'';
     modal.classList.add('show'); document.body.style.overflow='hidden';
     body.innerHTML='<div class="book-head"><span class="book-eyebrow">Merci</span><h3>Votre bon cadeau est prêt</h3>'
-      +'<p class="book-recap">Le code vient de partir par email <span>Pensez à vérifier vos spams</span></p></div>'
-      +'<div class="book-sum"><div class="book-sum-note">Il suffit de transmettre le code à la personne qui en profitera. '
-      +'Elle choisira sa formule et sa date sur ce site, le montant du bon sera déduit automatiquement.</div></div>'
-      +'<div class="book-actions"><button type="button" class="btn btn-coral" id="gDone">Parfait</button></div>';
+      +'<p class="book-recap">Il part aussi par email <span>Pensez à vérifier vos spams</span></p></div>'
+      +'<div class="book-sum"><div class="book-sum-note">Vous pouvez le télécharger en image pour l\'imprimer et l\'offrir en main propre, '
+      +'ou simplement transmettre le code. Le bénéficiaire choisira sa date sur ce site.</div></div>'
+      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gDone">Fermer</button>'
+      +'<a class="btn btn-coral" href="bon.html?session='+encodeURIComponent(sid)+'">Voir et imprimer le bon</a></div>';
     const d=document.getElementById('gDone');
     if(d)d.addEventListener('click',()=>{ close(); history.replaceState(null,'',location.pathname); });
   }

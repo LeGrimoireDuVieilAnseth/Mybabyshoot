@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Votre bon cadeau | Mybabyshoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,400&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#FAF4EA;--ink:#322619;--ink-soft:#80705C;--line:#E6D8C3;--cta:#5E4430;--gold:#C2A06B}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Mulish,system-ui,sans-serif;
+  padding:26px 18px 70px;line-height:1.6}
+.wrap{max-width:900px;margin:0 auto}
+.marque{text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-.02em;margin:0 0 26px}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,4.5vw,34px);text-align:center;margin:0 0 8px}
+.sous{text-align:center;color:var(--ink-soft);font-size:15.5px;margin:0 auto 26px;max-width:560px}
+canvas{width:100%;height:auto;display:block;border-radius:12px;box-shadow:0 20px 50px -26px rgba(35,27,25,.6)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:22px}
+.btn{font-family:inherit;font-weight:700;font-size:15px;padding:15px 28px;border:0;border-radius:999px;
+  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-plein{background:var(--cta);color:var(--cream)}
+.btn-plein:hover{background:var(--ink)}
+.btn-clair{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn-clair:hover{border-color:var(--gold)}
+.etat{max-width:640px;margin:22px auto 0;padding:14px 18px;border-radius:14px;font-size:14.5px;text-align:center}
+.etat.info{background:#fff;border:1px solid var(--line);color:var(--ink-soft)}
+.etat.stop{background:#fdeeee;border:1px solid #e9c4c4;color:#8a3b3b}
+.chargement{text-align:center;color:var(--ink-soft);padding:60px 0}
+@media print{
+  body{padding:0;background:#fff}
+  .marque,h1,.sous,.actions,.etat{display:none}
+  canvas{box-shadow:none;border-radius:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="marque">Mybabyshoot</p>
+  <div id="zone"><p class="chargement">Chargement de votre bon cadeau...</p></div>
+</div>
+
+<script src="js/bon.js?v=1"></script>
+<script>
+const API='https://matt-crm.netlify.app/.netlify/functions';
+const zone=document.getElementById('zone');
+
+function params(){ const p=new URLSearchParams(location.search); return {code:p.get('code')||'', session:p.get('session_id')||p.get('session')||''}; }
+
+function erreur(txt){
+  zone.innerHTML='<h1>Bon cadeau introuvable</h1>'
+    +'<p class="sous">'+txt+'</p>'
+    +'<div class="actions"><a class="btn btn-plein" href="/">Retour au site</a></div>';
+}
+
+async function charger(){
+  const {code,session}=params();
+  if(!code&&!session){ erreur("Le lien est incomplet. Utilisez celui reçu par email."); return; }
+  const q=code?('code='+encodeURIComponent(code)):('session='+encodeURIComponent(session));
+
+  // juste apres le paiement, le bon peut ne pas encore exister : on reessaie un peu
+  let bon=null;
+  for(let i=0;i<12;i++){
+    try{
+      const r=await fetch(API+'/mbs-gift-view?'+q,{cache:'no-store'});
+      const j=await r.json();
+      if(j&&j.ok){ bon=j.bon; break; }
+      if(j&&j.error!=='pas_encore'){ break; }
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,2000));
+  }
+  if(!bon){ erreur("Nous n'avons pas retrouvé ce bon. Si vous venez de payer, patientez une minute et rechargez la page. Sinon, appelez le 06 47 76 54 17."); return; }
+
+  zone.innerHTML='<h1>Votre bon cadeau est prêt</h1>'
+    +'<p class="sous">Téléchargez-le pour l\'imprimer et l\'offrir en main propre, ou transmettez simplement le code.</p>'
+    +'<canvas id="cv"></canvas>'
+    +'<div class="actions">'
+      +'<button type="button" class="btn btn-plein" id="dl">Télécharger le bon (JPG)</button>'
+      +'<button type="button" class="btn btn-clair" id="pr">Imprimer</button>'
+      +'<a class="btn btn-clair" href="/#composer">Réserver une séance</a>'
+    +'</div>'
+    +(bon.utilise
+      ?'<div class="etat stop">Ce bon a déjà été utilisé pour une réservation.</div>'
+      :bon.desactive
+        ?'<div class="etat stop">Ce bon n\'est plus valable. Appelez le 06 47 76 54 17.</div>'
+        :'<div class="etat info">Valable jusqu\'au '+bon.expire+'. Le code se saisit au moment de la réservation, le montant est déduit automatiquement.</div>');
+
+  const cv=document.getElementById('cv');
+  await MBS_BON.pretesPourDessiner();
+  MBS_BON.dessiner(cv,{
+    formule:bon.formule, seance:bon.seance, montant:bon.montant,
+    code:bon.code, pour:bon.pour, message:bon.message, expire:bon.expire
+  });
+
+  document.getElementById('dl').addEventListener('click',()=>{
+    const a=document.createElement('a');
+    a.href=cv.toDataURL('image/jpeg',0.92);
+    a.download='bon-cadeau-mybabyshoot.jpg';
+    a.click();
+  });
+  document.getElementById('pr').addEventListener('click',()=>window.print());
+}
+charger();
+</script>
+</body>
+</html>

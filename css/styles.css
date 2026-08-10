@@ -533,17 +533,22 @@ footer a:hover{color:var(--coral)}
   font-size:14px;font-weight:700;color:var(--wine)}
 .gift-act .btn{width:100%}
 .gift-note{font-size:13px;color:var(--ink-soft);text-align:center;margin:0}
-.gift-pick{display:flex;flex-wrap:wrap;gap:9px;margin:4px 0 6px}
-.gift-opt{flex:1 1 140px;background:#fff;border:1.5px solid var(--line);border-radius:14px;
-  padding:12px 14px;cursor:pointer;text-align:left;font-family:var(--body);transition:border-color .2s,transform .2s}
-.gift-opt:hover{transform:translateY(-2px)}
-.gift-opt.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.12)}
-.gift-opt .go-n{display:block;font-weight:700;font-size:14.5px;color:var(--ink)}
-.gift-opt .go-p{display:block;font-size:20px;font-weight:700;color:var(--cta);margin-top:2px}
-.gift-libre{display:flex;align-items:center;gap:10px;margin:2px 0 6px}
-.gift-libre input{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
-  font-family:var(--body);font-size:15px;outline:none}
-.gift-libre input:focus{border-color:var(--coral)}
+.gift-list{display:flex;flex-direction:column;gap:9px;margin:4px 0 14px}
+.gift-offre{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);
+  border-radius:14px;padding:13px 16px;cursor:pointer;font-family:var(--body);
+  transition:border-color .2s,box-shadow .2s,transform .2s}
+.gift-offre:hover{transform:translateY(-2px)}
+.gift-offre.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.12)}
+.gift-offre .go-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.gift-offre .go-n{font-weight:700;font-size:16px;color:var(--ink)}
+.gift-offre .go-p{font-weight:700;font-size:19px;color:var(--cta);flex:none}
+.gift-offre .go-d{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:3px;line-height:1.45}
+.gift-seance{margin:2px 0 8px}
+.gift-seance .gs-lab{display:block;font-weight:700;font-size:13.5px;margin-bottom:7px}
+.gift-seance .gs-row{display:flex;gap:9px}
+.gs-btn{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 10px;
+  cursor:pointer;font-family:var(--body);font-weight:700;font-size:15px;color:var(--ink);transition:border-color .2s}
+.gs-btn.on{border-color:var(--cta);background:var(--blush);box-shadow:0 0 0 3px rgba(94,68,48,.1)}
 @media(max-width:860px){
   .gift-card{grid-template-columns:1fr;padding:26px 22px;gap:20px}
   .gift-act{align-items:stretch}
