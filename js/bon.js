@@ -6,15 +6,16 @@
    ===================================================================== */
 (function(global){
 
-/* Les 5 offres proposees a l'achat. Doit rester identique cote serveur
-   (GIFT_OFFRES dans netlify/mbs-coupons.mjs) : le prix n'est jamais lu
-   depuis le navigateur. */
+/* Les offres achetables en bon cadeau = les formules du site. Doit rester
+   identique cote serveur (GIFT_OFFRES dans netlify/mbs-coupons.mjs) :
+   le prix n'est jamais lu depuis le navigateur. */
 const OFFRES_CADEAU = [
-  { id:'essentielle',  nom:'Essentielle',  prix:290, duo:false },
-  { id:'confort',      nom:'Confort',      prix:390, duo:false },
-  { id:'prestige',     nom:'Prestige',     prix:490, duo:false },
-  { id:'duo-confort',  nom:'Duo Confort',  prix:690, duo:true  },
-  { id:'duo-prestige', nom:'Duo Prestige', prix:890, duo:true  }
+  { id:'essentielle',   nom:'Essentielle',   prix:290, duo:false },
+  { id:'confort',       nom:'Confort',       prix:390, duo:false },
+  { id:'prestige',      nom:'Prestige',      prix:490, duo:false },
+  { id:'duo-essentiel', nom:'Duo Essentiel', prix:590, duo:true  },
+  { id:'duo-confort',   nom:'Duo Confort',   prix:690, duo:true  },
+  { id:'duo-prestige',  nom:'Duo Prestige',  prix:890, duo:true  }
 ];
 
 const SEANCES = {

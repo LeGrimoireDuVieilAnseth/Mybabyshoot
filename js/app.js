@@ -404,9 +404,24 @@ function openBookingBon(){
 
 function renderBonCode(msg,err){
   bookBody.innerHTML=
-    '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Votre code</h3>'
-    +'<p class="book-recap">Saisissez le code de votre bon <span>La séance est déjà réglée</span></p></div>'
-    +'<div class="field"><label for="bonCode">Code du bon cadeau</label>'
+    '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>On vous offre une séance photo</h3>'
+    +'<p class="book-recap">Tout est déjà réglé <span>Il ne reste qu\'à choisir votre date</span></p></div>'
+
+    +'<div class="bon-intro">'
+    +'<p>Quelqu\'un vous offre une séance au studio Mybabyshoot, à La Mulatière, tout près de Lyon. '
+    +'Des séances douces, guidées du début à la fin, dans une ambiance détendue.</p>'
+    +'<ul class="bon-quoi">'
+    +'<li><b>Séance grossesse</b> : idéalement entre 7 et 8 mois, quand le ventre est bien rond. '
+    +'Robes et accessoires sont prêtés sur place, vous n\'avez rien à prévoir.</li>'
+    +'<li><b>Séance naissance</b> : idéalement dans les 5 à 15 premiers jours de bébé, tant qu\'il dort beaucoup. '
+    +'Les créneaux sont espacés de 4 heures, la séance suit son rythme.</li>'
+    +'</ul>'
+    +'<p class="bon-comment"><b>Comment ça se passe :</b> vous entrez votre code ci-dessous, vous choisissez le jour '
+    +'et l\'heure qui vous arrangent, vous laissez vos coordonnées, et c\'est réservé. '
+    +'Vous n\'avez rien à payer, ni maintenant ni le jour de la séance.</p>'
+    +'</div>'
+
+    +'<div class="field"><label for="bonCode">Le code inscrit sur votre bon</label>'
     +'<input id="bonCode" type="text" autocomplete="off" placeholder="Ex : CADEAU-7K4-MP2" value="'+esc(bookState.coupon||'')+'"></div>'
     +'<div class="book-err'+(err?' show':'')+'" id="bonErr">'+(err?esc(err):'')+'</div>'
     +(msg?'<div class="book-info">'+esc(msg)+'</div>':'')
@@ -641,8 +656,10 @@ function renderBookGratuit(client){
 }
 
 document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openBooking();}));
-const btnBon=document.getElementById('giftUse');
-if(btnBon) btnBon.addEventListener('click',openBookingBon);
+['giftUse','heroBon'].forEach(id=>{
+  const b=document.getElementById(id);
+  if(b) b.addEventListener('click',openBookingBon);
+});
 
 /* "Disponibilites" : on descend vers les formules, puis on ouvre le planning en consultation.
    On attend la FIN du defilement avant d'ouvrir (la modale bloque le scroll du fond). */
@@ -851,10 +868,10 @@ chargerDispoNote();
 })();
 
 /* =====================================================================
-   9) BON CADEAU
-   Deux etapes : 1) choix de l'offre (et grossesse ou naissance),
-   2) coordonnees puis paiement. L'acheteur paie la totalite tout de suite
-   et recoit un bon imprimable (bon.html) portant un code unique.
+   9) BON CADEAU (achat)
+   La formule est deja choisie dans le configurateur : le bouton "Offrir un
+   bon cadeau" ouvre directement le formulaire de personnalisation.
+   L'acheteur paie la totalite et recoit un bon imprimable (bon.html).
    ===================================================================== */
 (function(){
   const modal=document.getElementById('giftModal');
@@ -863,60 +880,30 @@ chargerDispoNote();
   const closeBtn=document.getElementById('giftClose');
   if(!modal||!body||!openBtn) return;
 
-  // les 5 offres ; le prix reste fixe cote serveur (GIFT_OFFRES du CRM)
-  const OFFRES=(window.MBS_BON&&MBS_BON.OFFRES_CADEAU)||[
-    { id:'essentielle',  nom:'Essentielle',  prix:290, duo:false },
-    { id:'confort',      nom:'Confort',      prix:390, duo:false },
-    { id:'prestige',     nom:'Prestige',     prix:490, duo:false },
-    { id:'duo-confort',  nom:'Duo Confort',  prix:690, duo:true  },
-    { id:'duo-prestige', nom:'Duo Prestige', prix:890, duo:true  }
-  ];
-  const DETAIL={
-    'essentielle':'5 photos retouchées',
-    'confort':'10 photos retouchées + galerie complète au naturel',
-    'prestige':'toutes les plus belles photos retouchées, sans limite',
-    'duo-confort':'2 séances, 20 photos retouchées + galeries complètes',
-    'duo-prestige':'2 séances, toutes les plus belles photos retouchées'
-  };
+  const OFFRES=(window.MBS_BON&&MBS_BON.OFFRES_CADEAU)||[];
 
-  let offre=OFFRES[1], seance='grossesse';
-
-
-  /* ---------- etape 1 : quelle seance offrir ---------- */
-  function renderChoix(){
-    body.innerHTML=
-      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Quelle séance offrir ?</h3>'
-      +'<p class="book-recap">Valable 18 mois <span>Bon imprimable envoyé tout de suite</span></p></div>'
-      +'<div class="gift-list">'
-      +OFFRES.map(o=>'<button type="button" class="gift-offre'+(o.id===offre.id?' on':'')+'" data-id="'+o.id+'">'
-        +'<span class="go-h"><span class="go-n">'+o.nom+'</span><span class="go-p">'+euro(o.prix)+'</span></span>'
-        +'<span class="go-d">'+(DETAIL[o.id]||'')+'</span></button>').join('')
-      +'</div>'
-      +(offre.duo
-        ?'<p class="gift-note">Le duo couvre les deux séances : grossesse, puis naissance.</p>'
-        :'<div class="gift-seance"><span class="gs-lab">Pour quelle séance ?</span><div class="gs-row">'
-          +'<button type="button" class="gs-btn'+(seance==='grossesse'?' on':'')+'" data-s="grossesse">Grossesse</button>'
-          +'<button type="button" class="gs-btn'+(seance==='naissance'?' on':'')+'" data-s="naissance">Naissance</button>'
-          +'</div></div>')
-      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
-      +'<button type="button" class="btn btn-coral" id="gNext">Continuer</button></div>';
-
-    body.querySelectorAll('.gift-offre').forEach(b=>b.addEventListener('click',()=>{
-      offre=OFFRES.find(o=>o.id===b.dataset.id)||offre; renderChoix();
-    }));
-    body.querySelectorAll('.gs-btn').forEach(b=>b.addEventListener('click',()=>{
-      seance=b.dataset.s; renderChoix();
-    }));
-    document.getElementById('gCancel').addEventListener('click',close);
-    document.getElementById('gNext').addEventListener('click',renderInfos);
+  /* La formule choisie dans le configurateur -> l'offre correspondante.
+     Les duos portent le prefixe "duo-" (l'id de gamme seul est ambigu :
+     "confort" existe des deux cotes). */
+  function offreCourante(){
+    const id=state.section==='duo' ? 'duo-'+state.gamme : state.gamme;
+    return OFFRES.find(o=>o.id===id)||null;
   }
 
-  /* ---------- etape 2 : coordonnees et paiement ---------- */
-  function renderInfos(){
-    const quoi=offre.duo?'Grossesse et naissance':(seance==='naissance'?'Séance naissance':'Séance grossesse');
+  function err(t){ const e=document.getElementById('giftErr'); if(e){ e.textContent=t; e.classList.add('show'); } }
+
+  function render(){
+    const offre=offreCourante();
+    if(!offre){
+      body.innerHTML='<div class="book-info">Choisissez d\'abord une formule ci-contre, puis revenez ici.'
+        +'<br><br>Une question ? Appelez Matt au 06 47 76 54 17.</div>';
+      return;
+    }
+    const duo=offre.duo;
+    const quoi=duo?'Séances grossesse et naissance':(state.type==='naissance'?'Séance naissance':'Séance grossesse');
     body.innerHTML=
-      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Vos coordonnées</h3>'
-      +'<p class="book-recap">'+offre.nom+' <span>'+quoi+' · '+euro(offre.prix)+'</span></p></div>'
+      '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Offrir cette séance</h3>'
+      +'<p class="book-recap">Formule '+offre.nom+' <span>'+quoi+' · '+euro(offre.prix)+'</span></p></div>'
       +'<div class="frow"><div class="field"><label for="gPrenom">Votre prénom</label><input id="gPrenom" type="text" autocomplete="given-name"></div>'
       +'<div class="field"><label for="gNom">Votre nom</label><input id="gNom" type="text" autocomplete="family-name"></div></div>'
       +'<div class="frow"><div class="field"><label for="gEmail">Votre email</label><input id="gEmail" type="email" autocomplete="email"></div>'
@@ -924,18 +911,19 @@ chargerDispoNote();
       +'<div class="frow"><div class="field"><label for="gPour">Pour qui ?</label><input id="gPour" type="text" placeholder="Son prénom"></div>'
       +'<div class="field"><label for="gMot">Petit mot sur le bon</label><input id="gMot" type="text" maxlength="120" placeholder="Ex : Félicitations !"></div></div>'
       +'<p class="gift-note">Ces deux champs sont facultatifs ; ils seront imprimés sur le bon.</p>'
-      +'<div class="book-sum"><div class="book-sum-l"><span>'+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
-      +'<div class="book-sum-note">Après le paiement, vous recevez le bon à imprimer avec son code unique. Le bénéficiaire choisit sa date lui-même. Le bon s\'utilise en une seule fois.</div></div>'
+      +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
+      +'<div class="book-sum-note">Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
+      +'Après le paiement vous recevez le bon à imprimer, avec son code unique. Elle choisira sa date elle-même. Le bon s\'utilise en une seule fois.</div></div>'
       +'<div class="book-err" id="giftErr"></div>'
-      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gBack">Retour</button>'
+      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
       +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>';
-    document.getElementById('gBack').addEventListener('click',renderChoix);
+    document.getElementById('gCancel').addEventListener('click',close);
     document.getElementById('gPay').addEventListener('click',payer);
   }
 
-  function err(t){ const e=document.getElementById('giftErr'); if(e){ e.textContent=t; e.classList.add('show'); } }
-
   async function payer(){
+    const offre=offreCourante();
+    if(!offre) return;
     const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
     const prenom=val('gPrenom'), email=val('gEmail');
     if(!prenom||!email){ err('Indiquez au moins votre prénom et votre email.'); return; }
@@ -943,7 +931,7 @@ chargerDispoNote();
     btn.disabled=true; btn.textContent='Redirection vers le paiement...';
     try{
       const r=await fetch(CRM_API+'/mbs-gift',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({offre:offre.id,seance:offre.duo?'duo':seance,prenom,nom:val('gNom'),email,tel:val('gTel'),
+        body:JSON.stringify({offre:offre.id,seance:offre.duo?'duo':state.type,prenom,nom:val('gNom'),email,tel:val('gTel'),
           pour:val('gPour'),message:val('gMot')})});
       const j=await r.json();
       if(j&&j.ok&&j.url){ window.location.href=j.url; return; }
@@ -952,7 +940,7 @@ chargerDispoNote();
     btn.disabled=false; btn.textContent='Payer '+euro(offre.prix);
   }
 
-  function open(){ modal.classList.add('show'); document.body.style.overflow='hidden'; renderChoix(); }
+  function open(){ modal.classList.add('show'); document.body.style.overflow='hidden'; render(); }
   function close(){ modal.classList.remove('show'); document.body.style.overflow=''; }
 
   openBtn.addEventListener('click',open);
