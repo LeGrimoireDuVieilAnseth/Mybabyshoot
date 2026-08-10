@@ -422,7 +422,7 @@ function renderBonCode(msg,err){
     +'</div>'
 
     +'<div class="field"><label for="bonCode">Le code inscrit sur votre bon</label>'
-    +'<input id="bonCode" type="text" autocomplete="off" placeholder="Ex : CADEAU-7K4-MP2" value="'+esc(bookState.coupon||'')+'"></div>'
+    +'<input id="bonCode" type="text" autocomplete="off" placeholder="Ex : K7M4PQ" maxlength="20" value="'+esc(bookState.coupon||'')+'"></div>'
     +'<div class="book-err'+(err?' show':'')+'" id="bonErr">'+(err?esc(err):'')+'</div>'
     +(msg?'<div class="book-info">'+esc(msg)+'</div>':'')
     +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bonCancel">Annuler</button>'

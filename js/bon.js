@@ -164,9 +164,11 @@ function dessiner(canvas, data){
   c.fillStyle='#ffffff'; arrondi(c,bx,by,bw,bh,26); c.fill();
   c.strokeStyle=CTA; c.lineWidth=5; arrondi(c,bx,by,bw,bh,26); c.stroke();
   c.fillStyle=DOUX; c.font='700 32px '+CORPS;
-  espace(c,'CODE À UTILISER',W/2,by+70,10);
-  c.fillStyle=ENCRE; c.font='800 76px '+CORPS;
-  espace(c,data.code,W/2,by+156,12);
+  espace(c,'CODE À UTILISER',W/2,by+68,10);
+  // les codes courts (6 caracteres) meritent d'occuper le cadre
+  const court=String(data.code||'').length<=8;
+  c.fillStyle=ENCRE; c.font=(court?'800 108px ':'800 76px ')+CORPS;
+  espace(c,data.code,W/2,by+164,court?22:12);
 
   // pied de page
   c.fillStyle=DOUX; c.font='400 40px '+CORPS;
