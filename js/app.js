@@ -412,9 +412,10 @@ function renderBonCode(msg,err){
     +'Des séances douces, guidées du début à la fin, dans une ambiance détendue.</p>'
     +'<ul class="bon-quoi">'
     +'<li><b>Séance grossesse</b> : idéalement entre 7 et 8 mois, quand le ventre est bien rond. '
-    +'Robes et accessoires sont prêtés sur place, vous n\'avez rien à prévoir.</li>'
-    +'<li><b>Séance naissance</b> : idéalement dans les 5 à 15 premiers jours de bébé, tant qu\'il dort beaucoup. '
-    +'Les créneaux sont espacés de 4 heures, la séance suit son rythme.</li>'
+    +'Robes et accessoires sont prêtés sur place, et vous pouvez tout à fait apporter vos propres vêtements '
+    +'si vous le souhaitez : le tout est simplement de s\'accorder sur les couleurs et le style.</li>'
+    +'<li><b>Séance naissance</b> : chez Mybabyshoot, entre 10 jours et 2 mois. '
+    +'Les créneaux sont espacés de 4 heures, la séance suit le rythme de bébé.</li>'
     +'</ul>'
     +'<p class="bon-comment"><b>Comment ça se passe :</b> vous entrez votre code ci-dessous, vous choisissez le jour '
     +'et l\'heure qui vous arrangent, vous laissez vos coordonnées, et c\'est réservé. '
@@ -660,6 +661,27 @@ document.querySelectorAll('.js-reserve').forEach(b=>b.addEventListener('click',e
   const b=document.getElementById(id);
   if(b) b.addEventListener('click',openBookingBon);
 });
+
+/* Menu "Bon cadeau" : on descend vers les formules et on signale brievement
+   le bouton, sinon on arrive sur le configurateur sans savoir quoi y faire.
+   Sur mobile le bouton est plus bas que la zone d'arrivee : on attend qu'il
+   soit reellement a l'ecran pour l'animer, sinon le signal passe inapercu. */
+function signalerBonCadeau(){
+  const b=document.getElementById('giftOpen');
+  if(!b) return;
+  const anime=()=>{ b.classList.add('pulse'); setTimeout(()=>b.classList.remove('pulse'),2600); };
+  const dansLEcran=()=>{ const r=b.getBoundingClientRect(); return r.top<window.innerHeight-40&&r.bottom>0; };
+  if(dansLEcran()||!('IntersectionObserver' in window)){ anime(); return; }
+  let fait=false;
+  const obs=new IntersectionObserver(es=>{
+    if(fait||!es.some(e=>e.isIntersecting)) return;
+    fait=true; obs.disconnect(); anime();
+  },{threshold:.5});
+  obs.observe(b);
+  // on ne laisse pas l'observateur arme indefiniment
+  setTimeout(()=>{ if(!fait) obs.disconnect(); },20000);
+}
+document.querySelectorAll('.js-gift-nav').forEach(a=>a.addEventListener('click',()=>gotoComposer(signalerBonCadeau)));
 
 /* "Disponibilites" : on descend vers les formules, puis on ouvre le planning en consultation.
    On attend la FIN du defilement avant d'ouvrir (la modale bloque le scroll du fond). */
