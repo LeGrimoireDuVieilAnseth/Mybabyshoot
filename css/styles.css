@@ -664,49 +664,64 @@ html[data-noel] .neige{display:block}
 }
 @media(prefers-reduced-motion:reduce){ .neige{display:none!important} }
 
-/* ---------- Decors de Noel : illustrations posees dans la page ---------- */
+/* ---------- Decors de Noel : illustrations posees dans la page ----------
+   Regle : on ne pose jamais un decor PAR-DESSUS du contenu. On ouvre
+   d'abord une bande vide au bas (ou au haut) de la section, et le decor
+   vit dans cette bande. Rien ne peut donc recouvrir un texte. */
 .deco{position:absolute;pointer-events:none;z-index:2;display:none;line-height:0}
 html[data-noel] .deco{display:block}
-.deco svg{width:100%;height:auto;display:block;
-  filter:drop-shadow(0 6px 14px rgba(38,49,43,.22))}
+.deco svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 14px rgba(38,49,43,.22))}
 .deco-cadre{position:relative}
 
-/* traineau : il traverse le haut de la page */
-.deco-traineau{width:150px;top:96px;left:-190px;z-index:3;
-  animation:vole 26s linear infinite}
+/* bandes vides ouvertes uniquement en mode Noel */
+html[data-noel] .hero{padding-bottom:150px}
+html[data-noel] .reviews{padding-top:64px}
+html[data-noel] .philo{padding-bottom:168px}
+html[data-noel] .config{padding-bottom:172px}
+html[data-noel] .about{padding-bottom:150px}
+html[data-noel] .reserve{padding-bottom:150px}
+
+/* traineau : il traverse tout en haut, au-dessus du titre */
+.deco-traineau{width:132px;top:82px;left:-170px;z-index:3;animation:vole 26s linear infinite}
 @keyframes vole{
   0%{transform:translateX(0) translateY(0)}
-  50%{transform:translateX(52vw) translateY(-16px)}
-  100%{transform:translateX(105vw) translateY(6px)}
+  50%{transform:translateX(52vw) translateY(-14px)}
+  100%{transform:translateX(108vw) translateY(6px)}
 }
-/* houx dans l'angle du hero */
-.deco-houx{width:110px;top:78px;right:14px;transform:rotate(-8deg)}
+/* houx cale dans l'angle haut droit du hero, au-dessus du contenu */
+.deco-houx{width:96px;top:74px;right:10px;transform:rotate(-8deg)}
 
-/* bonhomme de neige assis sur le bandeau vert */
-.deco-bonhomme{width:74px;left:9%;bottom:-6px;z-index:4}
+/* bonhomme ASSIS SUR le bandeau : il monte dans la bande vide du hero */
+.deco-bonhomme{width:72px;left:8%;bottom:100%;margin-bottom:-4px;z-index:4}
 
-/* boules suspendues au-dessus des avis */
-.deco-boule{width:34px;top:-16px}
-.deco-boule-1{left:12%}
-.deco-boule-2{right:16%;--deco-boule:#2F4A3C;width:28px;top:-10px}
+/* boules suspendues dans la bande ouverte au-dessus des avis */
+.deco-boule{width:32px;top:0}
+.deco-boule-1{left:11%}
+.deco-boule-2{right:14%;--deco-boule:#2F4A3C;width:26px}
 
-/* sapins plantes, cadeaux poses */
-.deco-sapin{width:96px;left:16px;bottom:0}
-.deco-sapin-2{width:78px;right:22px;bottom:0}
-.deco-cadeaux{width:132px;right:20px;bottom:0}
-.deco-cadeaux-2{width:110px;left:20px;bottom:0}
+/* sapins et cadeaux poses au sol, dans la bande vide du bas */
+.deco-sapin{width:104px;left:24px;bottom:14px}
+.deco-sapin-2{width:88px;right:26px;bottom:14px}
+.deco-cadeaux{width:140px;right:24px;bottom:16px}
+.deco-cadeaux-2{width:118px;left:24px;bottom:16px}
 
 @media(max-width:980px){
-  .deco-traineau{width:104px;top:78px;animation-duration:32s}
-  .deco-houx{width:74px;top:66px;right:6px}
-  .deco-sapin{width:64px;left:6px}
-  .deco-sapin-2{width:56px;right:8px}
-  .deco-cadeaux{width:86px;right:6px}
-  .deco-cadeaux-2{width:74px;left:6px}
-  .deco-bonhomme{width:52px;left:6%}
-  .deco-boule-1{left:6%}
-  .deco-boule-2{right:8%}
+  html[data-noel] .hero{padding-bottom:112px}
+  html[data-noel] .reviews{padding-top:52px}
+  html[data-noel] .philo{padding-bottom:118px}
+  html[data-noel] .config{padding-bottom:118px}
+  html[data-noel] .about{padding-bottom:104px}
+  html[data-noel] .reserve{padding-bottom:110px}
+  .deco-traineau{width:96px;top:70px;animation-duration:32s}
+  .deco-houx{width:66px;top:62px;right:4px}
+  .deco-bonhomme{width:54px;left:6%}
+  .deco-boule{width:26px}.deco-boule-2{width:22px}
+  .deco-boule-1{left:6%}.deco-boule-2{right:7%}
+  .deco-sapin{width:70px;left:10px;bottom:10px}
+  .deco-sapin-2{width:62px;right:10px;bottom:10px}
+  .deco-cadeaux{width:92px;right:10px;bottom:10px}
+  .deco-cadeaux-2{width:80px;left:10px;bottom:10px}
 }
 @media(prefers-reduced-motion:reduce){
-  .deco-traineau{animation:none;left:auto;right:6%;transform:none}
+  .deco-traineau{animation:none;left:auto;right:7%;transform:none}
 }
