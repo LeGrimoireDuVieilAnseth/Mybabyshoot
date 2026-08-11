@@ -624,6 +624,31 @@ footer a:hover{color:var(--coral)}
    reteinte la palette (sapin, or, un rouge discret sur la creme) et on
    ajoute quelques touches. L'univers doux du studio reste reconnaissable.
    ===================================================================== */
+/* ---------- bandeau cookies ---------- */
+.cookiebar{
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
+  background:var(--cream,#FAF4EA); border-top:1px solid var(--line,#E6D8C3);
+  box-shadow:0 -6px 24px rgba(50,38,25,.10);
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+}
+.cookiebar-in{
+  max-width:980px; margin:0 auto;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.cookiebar-txt{
+  margin:0; flex:1 1 320px; font-size:13.5px; line-height:1.55;
+  color:var(--ink-soft,#80705C);
+}
+.cookiebar-txt a{ color:var(--accent,#B0824F); }
+.cookiebar-btn{ display:flex; gap:10px; flex:0 0 auto; }
+/* refuser doit etre aussi facile qu'accepter : meme taille, meme lisibilite */
+.cookiebar-btn .btn{ padding:10px 22px; font-size:14px; white-space:nowrap; }
+@media(max-width:560px){
+  .cookiebar-in{ gap:12px; }
+  .cookiebar-btn{ width:100%; }
+  .cookiebar-btn .btn{ flex:1 1 0; }
+}
+
 html[data-noel]{
   --cream:#FBF6EF;
   --cream-2:#EFE6DA;

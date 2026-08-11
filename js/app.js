@@ -56,6 +56,14 @@ const MESURE = (function(){
     chargee = true;
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+    // Consent Mode v2 : tout est refuse tant que la visiteuse n'a pas
+    // accepte. Google ne depose alors aucun cookie et ne recoit aucun
+    // identifiant ; il ne fait qu'estimer statistiquement.
+    gtag('consent', 'default', {
+      ad_storage: 'denied', ad_user_data: 'denied',
+      ad_personalization: 'denied', analytics_storage: 'denied',
+      wait_for_update: 500
+    });
     gtag('js', new Date());
     gtag('config', GOOGLE_ADS.id);
     const s = document.createElement('script');
@@ -87,11 +95,85 @@ const MESURE = (function(){
     });
   }
 
+  function autoriser(){
+    if(!actif()) return;
+    charger();
+    gtag('consent', 'update', {
+      ad_storage: 'granted', ad_user_data: 'granted',
+      ad_personalization: 'granted', analytics_storage: 'granted'
+    });
+  }
+
   return {
+    autoriser,
+    actif,
     reservation: (valeur, ref) => conversion(GOOGLE_ADS.conversionResa, valeur, ref),
     cadeau:      (valeur, ref) => conversion(GOOGLE_ADS.conversionCadeau, valeur, ref)
   };
 })();
+
+/* =====================================================================
+   2b) BANDEAU COOKIES
+
+   Il n'apparait que s'il y a vraiment quelque chose a accepter : tant que
+   GOOGLE_ADS.id est vide, aucun cookie publicitaire n'existe, donc pas de
+   bandeau. Refuser est aussi simple qu'accepter, comme l'exige la CNIL :
+   deux boutons de meme poids, aucun choix pre-coche, et le refus est
+   conserve aussi longtemps que l'acceptation.
+   ===================================================================== */
+const CONSENT = (function(){
+  const CLE = 'mbs_cookies';
+  const DUREE = 182 * 24 * 60 * 60 * 1000;   // 6 mois
+
+  function choix(){
+    try{
+      const v = JSON.parse(localStorage.getItem(CLE) || 'null');
+      if(!v || !v.q || (Date.now() - v.t) > DUREE) return null;
+      return v.q;
+    }catch(e){ return null; }
+  }
+  function noter(q){
+    try{ localStorage.setItem(CLE, JSON.stringify({ q: q, t: Date.now() })); }catch(e){}
+  }
+  function fermer(){
+    const b = document.getElementById('cookieBar');
+    if(b) b.parentNode.removeChild(b);
+  }
+  function repondre(q){
+    noter(q);
+    fermer();
+    if(q === 'oui') MESURE.autoriser();
+  }
+  function afficher(){
+    if(document.getElementById('cookieBar')) return;
+    const b = document.createElement('div');
+    b.id = 'cookieBar';
+    b.className = 'cookiebar';
+    b.setAttribute('role', 'dialog');
+    b.setAttribute('aria-label', 'Choix concernant les cookies');
+    b.innerHTML =
+      '<div class="cookiebar-in">'
+      + '<p class="cookiebar-txt">Ce site dépose un cookie de mesure publicitaire, uniquement pour savoir '
+      + 'si une annonce a mené à une réservation. Rien d\'autre, et rien qui vous suive ailleurs. '
+      + '<a href="legal.html">En savoir plus</a></p>'
+      + '<div class="cookiebar-btn">'
+      + '<button type="button" class="btn btn-ghost" id="ckNon">Refuser</button>'
+      + '<button type="button" class="btn btn-coral" id="ckOui">Accepter</button>'
+      + '</div></div>';
+    document.body.appendChild(b);
+    document.getElementById('ckNon').addEventListener('click', function(){ repondre('non'); });
+    document.getElementById('ckOui').addEventListener('click', function(){ repondre('oui'); });
+  }
+  function demarrer(){
+    if(!MESURE.actif()) return;      // rien a faire accepter
+    const q = choix();
+    if(q === 'oui'){ MESURE.autoriser(); return; }
+    if(q === 'non') return;
+    afficher();
+  }
+  return { demarrer: demarrer, repondre: repondre };
+})();
+CONSENT.demarrer();
 
 /* Les deux parametres poses par Stripe sur l'adresse de retour. */
 function paramRetour(nom){
