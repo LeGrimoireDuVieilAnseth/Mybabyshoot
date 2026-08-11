@@ -583,3 +583,36 @@ footer a:hover{color:var(--coral)}
 @media(prefers-reduced-motion:reduce){
   #giftOpen.pulse{animation:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(194,160,107,.35)}
 }
+
+/* ---------- Séance en extérieur (configurateur) ---------- */
+.ext{border:1.5px solid var(--gold);border-radius:16px;overflow:hidden;margin:0 0 14px;
+  background:linear-gradient(135deg,rgba(234,219,196,.55),rgba(250,244,234,.9));
+  transition:border-color .22s,box-shadow .22s}
+.ext.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.1)}
+.ext-h{display:flex;align-items:center;gap:13px;width:100%;padding:14px 16px;background:none;border:0;
+  font-family:var(--body);text-align:left;cursor:pointer}
+.ext-ico{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;
+  background:#fff;color:var(--coral-deep);box-shadow:var(--shadow-soft)}
+.ext-ico svg{width:20px;height:20px}
+.ext-t{flex:1;font-size:13px;line-height:1.45;color:var(--ink-soft)}
+.ext-t b{display:block;font-size:15.5px;color:var(--ink);margin-bottom:2px}
+.ext-sw{flex:none;width:44px;height:25px;border-radius:999px;background:var(--line);position:relative;transition:background .22s}
+.ext-sw span{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .22s}
+.ext.on .ext-sw{background:var(--cta)}
+.ext.on .ext-sw span{transform:translateX(19px)}
+.ext-body{padding:0 16px 15px;position:relative}
+.ext-lab{display:block;font-size:13px;font-weight:700;color:var(--ink);margin:2px 0 7px}
+.ext-body input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+  font-family:var(--body);font-size:15px;background:#fff;outline:none}
+.ext-body input:focus{border-color:var(--coral)}
+.ext-sugg{position:absolute;left:16px;right:16px;z-index:5;background:#fff;border:1px solid var(--line);
+  border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-top:3px;max-height:230px;overflow-y:auto}
+.ext-sugg button{display:block;width:100%;text-align:left;background:none;border:0;padding:11px 14px;
+  font-family:var(--body);font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--cream-2)}
+.ext-sugg button:last-child{border-bottom:0}
+.ext-sugg button:hover{background:var(--cream)}
+.ext-msg{font-size:12.5px;line-height:1.5;color:var(--ink-soft);margin-top:9px}
+.ext-msg.ok{color:var(--coral-deep);font-weight:700}
+.ext-msg.err{color:#a8443a;font-weight:600}
+.book-lieu{font-size:13px;color:var(--coral-deep);font-weight:700;margin:6px 0 0}

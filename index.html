@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=24">
+<link rel="stylesheet" href="css/styles.css?v=25">
 </head>
 <body>
 
@@ -179,6 +179,28 @@
 
         <div class="scard">
           <div class="scard-h"><span class="n">2</span><h3>Options</h3><span class="scard-sub">Facultatif</span></div>
+
+          <div class="ext" id="extBloc">
+            <button type="button" class="ext-h" id="extToggle" aria-pressed="false">
+              <span class="ext-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="8" r="3.4"/><path d="M12 8V3M12 8v13M4.5 8h2M17.5 8h2M6.6 2.6l1.4 1.4M16 4l1.4-1.4"/>
+                  <path d="M3 21c2.5-3 5-4.5 9-4.5s6.5 1.5 9 4.5"/></svg>
+              </span>
+              <span class="ext-t">
+                <b>Et si on sortait du studio ?</b>
+                Séance en extérieur, dans un parc, en bord de Saône, ou dans un lieu qui compte pour vous.
+              </span>
+              <span class="ext-sw"><span></span></span>
+            </button>
+            <div class="ext-body" id="extBody" hidden>
+              <label class="ext-lab" for="extAdresse">Où souhaitez-vous faire la séance ?</label>
+              <input id="extAdresse" type="text" autocomplete="off" placeholder="Adresse, ou juste la commune">
+              <div class="ext-sugg" id="extSugg" hidden></div>
+              <div class="ext-msg" id="extMsg">Déplacement offert dans un rayon de 20 km autour du studio.</div>
+            </div>
+          </div>
+
           <div class="opt-row">
             <div class="ob"><div class="ot">Photos retouchées supplémentaires</div><div class="os">20 € la photo</div></div>
             <div class="stepper" id="photoStepper" role="group" aria-label="Photos supplémentaires">
@@ -362,6 +384,6 @@
 </div>
 
 <script src="js/bon.js?v=3"></script>
-<script src="js/app.js?v=23"></script>
+<script src="js/app.js?v=24"></script>
 </body>
 </html>

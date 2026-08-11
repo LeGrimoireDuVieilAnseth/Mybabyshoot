@@ -233,12 +233,13 @@ const COMPAROS = [
 /* =====================================================================
    4) Configurateur
    ===================================================================== */
-const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false};
+const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false,
+  ext:false,extLabel:'',extKm:0,extFrais:0};
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
 function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
 function bookingType(){return state.section==='duo'?'duo':state.type;}
 function resolveInc(i){return i.replace('@T', state.type==='naissance'?'naissance':'grossesse');}
-function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0);}
+function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+(state.ext?state.extFrais:0);}
 const totalEl=document.getElementById('totalVal');
 
 /* ---------------------------------------------------------------
@@ -331,6 +332,12 @@ function render(){
   L.push({n:nomLigne,s:resolveInc(g.inclus[0]),p:g.prix});
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
+  if(state.ext&&state.extLabel){
+    L.push({n:'Séance en extérieur',
+            s:state.extFrais?state.extLabel+' . '+state.extKm+' km':state.extLabel+' . déplacement offert',
+            p:state.extFrais});
+  }
+  majBlocExterieur();
   document.getElementById('devisLines').innerHTML=L.map(l=>'<div class="dline"><span class="dn">'+l.n+'<span class="dsub">'+l.s+'</span></span><span class="dp">'+euro(l.p)+'</span></div>').join('');
   const t=total();
   totalEl.textContent=euro(t);
@@ -342,6 +349,96 @@ function render(){
   const mp=document.getElementById('mctaPrice');
   if(mp)mp.innerHTML=euro(t)+'<span>séance sur mesure</span>';
 }
+/* ---------------------------------------------------------------
+   Seance en exterieur : proposee pour la grossesse (le studio reste
+   indispensable pour les nouveau-nes). L'adresse est choisie dans une
+   liste de suggestions, puis le serveur calcule les frais reels.
+   --------------------------------------------------------------- */
+const extBloc=document.getElementById('extBloc');
+const extToggle=document.getElementById('extToggle');
+const extBody=document.getElementById('extBody');
+const extAdresse=document.getElementById('extAdresse');
+const extSugg=document.getElementById('extSugg');
+const extMsg=document.getElementById('extMsg');
+
+function extPossible(){ return state.section==='simple' && state.type==='grossesse'; }
+
+function majBlocExterieur(){
+  if(!extBloc) return;
+  const ok=extPossible();
+  extBloc.hidden=!ok;
+  if(!ok && state.ext){ state.ext=false; extToggle.setAttribute('aria-pressed','false'); extBody.hidden=true; }
+  extBloc.classList.toggle('on',state.ext);
+}
+
+function extMessage(txt,type){
+  if(!extMsg) return;
+  extMsg.textContent=txt;
+  extMsg.className='ext-msg'+(type?' '+type:'');
+}
+
+if(extToggle){
+  extToggle.addEventListener('click',()=>{
+    state.ext=!state.ext;
+    extToggle.setAttribute('aria-pressed',state.ext?'true':'false');
+    extBody.hidden=!state.ext;
+    if(!state.ext){ state.extLabel=''; state.extKm=0; state.extFrais=0; }
+    else if(!state.extLabel) extMessage('Déplacement offert dans un rayon de 20 km autour du studio.');
+    render();
+    if(state.ext) setTimeout(()=>extAdresse.focus(),80);
+  });
+}
+
+/* Suggestions d'adresses : API officielle, gratuite, sans compte. */
+let extTimer=null;
+if(extAdresse){
+  extAdresse.addEventListener('input',()=>{
+    state.extLabel=''; state.extKm=0; state.extFrais=0; render();
+    clearTimeout(extTimer);
+    const q=extAdresse.value.trim();
+    if(q.length<3){ extSugg.hidden=true; return; }
+    extTimer=setTimeout(()=>proposerAdresses(q),260);
+  });
+  extAdresse.addEventListener('blur',()=>setTimeout(()=>{extSugg.hidden=true;},180));
+}
+
+async function proposerAdresses(q){
+  try{
+    const r=await fetch('https://api-adresse.data.gouv.fr/search/?limit=5&lat=45.723&lon=4.8038&q='+encodeURIComponent(q));
+    const j=await r.json();
+    const l=(j.features||[]).map(f=>f.properties.label);
+    if(!l.length){ extSugg.hidden=true; return; }
+    extSugg.innerHTML=l.map(x=>'<button type="button" data-a="'+esc(x)+'">'+esc(x)+'</button>').join('');
+    extSugg.hidden=false;
+    extSugg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      extAdresse.value=b.dataset.a; extSugg.hidden=true; calculerFrais(b.dataset.a);
+    }));
+  }catch(e){ extSugg.hidden=true; }
+}
+
+async function calculerFrais(adresse){
+  extMessage('Calcul du déplacement...');
+  try{
+    const r=await fetch(CRM_API+'/mbs-deplacement',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({adresse})});
+    const j=await r.json();
+    if(!j||!j.valide){
+      state.extLabel=''; state.extKm=0; state.extFrais=0; render();
+      extMessage((j&&j.message)||"Adresse non reconnue.", 'err');
+      return;
+    }
+    state.extLabel=j.label; state.extKm=j.km; state.extFrais=j.frais;
+    render();
+    extMessage(j.offert
+      ? 'Déplacement offert : vous êtes à '+j.km+' km du studio.'
+      : j.km+' km du studio. Frais de déplacement : '+euro(j.frais)+' (les 20 premiers kilomètres sont offerts).',
+      j.offert?'ok':'');
+  }catch(e){
+    state.extLabel=''; state.extKm=0; state.extFrais=0; render();
+    extMessage('Calcul impossible pour le moment. Réessayez.', 'err');
+  }
+}
+
 document.getElementById('gammes').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b){state.gamme=b.dataset.gamme;render();}});
 document.getElementById('typeSeg').addEventListener('click',e=>{
   const b=e.target.closest('.seg-btn'); if(!b)return;
@@ -384,7 +481,8 @@ let bookViewOnly=false;
 
 function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
-  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:''};
+  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
+    exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
   bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
@@ -559,7 +657,9 @@ function renderBookStep2(){
       +'<div class="promo-msg'+(remise?' ok':'')+'" id="bPromoMsg">'+(remise?libRemise+' appliqué : '+euro(remise)+' déduits.':'')+'</div></div>';
   bookBody.innerHTML=
     '<div class="book-head"><span class="book-eyebrow">Vos coordonnées</span><h3>Presque terminé</h3>'
-    +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p></div>'
+    +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+bookDateLabel(bookState.date)+' à '+hLabel(bookState.time)+'</span></p>'
+    +(bookState.exterieur?'<p class="book-lieu">Séance en extérieur · '+esc(bookState.exterieur.adresse)+'</p>':'')
+    +'</div>'
     +'<div class="frow"><div class="field"><label for="bPrenom">Prénom</label><input id="bPrenom" type="text" autocomplete="given-name"></div>'
     +'<div class="field"><label for="bNom">Nom</label><input id="bNom" type="text" autocomplete="family-name"></div></div>'
     +'<div class="frow"><div class="field"><label for="bEmail">Email</label><input id="bEmail" type="email" autocomplete="email"></div>'
@@ -627,11 +727,13 @@ async function submitBooking(){
   try{
     const r=await fetch(CRM_API+'/mbs-checkout',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client,
-        coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly})});
+        coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly,
+        exterieur:bookState.exterieur||null})});
     const j=await r.json();
     if(j.ok&&j.url){window.location.href=j.url;return;}
     // bon cadeau couvrant tout : pas de passage par Stripe, c'est deja confirme
     if(j.ok&&j.gratuit){renderBookGratuit(client);return;}
+    if(j.error==='exterieur'){bookErr(j.message||"Adresse du lieu non reconnue.");resetPayBtn();return;}
     if(j.error==='slot_taken'){bookErr('Ce créneau vient d\'être pris. Choisissez-en un autre.');resetPayBtn();loadAvailability();return;}
     if(j.error==='coupon'){
       if(bookState.giftOnly){ renderBonCode('', j.message||"Ce bon n'est plus utilisable."); return; }
