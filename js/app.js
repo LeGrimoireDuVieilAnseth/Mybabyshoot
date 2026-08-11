@@ -29,6 +29,75 @@ document.getElementById('heroRating').textContent=CHIFFRES.note;
    Colle tes vrais avis ici. Tu peux en mettre autant que tu veux,
    ils s'affichent automatiquement (note de 1 à 5).
    ===================================================================== */
+/* =====================================================================
+   2a) MESURE DES CONVERSIONS (Google Ads)
+
+   Tant que "id" est vide, rien ne se charge et aucun cookie n'est depose :
+   la mecanique est en place mais totalement inerte. Le jour ou la campagne
+   existe, il suffit de coller les trois valeurs ci-dessous, prises dans
+   Google Ads sous Objectifs > Conversions.
+
+   ATTENTION : avant d'activer, il faut un bandeau de consentement sur le
+   site. Une balise publicitaire depose des cookies, et en France cela ne
+   peut pas se faire sans l'accord de la visiteuse.
+   ===================================================================== */
+const GOOGLE_ADS = {
+  id:              '',   // ex. 'AW-123456789'
+  conversionResa:  '',   // ex. 'AW-123456789/AbC-D_efGhIjKl'  (reservation payee)
+  conversionCadeau:''    // ex. 'AW-123456789/MnO-P_qrStUvWx'  (bon cadeau achete)
+};
+
+const MESURE = (function(){
+  let chargee = false;
+  const actif = () => !!GOOGLE_ADS.id;
+
+  function charger(){
+    if(chargee || !actif()) return;
+    chargee = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', GOOGLE_ADS.id);
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GOOGLE_ADS.id);
+    document.head.appendChild(s);
+  }
+
+  // Une conversion ne doit compter qu'une fois, meme si la page de retour
+  // est rechargee ou remise en favori.
+  function dejaComptee(ref){
+    if(!ref) return false;
+    try{
+      if(localStorage.getItem('mbs_conv_' + ref)) return true;
+      localStorage.setItem('mbs_conv_' + ref, '1');
+    }catch(e){}
+    return false;
+  }
+
+  function conversion(etiquette, valeur, ref){
+    if(!actif() || !etiquette) return;
+    if(dejaComptee(ref)) return;
+    charger();
+    gtag('event','conversion',{
+      send_to: etiquette,
+      value: Number(valeur) || 0,
+      currency: 'EUR',
+      transaction_id: ref || ''
+    });
+  }
+
+  return {
+    reservation: (valeur, ref) => conversion(GOOGLE_ADS.conversionResa, valeur, ref),
+    cadeau:      (valeur, ref) => conversion(GOOGLE_ADS.conversionCadeau, valeur, ref)
+  };
+})();
+
+/* Les deux parametres poses par Stripe sur l'adresse de retour. */
+function paramRetour(nom){
+  return (location.search.match(new RegExp('[?&]' + nom + '=([^&]*)')) || [])[1] || '';
+}
+
 const AVIS = [
   { nom:'Julie Maure', note:5, type:'Pack grossesse + naissance', date:'il y a 2 jours', texte:'Nous avons pris un pack grossesse + naissance et sommes ravis des photos réalisées par Matteo. Il a été très à l’écoute de nos demandes, patient avec notre grande de 2 ans et demi. Nous n’hésiterons pas à le solliciter de nouveau pour d’autres événements.' },
   { nom:'Audrey', note:5, type:'Séance grossesse', date:'il y a une semaine', texte:'Je suis arrivée très peu à l’aise avec mon corps et Matt a su tout faire pour me mettre à l’aise ! Les photos sont superbes, nous sommes absolument ravis du résultat. Un grand merci à Matt pour ce superbe shooting ! Je recommande les yeux fermés, nous allons faire les photos de naissance de notre fils avec lui.' },
@@ -1130,6 +1199,7 @@ setTimeout(()=>{
   // retour de Stripe apres l'achat : on renvoie vers la page du bon imprimable
   if(/[?&]cadeau=ok(&|$)/.test(location.search)){
     const sid=(location.search.match(/[?&]session_id=([^&]+)/)||[])[1]||'';
+    MESURE.cadeau(paramRetour('valeur'), sid);
     modal.classList.add('show'); document.body.style.overflow='hidden';
     body.innerHTML='<div class="book-head"><span class="book-eyebrow">Merci</span><h3>Votre bon cadeau est prêt</h3>'
       +'<p class="book-recap">Il part aussi par email <span>Pensez à vérifier vos spams</span></p></div>'
@@ -1139,5 +1209,50 @@ setTimeout(()=>{
       +'<a class="btn btn-coral" href="bon.html?session='+encodeURIComponent(sid)+'">Voir et imprimer le bon</a></div>';
     const d=document.getElementById('gDone');
     if(d)d.addEventListener('click',()=>{ close(); history.replaceState(null,'',location.pathname); });
+  }
+})();
+
+/* =====================================================================
+   RETOUR DE STRIPE APRES UNE RESERVATION
+   Sans cet ecran, la cliente qui vient de payer son acompte revenait sur
+   l'accueil sans un mot : elle croit que le paiement a echoue.
+   C'est aussi ici que se compte la conversion Google Ads.
+   ===================================================================== */
+(function(){
+  const propre = () => history.replaceState(null,'',location.pathname);
+
+  if(/[?&]reservation=ok(&|$)/.test(location.search)){
+    const sid = paramRetour('session_id');
+    MESURE.reservation(paramRetour('valeur'), sid);
+
+    bookModal.classList.add('show');
+    document.body.style.overflow='hidden';
+    bookBody.innerHTML =
+      '<div class="book-head"><span class="book-eyebrow">Merci</span>'
+      +'<h3>Votre séance est réservée</h3>'
+      +'<p class="book-recap">Un email de confirmation vient de partir <span>Pensez à vérifier vos spams</span></p></div>'
+      +'<div class="book-sum"><div class="book-sum-note">Votre acompte est bien encaissé et votre créneau vous est réservé. '
+      +'Vous retrouverez la date, l\'heure et votre facture dans l\'email. Le solde se règle le jour de la séance, au studio.<br><br>'
+      +'Une question d\'ici là ? Appelez-moi ou écrivez-moi sur WhatsApp au 06 47 76 54 17.</div></div>'
+      +'<div class="book-actions"><button type="button" class="btn btn-coral" id="resaDone">Parfait, merci</button></div>';
+    const b=document.getElementById('resaDone');
+    if(b) b.addEventListener('click',()=>{ closeBooking(); propre(); });
+  }
+
+  if(/[?&]reservation=annulee(&|$)/.test(location.search)){
+    bookModal.classList.add('show');
+    document.body.style.overflow='hidden';
+    bookBody.innerHTML =
+      '<div class="book-head"><span class="book-eyebrow">Paiement interrompu</span>'
+      +'<h3>Rien n\'a été prélevé</h3>'
+      +'<p class="book-recap">Votre créneau reste disponible encore quelques minutes</p></div>'
+      +'<div class="book-sum"><div class="book-sum-note">Vous pouvez reprendre la réservation quand vous voulez. '
+      +'Si quelque chose vous a bloqué, appelez-moi au 06 47 76 54 17, on la fait ensemble.</div></div>'
+      +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="resaKo">Fermer</button>'
+      +'<button type="button" class="btn btn-coral" id="resaRetry">Reprendre</button></div>';
+    const f=document.getElementById('resaKo');
+    if(f) f.addEventListener('click',()=>{ closeBooking(); propre(); });
+    const r=document.getElementById('resaRetry');
+    if(r) r.addEventListener('click',()=>{ propre(); openBooking(); });
   }
 })();
