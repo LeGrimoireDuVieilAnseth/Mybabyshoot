@@ -133,7 +133,7 @@ function buildGallery(){
   }
   return out;
 }
-const ALL=buildGallery();
+let ALL=buildGallery();
 const galleryEl=document.getElementById('masonry');
 
 /* Galerie justifiée : rangées alignées, hauteur régulière, sans rognage.
@@ -152,16 +152,45 @@ function addGalPhoto(id){
   if(im.complete&&im.naturalWidth) setTimeout(grab,0); else im.addEventListener('load',grab);
   galItems.push(it);
 }
-ALL.slice(0,GAL_APERCU).forEach(addGalPhoto);
 const galMore=document.getElementById('galMore');
-if(galMore){
-  if(ALL.length<=GAL_APERCU) galMore.parentNode.style.display='none';
-  galMore.addEventListener('click',()=>{
-    ALL.slice(GAL_APERCU).forEach(addGalPhoto);
-    galMore.parentNode.style.display='none';
-    layoutGallery();
-  });
+
+function construireGalerie(){
+  ALL.slice(0,GAL_APERCU).forEach(addGalPhoto);
+  if(galMore){
+    if(ALL.length<=GAL_APERCU) galMore.parentNode.style.display='none';
+    galMore.addEventListener('click',()=>{
+      ALL.slice(GAL_APERCU).forEach(addGalPhoto);
+      galMore.parentNode.style.display='none';
+      layoutGallery();
+    },{once:true});
+  }
+  layoutGallery();
 }
+
+/* Matt range ses photos depuis son CRM. On attend brievement sa reponse
+   avant de dessiner, pour eviter que la galerie se reorganise sous les yeux
+   du visiteur. Passe ce delai, on affiche l'ordre par defaut : la galerie
+   ne doit jamais dependre d'un service distant pour s'afficher. */
+(function chargerOrdreGalerie(){
+  let fini=false;
+  const dessiner=()=>{ if(fini) return; fini=true; construireGalerie(); };
+  const secours=setTimeout(dessiner,1200);
+  fetch(CRM_API+'/mbs-galerie',{cache:'no-store'})
+    .then(r=>r.json())
+    .then(j=>{
+      if(j&&j.ordre&&j.ordre.length){
+        const masquees=new Set(j.masquees||[]);
+        const connues=new Set(ALL);
+        // on garde l'ordre de Matt, en ignorant les photos qui n'existent plus
+        const choisi=j.ordre.filter(p=>connues.has(p)&&!masquees.has(p));
+        // et on ajoute a la fin celles qu'il n'a pas encore classees
+        ALL.forEach(p=>{ if(!masquees.has(p)&&choisi.indexOf(p)<0) choisi.push(p); });
+        if(choisi.length) ALL=choisi;
+      }
+    })
+    .catch(()=>{})
+    .finally(()=>{ clearTimeout(secours); dessiner(); });
+})();
 function rowH(){ const w=window.innerWidth; return w<560?170:w<980?210:250; }
 function layoutGallery(){
   const W=galleryEl.clientWidth, GAP=10, H=rowH();
