@@ -386,6 +386,7 @@ footer a:hover{color:var(--coral)}
 }
 @media(max-width:560px){
   body{font-size:16px}section{padding:70px 0}.wrap{padding:0 18px}
+  .incl-grid{grid-template-columns:1fr}.incl{flex-direction:row;align-items:center}
   .philo{padding:34px 0 40px}.gallery{padding-top:40px}.philo .head{margin-bottom:20px}
   .hero{padding:120px 0 50px}
   .choice-row{grid-template-columns:1fr}
