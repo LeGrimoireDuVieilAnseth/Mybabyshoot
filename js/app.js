@@ -219,7 +219,7 @@ let galTimer; window.addEventListener('resize',()=>{clearTimeout(galTimer);galTi
 layoutGallery();
 
 /* Bento du hero : tes vraies photos (naissance, grossesse, bébé) */
-const heroBento=['images/apres.jpg','images/apres4.jpg','images/apres2.jpg'];
+const heroBento=['images/apres.jpg','images/apres4.jpg','images/bento-famille.jpg'];
 ['bento1','bento2','bento3'].forEach((bid,i)=>{document.getElementById(bid).src=srcOf(heroBento[i]);});
 
 const lightbox=document.getElementById('lightbox');
