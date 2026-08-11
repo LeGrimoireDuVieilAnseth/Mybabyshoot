@@ -663,3 +663,50 @@ html[data-noel] .neige{display:block}
   100%{transform:translateY(105vh) translateX(var(--derive,20px)) rotate(240deg)}
 }
 @media(prefers-reduced-motion:reduce){ .neige{display:none!important} }
+
+/* ---------- Decors de Noel : illustrations posees dans la page ---------- */
+.deco{position:absolute;pointer-events:none;z-index:2;display:none;line-height:0}
+html[data-noel] .deco{display:block}
+.deco svg{width:100%;height:auto;display:block;
+  filter:drop-shadow(0 6px 14px rgba(38,49,43,.22))}
+.deco-cadre{position:relative}
+
+/* traineau : il traverse le haut de la page */
+.deco-traineau{width:150px;top:96px;left:-190px;z-index:3;
+  animation:vole 26s linear infinite}
+@keyframes vole{
+  0%{transform:translateX(0) translateY(0)}
+  50%{transform:translateX(52vw) translateY(-16px)}
+  100%{transform:translateX(105vw) translateY(6px)}
+}
+/* houx dans l'angle du hero */
+.deco-houx{width:110px;top:78px;right:14px;transform:rotate(-8deg)}
+
+/* bonhomme de neige assis sur le bandeau vert */
+.deco-bonhomme{width:74px;left:9%;bottom:-6px;z-index:4}
+
+/* boules suspendues au-dessus des avis */
+.deco-boule{width:34px;top:-16px}
+.deco-boule-1{left:12%}
+.deco-boule-2{right:16%;--deco-boule:#2F4A3C;width:28px;top:-10px}
+
+/* sapins plantes, cadeaux poses */
+.deco-sapin{width:96px;left:16px;bottom:0}
+.deco-sapin-2{width:78px;right:22px;bottom:0}
+.deco-cadeaux{width:132px;right:20px;bottom:0}
+.deco-cadeaux-2{width:110px;left:20px;bottom:0}
+
+@media(max-width:980px){
+  .deco-traineau{width:104px;top:78px;animation-duration:32s}
+  .deco-houx{width:74px;top:66px;right:6px}
+  .deco-sapin{width:64px;left:6px}
+  .deco-sapin-2{width:56px;right:8px}
+  .deco-cadeaux{width:86px;right:6px}
+  .deco-cadeaux-2{width:74px;left:6px}
+  .deco-bonhomme{width:52px;left:6%}
+  .deco-boule-1{left:6%}
+  .deco-boule-2{right:8%}
+}
+@media(prefers-reduced-motion:reduce){
+  .deco-traineau{animation:none;left:auto;right:6%;transform:none}
+}

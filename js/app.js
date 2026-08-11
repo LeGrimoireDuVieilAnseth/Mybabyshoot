@@ -1033,8 +1033,143 @@ function appliquerTheme(theme){
   const noel = theme === 'noel';
   document.documentElement.toggleAttribute('data-noel', noel);
   try{ localStorage.setItem('mbsTheme', noel?'noel':'normal'); }catch(e){}
-  if(noel) faireTomberLaNeige();
+  if(noel){ faireTomberLaNeige(); poserLesDecors(); }
+  else retirerLesDecors();
 }
+
+/* ---------------------------------------------------------------
+   Decors de Noel : de vraies illustrations posees a des endroits
+   precis de la page. Elles ne recoivent jamais le clic, et ne sont
+   fabriquees que si l'habillage de Noel est actif.
+   --------------------------------------------------------------- */
+const DECO_SVG = {
+  sapin:
+    '<svg viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect x="43" y="118" width="14" height="26" rx="3" fill="#6B4A32"/>'
+    +'<path d="M50 8 L82 58 H18 Z" fill="#2F4A3C"/>'
+    +'<path d="M50 40 L90 96 H10 Z" fill="#375745"/>'
+    +'<path d="M50 74 L97 126 H3 Z" fill="#2F4A3C"/>'
+    +'<path d="M50 2 l4.6 9.4 10.4 1.5-7.5 7.3 1.8 10.3L50 25.6l-9.3 4.9 1.8-10.3-7.5-7.3 10.4-1.5Z" fill="#C9A961"/>'
+    +'<circle cx="36" cy="60" r="4.2" fill="#8A3F3B"/><circle cx="64" cy="52" r="3.6" fill="#C9A961"/>'
+    +'<circle cx="58" cy="88" r="4.4" fill="#C9A961"/><circle cx="30" cy="98" r="3.8" fill="#8A3F3B"/>'
+    +'<circle cx="72" cy="112" r="4" fill="#8A3F3B"/><circle cx="44" cy="112" r="3.4" fill="#C9A961"/>'
+    +'</svg>',
+
+  bonhomme:
+    '<svg viewBox="0 0 96 118" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<ellipse cx="48" cy="92" rx="30" ry="24" fill="#FBF6EF"/>'
+    +'<ellipse cx="48" cy="58" rx="21" ry="19" fill="#FBF6EF"/>'
+    +'<circle cx="48" cy="32" r="16" fill="#FBF6EF"/>'
+    +'<path d="M22 60 L4 48" stroke="#6B4A32" stroke-width="3.4" stroke-linecap="round"/>'
+    +'<path d="M10 52 L3 44M9 55 L1 56" stroke="#6B4A32" stroke-width="2.6" stroke-linecap="round"/>'
+    +'<path d="M74 60 L92 48" stroke="#6B4A32" stroke-width="3.4" stroke-linecap="round"/>'
+    +'<path d="M86 52 L93 44M87 55 L95 56" stroke="#6B4A32" stroke-width="2.6" stroke-linecap="round"/>'
+    +'<path d="M30 44 q18 9 36 0 v7 q-18 9 -36 0 Z" fill="#8A3F3B"/>'
+    +'<path d="M60 48 l7 16 -8 2 -5 -15Z" fill="#8A3F3B"/>'
+    +'<rect x="30" y="14" width="36" height="5" rx="2.5" fill="#26312B"/>'
+    +'<rect x="36" y="1" width="24" height="14" rx="2" fill="#26312B"/>'
+    +'<rect x="36" y="10" width="24" height="4" fill="#8A3F3B"/>'
+    +'<circle cx="42" cy="30" r="2.4" fill="#26312B"/><circle cx="54" cy="30" r="2.4" fill="#26312B"/>'
+    +'<path d="M48 34 l11 4 -11 4Z" fill="#C97B3C"/>'
+    +'<circle cx="48" cy="84" r="2.6" fill="#26312B"/><circle cx="48" cy="96" r="2.6" fill="#26312B"/>'
+    +'</svg>',
+
+  cadeaux:
+    '<svg viewBox="0 0 150 108" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect x="6" y="52" width="58" height="52" rx="4" fill="#8A3F3B"/>'
+    +'<rect x="30" y="52" width="10" height="52" fill="#C9A961"/>'
+    +'<rect x="6" y="70" width="58" height="9" fill="#C9A961"/>'
+    +'<path d="M35 52c-9-3-16-10-9-14 6-3 9 7 9 14Zm0 0c9-3 16-10 9-14-6-3-9 7-9 14Z" fill="#C9A961"/>'
+    +'<rect x="72" y="66" width="48" height="38" rx="4" fill="#2F4A3C"/>'
+    +'<rect x="91" y="66" width="9" height="38" fill="#FBF6EF"/>'
+    +'<rect x="72" y="80" width="48" height="8" fill="#FBF6EF"/>'
+    +'<path d="M95.5 66c-8-2.5-14-9-8-12.5 5.5-2.5 8 6 8 12.5Zm0 0c8-2.5 14-9 8-12.5-5.5-2.5-8 6-8 12.5Z" fill="#FBF6EF"/>'
+    +'<rect x="98" y="30" width="40" height="36" rx="4" fill="#C9A961"/>'
+    +'<rect x="114" y="30" width="8" height="36" fill="#8A3F3B"/>'
+    +'<rect x="98" y="43" width="40" height="7" fill="#8A3F3B"/>'
+    +'<path d="M118 30c-7-2-12-8-7-11 5-2 7 5.5 7 11Zm0 0c7-2 12-8 7-11-5-2-7 5.5-7 11Z" fill="#8A3F3B"/>'
+    +'</svg>',
+
+  traineau:
+    '<svg viewBox="0 0 190 96" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<path d="M150 30 q14 4 20 14 q-9 5 -20 4" fill="#8A3F3B"/>'
+    +'<path d="M96 26 h44 q14 0 14 16 v14 q0 10 -12 10 H92 q-12 0 -12 -12 V40 q0 -14 16 -14Z" fill="#8A3F3B"/>'
+    +'<path d="M80 44 q-16 2 -18 14 q-2 12 12 12 h76" stroke="#6B4A32" stroke-width="5" stroke-linecap="round" fill="none"/>'
+    +'<path d="M74 78 h84" stroke="#6B4A32" stroke-width="5" stroke-linecap="round"/>'
+    +'<path d="M92 66 v12M140 66 v12" stroke="#6B4A32" stroke-width="4" stroke-linecap="round"/>'
+    +'<rect x="98" y="6" width="24" height="22" rx="3" fill="#2F4A3C"/>'
+    +'<rect x="107" y="6" width="6" height="22" fill="#C9A961"/>'
+    +'<rect x="98" y="14" width="24" height="5" fill="#C9A961"/>'
+    +'<rect x="126" y="12" width="20" height="16" rx="3" fill="#C9A961"/>'
+    +'<rect x="134" y="12" width="5" height="16" fill="#8A3F3B"/>'
+    +'<path d="M60 58 h-16M52 44 h-14M56 72 h-18" stroke="#C9A961" stroke-width="3" stroke-linecap="round" opacity=".55"/>'
+    +'</svg>',
+
+  boule:
+    '<svg viewBox="0 0 44 74" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<path d="M22 0 v18" stroke="#C9A961" stroke-width="2.4"/>'
+    +'<rect x="17" y="16" width="10" height="8" rx="2" fill="#C9A961"/>'
+    +'<circle cx="22" cy="48" r="21" fill="var(--deco-boule,#8A3F3B)"/>'
+    +'<path d="M6 40 q16 8 32 0" stroke="#C9A961" stroke-width="2.6" fill="none" opacity=".8"/>'
+    +'<circle cx="15" cy="40" r="4.5" fill="#fff" opacity=".22"/>'
+    +'</svg>',
+
+  houx:
+    '<svg viewBox="0 0 80 56" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<path d="M40 28 q-13 -18 -30 -12 q6 16 30 12Z" fill="#2F4A3C"/>'
+    +'<path d="M40 28 q13 -18 30 -12 q-6 16 -30 12Z" fill="#375745"/>'
+    +'<path d="M40 30 q-12 16 -28 12 q4 -16 28 -12Z" fill="#375745"/>'
+    +'<circle cx="44" cy="30" r="6" fill="#8A3F3B"/><circle cx="55" cy="35" r="5" fill="#8A3F3B"/>'
+    +'<circle cx="47" cy="41" r="4.4" fill="#A04A45"/>'
+    +'</svg>'
+};
+
+/* Chaque decor : ou l'accrocher, et sa classe de position. */
+const DECO_PLAN = [
+  { cible: '.hero',        svg: 'traineau', cls: 'deco-traineau' },
+  { cible: '.hero',        svg: 'houx',     cls: 'deco-houx' },
+  { cible: '.proof-band',  svg: 'bonhomme', cls: 'deco-bonhomme', horsCadre: true },
+  { cible: '.reviews',     svg: 'boule',    cls: 'deco-boule deco-boule-1' },
+  { cible: '.reviews',     svg: 'boule',    cls: 'deco-boule deco-boule-2' },
+  { cible: '.philo',       svg: 'sapin',    cls: 'deco-sapin' },
+  { cible: '.config',      svg: 'cadeaux',  cls: 'deco-cadeaux' },
+  { cible: '.about',       svg: 'sapin',    cls: 'deco-sapin-2' },
+  { cible: '.reserve',     svg: 'cadeaux',  cls: 'deco-cadeaux-2' }
+];
+
+let decoFaite = false;
+function poserLesDecors(){
+  if(decoFaite) return;
+  decoFaite = true;
+  DECO_PLAN.forEach(d=>{
+    const hote = document.querySelector(d.cible);
+    if(!hote) return;
+    let parent = hote;
+    // le bandeau defilant coupe ce qui depasse : on glisse un cadre autour
+    // pour que le bonhomme puisse s'asseoir dessus sans etre rogne
+    if(d.horsCadre){
+      if(!hote.parentNode.classList.contains('deco-cadre')){
+        const cadre=document.createElement('div');
+        cadre.className='deco-cadre';
+        hote.parentNode.insertBefore(cadre,hote);
+        cadre.appendChild(hote);
+      }
+      parent = hote.parentNode;
+    } else if(getComputedStyle(hote).position==='static'){
+      hote.style.position='relative';
+    }
+    const el=document.createElement('div');
+    el.className='deco '+d.cls;
+    el.setAttribute('aria-hidden','true');
+    el.innerHTML=DECO_SVG[d.svg];
+    parent.appendChild(el);
+  });
+}
+function retirerLesDecors(){
+  document.querySelectorAll('.deco').forEach(e=>e.remove());
+  decoFaite=false;
+}
+
 
 let neigeFaite=false;
 function faireTomberLaNeige(){
@@ -1067,8 +1202,8 @@ setTimeout(()=>{
     .catch(()=>{});
 },0);
 
-// si le theme etait deja pose par le script d'entete, on lance la neige
-if(document.documentElement.hasAttribute('data-noel')) faireTomberLaNeige();
+// si le theme etait deja pose par le script d'entete, on decore tout de suite
+if(document.documentElement.hasAttribute('data-noel')){ faireTomberLaNeige(); poserLesDecors(); }
 
 /* =====================================================================
    9) BON CADEAU (achat)
