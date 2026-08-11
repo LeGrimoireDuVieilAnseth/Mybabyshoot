@@ -116,7 +116,7 @@ section{padding:100px 0}
 .head p{color:var(--ink-soft);margin-top:16px;font-size:1.05rem}
 
 /* Reviews : ruban compact juste sous les chiffres, sans titre */
-.reviews{background:transparent;padding:0 0 56px}
+.reviews{background:transparent;padding:0 0 26px}
 .rev-marquee{position:relative;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
 .rev-track{display:flex;gap:14px;width:max-content;align-items:stretch;animation:revscroll 120s linear infinite}
 .rev-marquee:hover .rev-track,.rev-marquee:focus-within .rev-track{animation-play-state:paused}
@@ -137,6 +137,11 @@ section{padding:100px 0}
 .rev-link{text-align:center;margin-top:16px}
 .rev-link a{font-size:12.5px;font-weight:600;color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
 .rev-link a:hover{color:var(--coral-deep)}
+/* Avis, esprit et galerie s'enchainent : on reduit le vide entre les trois,
+   les 100px par defaut de "section" faisaient un trou de deux ecrans. */
+.philo{padding:48px 0 54px}
+.philo .head{margin-bottom:26px}
+.gallery{padding-top:54px}
 .philo-txt{max-width:680px;margin:0 auto;text-align:center}
 .philo-txt p{font-size:16.5px;line-height:1.8;color:var(--ink-soft);margin:0 0 18px}
 .philo-txt p:last-child{margin-bottom:0}
@@ -381,6 +386,7 @@ footer a:hover{color:var(--coral)}
 }
 @media(max-width:560px){
   body{font-size:16px}section{padding:70px 0}.wrap{padding:0 18px}
+  .philo{padding:34px 0 40px}.gallery{padding-top:40px}.philo .head{margin-bottom:20px}
   .hero{padding:120px 0 50px}
   .choice-row{grid-template-columns:1fr}
   .packs-grid,.fgrid,.frow{grid-template-columns:1fr}
