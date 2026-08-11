@@ -102,27 +102,28 @@ const PHOTOS_BEBE = [
 ];
 const PHOTOS_GROSSESSE = [
   'images/apres4.jpg',
-  '8d485c_6ffd08ecbafb48e381c432a11ebd8edc~mv2.jpg',
-  '8d485c_bb4104800f454b6a8594f7ca5e05cc6c~mv2.jpg',
-  '8d485c_014368a00b4141f996337e79562dcbc2~mv2.jpg',
-  '8d485c_df72efeb7acf4e429fc9324303b26b68~mv2.jpg',
-  '8d485c_3de0b2e2993449d2a5c8394e2bc79d17~mv2.jpg',
-  '8d485c_26a1e6068bee4c2d9c772e2d891117a9~mv2.jpg',
-  '8d485c_71d9761e2aca4a8faac33d31189f986b~mv2.jpg',
-  '8d485c_f9a9dbecf2d242ae9312cd47ba6e0d53~mv2.jpg',
-  '8d485c_a95356aa03c244909750053eb81e3f6d~mv2.jpg',
-  '8d485c_293442a07e3b49fbbc5c345a9d7c0b4e~mv2.jpg',
-  '8d485c_e394bdc002e24e4887cba069a89aca64~mv2.jpg',
-  '8d485c_5bb69d8135be4d3e893faf0b3b220d16~mv2.jpg',
-  '8d485c_79341a18c95c48e58b08eb4fd4678134~mv2.jpg',
-  '8d485c_3995871b7d434ff484a98decc5583e7b~mv2.jpg',
-  '8d485c_034ca01e85174c6db8be76ef540737fd~mv2.jpg',
-  '8d485c_7c89a610eac84cb8a87b4fbef9b05b40~mv2.jpg',
-  '8d485c_6a406b7e5e674f94b247d25e6a7b6fbd~mv2.jpg',
-  '8d485c_e21fbb6c638145d394ee61a58d650e5e~mv2.jpg'
+  'images/w01.jpg',
+  'images/w02.jpg',
+  'images/w03.jpg',
+  'images/w04.jpg',
+  'images/w05.jpg',
+  'images/w06.jpg',
+  'images/w07.jpg',
+  'images/w08.jpg',
+  'images/w09.jpg',
+  'images/w10.jpg',
+  'images/w11.jpg',
+  'images/w12.jpg',
+  'images/w13.jpg',
+  'images/w14.jpg',
+  'images/w15.jpg',
+  'images/w16.jpg',
+  'images/w17.jpg',
+  'images/w18.jpg'
 ];
-function imgUrl(id){return 'https://static.wixstatic.com/media/'+id+'/v1/fit/w_600,h_840,q_90,enc_avif,quality_auto/'+id;}
-function srcOf(v){return (v.indexOf('/')>=0||v.indexOf('http')===0)?v:imgUrl(v);}
+/* Toutes les photos sont desormais hebergees avec le site : plus aucune
+   dependance a Wix. */
+function srcOf(v){return v;}
 
 /* Mélange bébé et grossesse en les répartissant uniformément */
 function buildGallery(){
