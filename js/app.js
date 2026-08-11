@@ -1025,6 +1025,52 @@ chargerDispoNote();
 })();
 
 /* =====================================================================
+   8bis) HABILLAGE DE NOEL
+   Matt l'active depuis son CRM. On retient le dernier theme connu pour
+   l'appliquer instantanement a la visite suivante ; le serveur fait foi.
+   ===================================================================== */
+function appliquerTheme(theme){
+  const noel = theme === 'noel';
+  document.documentElement.toggleAttribute('data-noel', noel);
+  try{ localStorage.setItem('mbsTheme', noel?'noel':'normal'); }catch(e){}
+  if(noel) faireTomberLaNeige();
+}
+
+let neigeFaite=false;
+function faireTomberLaNeige(){
+  const box=document.getElementById('neige');
+  if(!box||neigeFaite) return;
+  // on respecte le reglage systeme : pas d'animation si le visiteur l'a coupee
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  neigeFaite=true;
+  const formes=['❄','❅','❆','·'];
+  const n = window.innerWidth<560 ? 14 : 26;   // discret sur telephone
+  let h='';
+  for(let i=0;i<n;i++){
+    const taille=(8+Math.random()*13).toFixed(0);
+    h+='<span class="flocon" style="left:'+(Math.random()*100).toFixed(1)+'%;'
+      +'font-size:'+taille+'px;'
+      +'animation-duration:'+(9+Math.random()*11).toFixed(1)+'s;'
+      +'animation-delay:-'+(Math.random()*14).toFixed(1)+'s;'
+      +'--derive:'+(Math.random()*80-40).toFixed(0)+'px;'
+      +'opacity:'+(0.4+Math.random()*0.45).toFixed(2)+'">'
+      +formes[Math.floor(Math.random()*formes.length)]+'</span>';
+  }
+  box.innerHTML=h;
+}
+
+/* Le serveur fait foi : on le lit a chaque visite, sans bloquer la page. */
+setTimeout(()=>{
+  fetch(CRM_API+'/mbs-theme',{cache:'no-store'})
+    .then(r=>r.json())
+    .then(j=>{ if(j&&j.theme) appliquerTheme(j.theme); })
+    .catch(()=>{});
+},0);
+
+// si le theme etait deja pose par le script d'entete, on lance la neige
+if(document.documentElement.hasAttribute('data-noel')) faireTomberLaNeige();
+
+/* =====================================================================
    9) BON CADEAU (achat)
    La formule est deja choisie dans le configurateur : le bouton "Offrir un
    bon cadeau" ouvre directement le formulaire de personnalisation.

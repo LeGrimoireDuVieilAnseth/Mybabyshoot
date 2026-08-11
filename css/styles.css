@@ -616,3 +616,50 @@ footer a:hover{color:var(--coral)}
 .ext-msg.ok{color:var(--coral-deep);font-weight:700}
 .ext-msg.err{color:#a8443a;font-weight:600}
 .book-lieu{font-size:13px;color:var(--coral-deep);font-weight:700;margin:6px 0 0}
+
+/* =====================================================================
+   HABILLAGE DE NOEL
+   Active depuis le CRM. On ne change pas la structure du site : on
+   reteinte la palette (sapin, or, un rouge discret sur la creme) et on
+   ajoute quelques touches. L'univers doux du studio reste reconnaissable.
+   ===================================================================== */
+html[data-noel]{
+  --cream:#FBF6EF;
+  --cream-2:#EFE6DA;
+  --ink:#26312B;
+  --ink-soft:#6E7A72;
+  --coral:#9A6B4A;
+  --coral-deep:#8A3F3B;      /* rouge chaud, pour les accents */
+  --blush:#E6DCCB;
+  --gold:#C9A961;
+  --line:#DFD5C6;
+  --cta:#2F4A3C;             /* vert sapin profond */
+  --wine:#3A4A40;
+  --wine-deep:#26312B;
+}
+html[data-noel] .btn-coral{background:var(--cta);box-shadow:0 10px 26px -12px rgba(47,74,60,.65)}
+html[data-noel] .btn-coral:hover{background:#24382E}
+html[data-noel] .proof-band{background:var(--cta)}
+html[data-noel] .eyebrow::before{background:var(--gold)}
+
+/* guirlande discrete en haut de page */
+html[data-noel] body::before{
+  content:"";position:fixed;top:0;left:0;right:0;height:4px;z-index:60;pointer-events:none;
+  background:repeating-linear-gradient(90deg,
+    #8A3F3B 0 14px,#C9A961 14px 28px,#2F4A3C 28px 42px,#C9A961 42px 56px);
+  opacity:.9;
+}
+/* petite touche sur le badge d'avis */
+html[data-noel] .hero-badge{border-color:var(--gold)}
+html[data-noel] .hero-badge::after{content:"  🎄";font-size:14px}
+
+/* neige : legere, jamais devant les boutons */
+.neige{position:fixed;inset:0;pointer-events:none;z-index:55;overflow:hidden;display:none}
+html[data-noel] .neige{display:block}
+.flocon{position:absolute;top:-12px;color:#fff;opacity:.75;
+  text-shadow:0 1px 3px rgba(38,49,43,.35);animation:tombe linear infinite}
+@keyframes tombe{
+  0%{transform:translateY(-12px) translateX(0) rotate(0)}
+  100%{transform:translateY(105vh) translateX(var(--derive,20px)) rotate(240deg)}
+}
+@media(prefers-reduced-motion:reduce){ .neige{display:none!important} }
