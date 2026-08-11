@@ -431,7 +431,7 @@ async function calculerFrais(adresse){
     render();
     extMessage(j.offert
       ? 'Déplacement offert : vous êtes à '+j.km+' km du studio.'
-      : j.km+' km du studio. Frais de déplacement : '+euro(j.frais)+'. Les 20 premiers kilomètres sont offerts ; le reste couvre l\'aller-retour et les péages.',
+      : j.km+' km du studio par la route'+(j.minutes?' ('+j.minutes+' min)':'')+'. Frais de déplacement : '+euro(j.frais)+', qui couvrent uniquement le carburant et les péages éventuels de l\'aller-retour.',
       j.offert?'ok':'');
   }catch(e){
     state.extLabel=''; state.extKm=0; state.extFrais=0; render();
