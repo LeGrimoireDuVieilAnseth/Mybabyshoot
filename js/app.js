@@ -175,6 +175,9 @@ function construireGalerie(){
   let fini=false;
   const dessiner=()=>{ if(fini) return; fini=true; construireGalerie(); };
   const secours=setTimeout(dessiner,1200);
+  // CRM_API est declare plus bas dans ce fichier : on attend la fin de la
+  // lecture du script avant d'y toucher, sinon tout le script s'arrete ici.
+  setTimeout(()=>{
   fetch(CRM_API+'/mbs-galerie',{cache:'no-store'})
     .then(r=>r.json())
     .then(j=>{
@@ -190,6 +193,7 @@ function construireGalerie(){
     })
     .catch(()=>{})
     .finally(()=>{ clearTimeout(secours); dessiner(); });
+  },0);
 })();
 function rowH(){ const w=window.innerWidth; return w<560?170:w<980?210:250; }
 function layoutGallery(){
