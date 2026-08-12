@@ -7,14 +7,14 @@ const PRIX = { photoSupp:20, album:140, seuilAcompte:590, acompteBas:90, acompte
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
-    { id:'essentielle', nom:'Essentielle', prix:290, inclus:['Séance @T en studio','5 photos retouchées'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, inclus:['Séance @T en studio','10 photos retouchées','Galerie complète au naturel (toutes les photos de la séance, brutes)'] },
+    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','5 photos retouchées'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:10, inclus:['Séance @T en studio','10 photos retouchées','Galerie complète au naturel (toutes les photos de la séance, brutes)'] },
     { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','Toutes les plus belles photos retouchées, sans limite'] }
   ],
   duo: [
-    { id:'essentiel', nom:'Duo Essentiel', prix:590, inclus:['2 séances : grossesse et naissance','10 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
-    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, inclus:['2 séances : grossesse et naissance','20 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
-    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances'] }
+    { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
+    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, retouchees:30, inclus:['2 séances : grossesse et naissance','30 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
+    { id:'prestige', nom:'Duo Prestige', prix:890, album:true, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances','Album photo imprimé offert'] }
   ]
 };
 
@@ -491,7 +491,15 @@ function renderDuoNudge(){
   const g=currentGamme();
   const duo=(GAMMES.duo||[]).find(d=>d.id===DUO_EQUIV[g.id]);
   if(!duo){ box.innerHTML=''; box.classList.remove('show'); return; }
-  const deuxSeances=g.prix*2;
+  // Ce que couterait la meme chose en deux seances separees : les deux
+  // formules, plus les photos retouchees supplementaires du duo, plus
+  // l'album quand il est offert. Comparer les seuls prix afficherait une
+  // economie fausse maintenant que les duos donnent davantage.
+  let deuxSeances=g.prix*2;
+  if(g.retouchees&&duo.retouchees){
+    deuxSeances+=Math.max(0,duo.retouchees-g.retouchees*2)*PRIX.photoSupp;
+  }
+  if(duo.album) deuxSeances+=PRIX.album;
   const eco=deuxSeances-duo.prix;
   const autre=state.type==='naissance'?'grossesse':'naissance';
   box.innerHTML='<div class="duo-in">'
@@ -1256,6 +1264,8 @@ setTimeout(()=>{
       +'<div class="frow"><div class="field"><label for="gPour">Pour qui ?</label><input id="gPour" type="text" placeholder="Son prénom"></div>'
       +'<div class="field"><label for="gMot">Petit mot sur le bon</label><input id="gMot" type="text" maxlength="120" placeholder="Ex : Félicitations !"></div></div>'
       +'<p class="gift-note">Ces deux champs sont facultatifs ; ils seront imprimés sur le bon.</p>'
+      +'<p class="gift-note" style="margin-top:2px"><button type="button" class="lienbon" id="gApercu">Voir à quoi ressemble le bon</button></p>'
+      +'<div id="gApercuZone" style="display:none;margin:10px 0 4px"></div>'
       +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
       +'<div class="book-sum-note">Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
       +'Après le paiement vous recevez le bon à imprimer, avec son code unique. Elle choisira sa date elle-même. Le bon s\'utilise en une seule fois.</div></div>'
@@ -1264,6 +1274,8 @@ setTimeout(()=>{
       +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>';
     document.getElementById('gCancel').addEventListener('click',close);
     document.getElementById('gPay').addEventListener('click',payer);
+    const ap=document.getElementById('gApercu');
+    if(ap) ap.addEventListener('click',function(){ apercuBon(offre); });
   }
 
   async function payer(){
@@ -1291,6 +1303,42 @@ setTimeout(()=>{
   openBtn.addEventListener('click',open);
   if(closeBtn) closeBtn.addEventListener('click',close);
   modal.addEventListener('click',e=>{ if(e.target===modal) close(); });
+
+  /* Apercu du bon, dessine avec le meme code que le vrai. Le montant n'y
+     figure pas, c'est un cadeau : ce qu'on montre, c'est la formule, le
+     petit mot et le code. Les valeurs affichees ici sont un exemple. */
+  let apercuFait=false;
+  async function apercuBon(offre){
+    const zone=document.getElementById('gApercuZone');
+    const lien=document.getElementById('gApercu');
+    if(!zone) return;
+    if(zone.style.display!=='none'){ zone.style.display='none'; if(lien) lien.textContent='Voir à quoi ressemble le bon'; return; }
+    zone.style.display='block';
+    if(lien) lien.textContent='Masquer l\'exemple';
+    if(apercuFait) return;
+    apercuFait=true;
+    zone.innerHTML='<div class="book-info">Préparation de l\'exemple...</div>';
+    try{
+      if(typeof MBS_BON==='undefined'){ zone.innerHTML='<div class="book-info">Aperçu indisponible.</div>'; return; }
+      await MBS_BON.pretesPourDessiner();
+      const cv=document.createElement('canvas');
+      const exp=new Date(Date.now()+18*30*86400000);
+      MBS_BON.dessiner(cv,{
+        formule: offre.nom,
+        seance: offre.duo ? 'duo' : (state.type==='naissance' ? 'naissance' : 'grossesse'),
+        pour: (document.getElementById('gPour')&&document.getElementById('gPour').value.trim()) || 'Camille',
+        message: (document.getElementById('gMot')&&document.getElementById('gMot').value.trim()) || 'Félicitations, profitez bien de ce moment !',
+        code: 'EXEMPL',
+        expire: exp.toISOString().slice(0,10)
+      });
+      zone.innerHTML='<img src="'+cv.toDataURL('image/jpeg',0.86)+'" alt="Exemple de bon cadeau" '
+        +'style="width:100%;border-radius:12px;display:block;box-shadow:0 6px 22px rgba(50,38,25,.16)">'
+        +'<p class="gift-note" style="margin-top:8px">Exemple. Le vôtre portera votre petit mot et son code unique. '
+        +'Aucun prix n\'est imprimé dessus.</p>';
+    }catch(e){
+      zone.innerHTML='<div class="book-info">Aperçu indisponible pour le moment.</div>';
+    }
+  }
 
   // retour de Stripe apres l'achat : on renvoie vers la page du bon imprimable
   if(/[?&]cadeau=ok(&|$)/.test(location.search)){
