@@ -42,14 +42,26 @@ document.getElementById('heroRating').textContent=CHIFFRES.note;
    peut pas se faire sans l'accord de la visiteuse.
    ===================================================================== */
 const GOOGLE_ADS = {
-  id:              '',   // ex. 'AW-123456789'
-  conversionResa:  '',   // ex. 'AW-123456789/AbC-D_efGhIjKl'  (reservation payee)
-  conversionCadeau:''    // ex. 'AW-123456789/MnO-P_qrStUvWx'  (bon cadeau achete)
+  id:              'AW-965285268',
+  conversionResa:  'AW-965285268/GOpgCI2okeAcEJSrpMwD',   // Réservation payée
+  conversionCadeau:'AW-965285268/v1ReCJCokeAcEJSrpMwD'    // Bon cadeau acheté
 };
+
+/* Ou est rangee la reponse de la visiteuse. Partage avec le bandeau. */
+const CLE_COOKIES = 'mbs_cookies';
 
 const MESURE = (function(){
   let chargee = false;
   const actif = () => !!GOOGLE_ADS.id;
+
+  // Un refus vaut refus jusqu'au bout : meme si la visiteuse reserve
+  // ensuite, rien n'est envoye et le script de Google n'est pas charge.
+  function accepte(){
+    try{
+      const v = JSON.parse(localStorage.getItem(CLE_COOKIES) || 'null');
+      return !!(v && v.q === 'oui');
+    }catch(e){ return false; }
+  }
 
   function charger(){
     if(chargee || !actif()) return;
@@ -85,6 +97,7 @@ const MESURE = (function(){
 
   function conversion(etiquette, valeur, ref){
     if(!actif() || !etiquette) return;
+    if(!accepte()) return;
     if(dejaComptee(ref)) return;
     charger();
     gtag('event','conversion',{
@@ -122,7 +135,7 @@ const MESURE = (function(){
    conserve aussi longtemps que l'acceptation.
    ===================================================================== */
 const CONSENT = (function(){
-  const CLE = 'mbs_cookies';
+  const CLE = CLE_COOKIES;
   const DUREE = 182 * 24 * 60 * 60 * 1000;   // 6 mois
 
   function choix(){
