@@ -1352,3 +1352,88 @@ setTimeout(()=>{
     if(r) r.addEventListener('click',()=>{ propre(); openBooking(); });
   }
 })();
+
+/* =====================================================================
+   MESURE D'AUDIENCE MAISON
+
+   Rien ne part chez un tiers et aucun identifiant de visiteur n'existe :
+   le navigateur retient seulement la DATE a laquelle il a deja ete
+   compte, pour ne pas l'etre deux fois le meme jour. Le serveur ne
+   manipule que des compteurs.
+
+   C'est ce qui permet a cette mesure de ne pas dependre du bandeau de
+   consentement, contrairement a la balise publicitaire : la CNIL exempte
+   la mesure d'audience strictement interne, sans suivi entre sites et
+   sans transmission a un tiers.
+
+   Place en fin de fichier : CRM_API est declare plus haut, et le lire
+   avant sa declaration ferait echouer tout le script.
+   ===================================================================== */
+(function(){
+  const API = CRM_API + '/mbs-stats';
+  const CLE_JOUR = 'mbs_audience_jour';
+
+  function envoyer(o){
+    try{
+      const s = JSON.stringify(o);
+      // sendBeacon part meme si la page se ferme dans la seconde
+      if(navigator.sendBeacon){
+        navigator.sendBeacon(API, new Blob([s], { type:'application/json' }));
+        return;
+      }
+      fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+                   body:s, keepalive:true }).catch(function(){});
+    }catch(e){}
+  }
+
+  function premiereFoisAujourdhui(){
+    const jour = new Date().toISOString().slice(0,10);
+    try{
+      if(localStorage.getItem(CLE_JOUR) === jour) return false;
+      localStorage.setItem(CLE_JOUR, jour);
+    }catch(e){ return true; }
+    return true;
+  }
+
+  /* D'ou vient la visite. gclid est pose par Google sur les clics
+     publicitaires, c'est le signal le plus fiable. */
+  const gclid = /[?&]gclid=/.test(location.search);
+  const utm = (location.search.match(/[?&]utm_(?:source|medium)=([^&]*)/) || [])[1] || '';
+  envoyer({ type:'vue', nouveau: premiereFoisAujourdhui(),
+            ref: document.referrer || '', utm: gclid ? 'google-ads' : utm });
+
+  /* Temps passe. Mesure une seule fois, quand la page est quittee ou
+     mise en arriere-plan. Sous-estime le visiteur qui revient, ce qui
+     vaut mieux que de le compter deux fois. */
+  const debut = Date.now();
+  let envoye = false;
+  function fin(){
+    if(envoye) return;
+    envoye = true;
+    envoyer({ type:'duree', secondes: Math.round((Date.now() - debut) / 1000) });
+  }
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) fin(); });
+  window.addEventListener('pagehide', fin);
+
+  /* Clics sur ce qui compte. Tout le reste est ignore, pour ne pas noyer
+     l'information utile sous le bruit. */
+  function nomDuClic(el){
+    if(!el || !el.closest) return '';
+    if(el.closest('.js-availability, .js-reserve')) return 'reserver';
+    if(el.closest('#heroBon')) return 'bon_cadeau';
+    const a = el.closest('a');
+    if(!a) return '';
+    const h = a.getAttribute('href') || '';
+    if(h.indexOf('tel:') === 0) return 'telephone';
+    if(h.indexOf('maps') > -1) return 'itineraire';
+    if(h.indexOf('instagram') > -1) return 'instagram';
+    if(h.indexOf('tiktok') > -1) return 'tiktok';
+    if(h.indexOf('legal') > -1) return 'mentions';
+    if(h.charAt(0) === '#') return h.slice(1);
+    return '';
+  }
+  document.addEventListener('click', function(e){
+    const n = nomDuClic(e.target);
+    if(n) envoyer({ type:'clic', quoi:n });
+  }, true);
+})();
