@@ -1275,8 +1275,7 @@ setTimeout(()=>{
       +'<p class="gift-note">Ces deux champs sont facultatifs ; ils seront imprimés sur le bon.</p>'
       +'<div class="field" style="margin-top:4px"><label>Habillage du bon</label>'
       +'<div class="gstyles" id="gStyles"></div></div>'
-      +'<p class="gift-note" style="margin-top:2px"><button type="button" class="lienbon" id="gApercu">Voir à quoi ressemble le bon</button></p>'
-      +'<div id="gApercuZone" style="display:none;margin:10px 0 4px"></div>'
+      +'<div id="gApercuZone" style="margin:2px 0 12px"></div>'
       +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
       +'<div class="book-sum-note">Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
       +'Après le paiement vous recevez le bon à imprimer, avec son code unique. Elle choisira sa date elle-même. Le bon s\'utilise en une seule fois.</div></div>'
@@ -1285,9 +1284,13 @@ setTimeout(()=>{
       +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>';
     document.getElementById('gCancel').addEventListener('click',close);
     document.getElementById('gPay').addEventListener('click',payer);
-    const ap=document.getElementById('gApercu');
-    if(ap) ap.addEventListener('click',function(){ apercuBon(offre); });
     renderStyles(offre);
+    lancerApercu(offre);
+    // le bon se redessine pendant la frappe : on voit son cadeau se composer
+    ['gPour','gMot'].forEach(function(id){
+      const el=document.getElementById(id);
+      if(el) el.addEventListener('input',function(){ majApercu(offre); });
+    });
   }
 
   async function payer(){
@@ -1332,48 +1335,66 @@ setTimeout(()=>{
       b.addEventListener('click',function(){
         styleChoisi=b.dataset.s;
         renderStyles(offre);
-        apercuFait=false;                 // l'apercu doit etre redessine
-        const zone=document.getElementById('gApercuZone');
-        if(zone && zone.style.display!=='none'){ zone.style.display='none'; apercuBon(offre); }
+        dessinerApercu(offre);
       });
     });
   }
 
   /* Apercu du bon, dessine avec le meme code que le vrai. Le montant n'y
      figure pas, c'est un cadeau : ce qu'on montre, c'est la formule, le
-     petit mot et le code. Les valeurs affichees ici sont un exemple. */
-  let apercuFait=false;
-  async function apercuBon(offre){
-    const zone=document.getElementById('gApercuZone');
-    const lien=document.getElementById('gApercu');
-    if(!zone) return;
-    if(zone.style.display!=='none'){ zone.style.display='none'; if(lien) lien.textContent='Voir à quoi ressemble le bon'; return; }
-    zone.style.display='block';
-    if(lien) lien.textContent='Masquer l\'exemple';
-    if(apercuFait) return;
-    apercuFait=true;
-    zone.innerHTML='<div class="book-info">Préparation de l\'exemple...</div>';
+     petit mot et le code.
+
+     On garde le meme canvas d'un rendu a l'autre et on le laisse dans la
+     page tel quel, sans le convertir en image : encoder un JPEG de
+     2480 x 1748 a chaque touche frappee saccaderait sur telephone. */
+  let apercuPret = false, apercuCanvas = null, apercuTimer = 0;
+
+  async function lancerApercu(offre){
+    const zone = document.getElementById('gApercuZone');
+    if(!zone || typeof MBS_BON === 'undefined') return;
+    zone.innerHTML = '<div class="book-info">Préparation de l\'aperçu...</div>';
     try{
-      if(typeof MBS_BON==='undefined'){ zone.innerHTML='<div class="book-info">Aperçu indisponible.</div>'; return; }
       await MBS_BON.pretesPourDessiner();
-      const cv=document.createElement('canvas');
-      const exp=new Date(Date.now()+18*30*86400000);
-      MBS_BON.dessiner(cv,{
+      apercuCanvas = document.createElement('canvas');
+      apercuCanvas.style.cssText = 'width:100%;height:auto;border-radius:12px;display:block;box-shadow:0 6px 22px rgba(50,38,25,.16)';
+      zone.innerHTML = '';
+      zone.appendChild(apercuCanvas);
+      const n = document.createElement('p');
+      n.className = 'gift-note';
+      n.style.marginTop = '8px';
+      n.textContent = 'Aperçu en direct. Le code sera unique, et aucun prix n\'est imprimé sur le bon.';
+      zone.appendChild(n);
+      apercuPret = true;
+      dessinerApercu(offre);
+    }catch(e){
+      zone.innerHTML = '<div class="book-info">Aperçu indisponible pour le moment.</div>';
+    }
+  }
+
+  /* Pendant la frappe, on attend une courte pause avant de redessiner :
+     redessiner a chaque lettre ne servirait a rien et couterait cher. */
+  function majApercu(offre){
+    if(!apercuPret) return;
+    clearTimeout(apercuTimer);
+    apercuTimer = setTimeout(function(){ dessinerApercu(offre); }, 220);
+  }
+
+  function dessinerApercu(offre){
+    if(!apercuPret || !apercuCanvas) return;
+    const lire = function(id){ const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+    const exp = new Date(Date.now() + 18*30*86400000);
+    try{
+      MBS_BON.dessiner(apercuCanvas, {
         style: styleChoisi,
         formule: offre.nom,
-        seance: offre.duo ? 'duo' : (state.type==='naissance' ? 'naissance' : 'grossesse'),
-        pour: (document.getElementById('gPour')&&document.getElementById('gPour').value.trim()) || 'Camille',
-        message: (document.getElementById('gMot')&&document.getElementById('gMot').value.trim()) || 'Félicitations, profitez bien de ce moment !',
+        seance: offre.duo ? 'duo' : (state.type === 'naissance' ? 'naissance' : 'grossesse'),
+        // tant que les champs sont vides, on montre un exemple plutot qu'un blanc
+        pour: lire('gPour') || 'Camille',
+        message: lire('gMot') || 'Félicitations, profitez bien de ce moment !',
         code: 'EXEMPL',
         expire: exp.toISOString().slice(0,10)
       });
-      zone.innerHTML='<img src="'+cv.toDataURL('image/jpeg',0.86)+'" alt="Exemple de bon cadeau" '
-        +'style="width:100%;border-radius:12px;display:block;box-shadow:0 6px 22px rgba(50,38,25,.16)">'
-        +'<p class="gift-note" style="margin-top:8px">Exemple. Le vôtre portera votre petit mot et son code unique. '
-        +'Aucun prix n\'est imprimé dessus.</p>';
-    }catch(e){
-      zone.innerHTML='<div class="book-info">Aperçu indisponible pour le moment.</div>';
-    }
+    }catch(e){}
   }
 
   // retour de Stripe apres l'achat : on renvoie vers la page du bon imprimable
