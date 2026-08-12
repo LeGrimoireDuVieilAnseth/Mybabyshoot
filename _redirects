@@ -1,0 +1,15 @@
+# Redirections Netlify.
+#
+# Le site tient en une seule page. Les anciennes adresses du site Wix
+# (indexees par Google, presentes dans des liens, des captures, des vieux
+# messages) n'existent plus. Sans cette regle elles renverraient une erreur
+# apres la bascule du domaine.
+#
+# Netlify sert d'abord les fichiers qui existent : index.html, legal.html,
+# bon.html, les images, le CSS et le JS ne sont pas concernes. La regle ne
+# s'applique qu'aux adresses introuvables.
+#
+# 301 = deplacement definitif. C'est ce qui dit a Google de reporter sur la
+# page d'accueil ce qu'il attribuait a l'ancienne page.
+
+/*    /    301
