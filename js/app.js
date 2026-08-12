@@ -14,7 +14,7 @@ const GAMMES = {
   duo: [
     { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
     { id:'confort', nom:'Duo Confort', prix:690, populaire:true, retouchees:30, inclus:['2 séances : grossesse et naissance','30 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
-    { id:'prestige', nom:'Duo Prestige', prix:890, album:true, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances','Album photo imprimé offert'] }
+    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances'] }
   ]
 };
 
@@ -502,11 +502,20 @@ function renderDuoNudge(){
   if(duo.album) deuxSeances+=PRIX.album;
   const eco=deuxSeances-duo.prix;
   const autre=state.type==='naissance'?'grossesse':'naissance';
+  // Annoncer un montant sec laisse croire a une simple remise. On dit
+  // d'abord ce qu'on recoit en plus, l'economie vient ensuite.
+  const photosEnPlus = (g.retouchees && duo.retouchees)
+    ? Math.max(0, duo.retouchees - g.retouchees * 2) : 0;
+  let detail = '';
+  if(photosEnPlus > 0){
+    detail = ' Vous y gagnez <b>' + photosEnPlus + ' photos retouchées de plus</b> que deux séances '
+      + g.nom + ' prises séparément, qui vous seraient facturées ' + euro(photosEnPlus * PRIX.photoSupp) + '.';
+  }
   box.innerHTML='<div class="duo-in">'
     +'<div class="duo-txt"><b>Vous pensez aussi faire la '+autre+' ?</b>'
-    +'<span>'+duo.nom+' : les 2 séances pour '+euro(duo.prix)
-    +(eco>0?', soit <b class="duo-eco">'+euro(eco)+' d\'économie</b> par rapport à 2 séances séparées.'
-           :'. Les galeries complètes au naturel des 2 séances sont offertes.')+'</span></div>'
+    +'<span>'+duo.nom+' : les 2 séances pour '+euro(duo.prix)+'.'+detail
+    +(eco>0?' Au total <b class="duo-eco">'+euro(eco)+' d\'économie</b> par rapport à 2 séances séparées.'
+           :' Les galeries complètes au naturel des 2 séances sont offertes.')+'</span></div>'
     +'<button type="button" class="btn btn-ghost" id="duoGo">Voir le pack duo</button></div>';
   box.classList.add('show');
   const b=document.getElementById('duoGo');
@@ -1264,6 +1273,8 @@ setTimeout(()=>{
       +'<div class="frow"><div class="field"><label for="gPour">Pour qui ?</label><input id="gPour" type="text" placeholder="Son prénom"></div>'
       +'<div class="field"><label for="gMot">Petit mot sur le bon</label><input id="gMot" type="text" maxlength="120" placeholder="Ex : Félicitations !"></div></div>'
       +'<p class="gift-note">Ces deux champs sont facultatifs ; ils seront imprimés sur le bon.</p>'
+      +'<div class="field" style="margin-top:4px"><label>Habillage du bon</label>'
+      +'<div class="gstyles" id="gStyles"></div></div>'
       +'<p class="gift-note" style="margin-top:2px"><button type="button" class="lienbon" id="gApercu">Voir à quoi ressemble le bon</button></p>'
       +'<div id="gApercuZone" style="display:none;margin:10px 0 4px"></div>'
       +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
@@ -1276,6 +1287,7 @@ setTimeout(()=>{
     document.getElementById('gPay').addEventListener('click',payer);
     const ap=document.getElementById('gApercu');
     if(ap) ap.addEventListener('click',function(){ apercuBon(offre); });
+    renderStyles(offre);
   }
 
   async function payer(){
@@ -1289,7 +1301,7 @@ setTimeout(()=>{
     try{
       const r=await fetch(CRM_API+'/mbs-gift',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({offre:offre.id,seance:offre.duo?'duo':state.type,prenom,nom:val('gNom'),email,tel:val('gTel'),
-          pour:val('gPour'),message:val('gMot')})});
+          pour:val('gPour'),message:val('gMot'),style:styleChoisi})});
       const j=await r.json();
       if(j&&j.ok&&j.url){ window.location.href=j.url; return; }
       err("Le paiement en ligne n'est pas disponible pour le moment. Appelez Matt au 06 47 76 54 17.");
@@ -1303,6 +1315,29 @@ setTimeout(()=>{
   openBtn.addEventListener('click',open);
   if(closeBtn) closeBtn.addEventListener('click',close);
   modal.addEventListener('click',e=>{ if(e.target===modal) close(); });
+
+  /* Les quinze habillages, en pastilles. Chacune montre le fond reel et la
+     couleur d'accent : on choisit avec les yeux, pas avec un nom. */
+  let styleChoisi = (typeof MBS_BON !== 'undefined') ? MBS_BON.STYLE_DEFAUT : 'creme';
+  function renderStyles(offre){
+    const z=document.getElementById('gStyles');
+    if(!z || typeof MBS_BON==='undefined') return;
+    z.innerHTML=MBS_BON.STYLES.map(function(st){
+      return '<button type="button" class="gstyle'+(st.id===styleChoisi?' on':'')+'"'
+        +' data-s="'+st.id+'" title="'+st.nom+'" aria-label="'+st.nom+'"'
+        +' style="background:'+st.fond+'">'
+        +'<span class="gstyle-a" style="background:'+st.accent+'"></span></button>';
+    }).join('');
+    z.querySelectorAll('.gstyle').forEach(function(b){
+      b.addEventListener('click',function(){
+        styleChoisi=b.dataset.s;
+        renderStyles(offre);
+        apercuFait=false;                 // l'apercu doit etre redessine
+        const zone=document.getElementById('gApercuZone');
+        if(zone && zone.style.display!=='none'){ zone.style.display='none'; apercuBon(offre); }
+      });
+    });
+  }
 
   /* Apercu du bon, dessine avec le meme code que le vrai. Le montant n'y
      figure pas, c'est un cadeau : ce qu'on montre, c'est la formule, le
@@ -1324,6 +1359,7 @@ setTimeout(()=>{
       const cv=document.createElement('canvas');
       const exp=new Date(Date.now()+18*30*86400000);
       MBS_BON.dessiner(cv,{
+        style: styleChoisi,
         formule: offre.nom,
         seance: offre.duo ? 'duo' : (state.type==='naissance' ? 'naissance' : 'grossesse'),
         pour: (document.getElementById('gPour')&&document.getElementById('gPour').value.trim()) || 'Camille',

@@ -43,7 +43,7 @@ canvas{width:100%;height:auto;display:block;border-radius:12px;box-shadow:0 20px
   <div id="zone"><p class="chargement">Chargement de votre bon cadeau...</p></div>
 </div>
 
-<script src="js/bon.js?v=1"></script>
+<script src="js/bon.js?v=4"></script>
 <script>
 const API='https://matt-crm.netlify.app/.netlify/functions';
 const zone=document.getElementById('zone');
@@ -91,7 +91,7 @@ async function charger(){
   const cv=document.getElementById('cv');
   await MBS_BON.pretesPourDessiner();
   MBS_BON.dessiner(cv,{
-    formule:bon.formule, seance:bon.seance, montant:bon.montant,
+    formule:bon.formule, seance:bon.seance, montant:bon.montant, style:bon.style,
     code:bon.code, pour:bon.pour, message:bon.message, expire:bon.expire
   });
 

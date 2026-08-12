@@ -649,6 +649,17 @@ footer a:hover{color:var(--coral)}
   .cookiebar-btn .btn{ flex:1 1 0; }
 }
 
+/* ---------- choix de l'habillage du bon cadeau ---------- */
+.gstyles{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;}
+.gstyle{position:relative;aspect-ratio:1.35;border:2px solid var(--line,#E6D8C3);border-radius:9px;
+  padding:0;cursor:pointer;overflow:hidden;transition:transform .12s ease,border-color .12s ease;}
+.gstyle:hover{transform:translateY(-1px);}
+.gstyle.on{border-color:var(--cta,#5E4430);box-shadow:0 0 0 2px rgba(94,68,48,.18);}
+.gstyle-a{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:52%;height:5px;border-radius:99px;display:block;}
+.gstyle.on::after{content:"";position:absolute;right:4px;top:4px;width:7px;height:7px;
+  border-radius:99px;background:var(--cta,#5E4430);}
+
 html[data-noel]{
   --cream:#FBF6EF;
   --cream-2:#EFE6DA;
