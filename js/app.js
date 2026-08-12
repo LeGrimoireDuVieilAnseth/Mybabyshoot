@@ -100,12 +100,13 @@ const MESURE = (function(){
     if(!accepte()) return;
     if(dejaComptee(ref)) return;
     charger();
-    gtag('event','conversion',{
-      send_to: etiquette,
-      value: Number(valeur) || 0,
-      currency: 'EUR',
-      transaction_id: ref || ''
-    });
+    const p = { send_to: etiquette, currency: 'EUR', transaction_id: ref || '' };
+    const v = Number(valeur);
+    // Montant absent ou aberrant : on n'envoie pas de valeur du tout, pour
+    // que Google applique la sienne par defaut. Envoyer 0 lui ferait croire
+    // a une vente qui ne rapporte rien, et il apprendrait a en chercher.
+    if(Number.isFinite(v) && v > 0) p.value = v;
+    gtag('event','conversion', p);
   }
 
   function autoriser(){
