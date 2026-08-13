@@ -1481,10 +1481,13 @@ setTimeout(()=>{
   function envoyer(o){
     try{
       const s = JSON.stringify(o);
-      // sendBeacon part meme si la page se ferme dans la seconde
+      // sendBeacon part meme si la page se ferme dans la seconde, mais
+      // seulement en text/plain : tout autre type oblige le navigateur a une
+      // verification CORS prealable qu'il ne sait pas faire depuis un beacon,
+      // et l'envoi est abandonne sans le moindre message. Le serveur lit le
+      // corps quel que soit le type annonce.
       if(navigator.sendBeacon){
-        navigator.sendBeacon(API, new Blob([s], { type:'application/json' }));
-        return;
+        if(navigator.sendBeacon(API, new Blob([s], { type:'text/plain;charset=UTF-8' }))) return;
       }
       fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
                    body:s, keepalive:true }).catch(function(){});
