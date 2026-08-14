@@ -853,7 +853,7 @@ function renderBookStep1(){
   const prev=document.getElementById('bookPrev');if(prev)prev.addEventListener('click',()=>{if(!prev.disabled){bookState.viewMonth=bookAddMonth(ym,-1);renderBookStep1();}});
   const nextM=document.getElementById('bookNextM');if(nextM)nextM.addEventListener('click',()=>{if(!nextM.disabled){bookState.viewMonth=bookAddMonth(ym,1);renderBookStep1();}});
   const nx=document.getElementById('bookNext');if(nx)nx.addEventListener('click',()=>{if(bookState.time)renderBookStep2();});
-  const pick=document.getElementById('bookPick');if(pick)pick.addEventListener('click',()=>{closeBooking();gotoComposer();});
+  const pick=document.getElementById('bookPick');if(pick)pick.addEventListener('click',()=>{closeBooking();gotoTarifs();});
 }
 
 function renderBookStep2(){
@@ -1000,12 +1000,22 @@ function signalerBonCadeau(){
   // on ne laisse pas l'observateur arme indefiniment
   setTimeout(()=>{ if(!fait) obs.disconnect(); },20000);
 }
-document.querySelectorAll('.js-gift-nav').forEach(a=>a.addEventListener('click',()=>gotoComposer(signalerBonCadeau)));
+document.querySelectorAll('.js-gift-nav').forEach(a=>a.addEventListener('click',()=>gotoTarifs(signalerBonCadeau)));
+
+/* Compatibilite : les mails de confirmation et de bon cadeau deja recus
+   pointent vers /#composer, une ancre qui n'existe plus. On les rattrape
+   au chargement, sans que le client voie quoi que ce soit. A retirer le
+   jour ou plus personne n'ouvrira un mail de l'ete 2026. */
+if(location.hash === '#composer'){
+  try{ history.replaceState(null, '', location.pathname + location.search + '#tarifs'); }catch(e){}
+  if(document.readyState === 'loading') addEventListener('DOMContentLoaded', function(){ gotoTarifs(); });
+  else gotoTarifs();
+}
 
 /* "Disponibilites" : on descend vers les formules, puis on ouvre le planning en consultation.
    On attend la FIN du defilement avant d'ouvrir (la modale bloque le scroll du fond). */
-function gotoComposer(done){
-  const el=document.getElementById('composer');
+function gotoTarifs(done){
+  const el=document.getElementById('tarifs');
   if(!el){ if(done)done(); return; }
   const dejaLa=Math.abs(el.getBoundingClientRect().top)<40;
   el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1023,7 +1033,7 @@ function gotoComposer(done){
 }
 document.querySelectorAll('.js-availability').forEach(b=>b.addEventListener('click',e=>{
   e.preventDefault();
-  gotoComposer(()=>openBooking(true));
+  gotoTarifs(()=>openBooking(true));
 }));
 document.getElementById('bookClose').addEventListener('click',closeBooking);
 bookModal.addEventListener('click',e=>{if(e.target.id==='bookModal')closeBooking();});
@@ -1527,8 +1537,11 @@ setTimeout(()=>{
      l'information utile sous le bruit. */
   function nomDuClic(el){
     if(!el || !el.closest) return '';
-    if(el.closest('.js-availability, .js-reserve')) return 'reserver';
-    if(el.closest('#heroBon')) return 'bon_cadeau';
+    // du plus precis au plus general : sinon tout retomberait sur l'ancre
+    if(el.closest('.js-availability')) return 'disponibilites';
+    if(el.closest('.js-reserve'))      return 'reserver';
+    if(el.closest('.js-gift-nav'))     return 'bon_cadeau';
+    if(el.closest('#heroBon'))         return 'bon_cadeau';
     const a = el.closest('a');
     if(!a) return '';
     const h = a.getAttribute('href') || '';
