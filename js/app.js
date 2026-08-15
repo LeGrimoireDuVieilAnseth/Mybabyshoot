@@ -541,7 +541,8 @@ function render(){
   renderGammes();
   renderDuoNudge();
   document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===(state.section==='duo'?'duo':state.type)));
-  document.getElementById('optAlbum').classList.toggle('active',state.album);
+  const album=document.getElementById('optAlbum');
+  if(album) album.classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
   const g=currentGamme();
   const L=[];
@@ -666,7 +667,8 @@ document.getElementById('typeSeg').addEventListener('click',e=>{
 });
 document.getElementById('photoPlus').addEventListener('click',()=>{state.photos++;render();});
 document.getElementById('photoMinus').addEventListener('click',()=>{if(state.photos>0){state.photos--;render();}});
-document.getElementById('optAlbum').addEventListener('click',()=>{state.album=!state.album;render();});
+const optAlbum=document.getElementById('optAlbum');
+if(optAlbum) optAlbum.addEventListener('click',()=>{state.album=!state.album;render();});
 
 /* =====================================================================
    5) Réservation maison : sélecteur de créneau + acompte

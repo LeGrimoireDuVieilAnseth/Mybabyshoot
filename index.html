@@ -180,7 +180,12 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
             <button type="button" class="seg-btn seg-duo" data-mode="duo">Pack grossesse + naissance</button>
           </div>
           <div class="gammes" id="gammes"></div>
+          <!-- Encart "Vous pensez aussi faire la naissance / grossesse ?" retire
+               le 15/08/2026 a la demande de Matt. Pour le remettre, il suffit de
+               retablir la ligne ci-dessous : renderDuoNudge() est intact et se
+               tait tout seul tant que le conteneur n'existe pas.
           <div class="duo-nudge" id="duoNudge"></div>
+          -->
         </div>
 
         <div class="scard">
@@ -215,11 +220,15 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
               <button type="button" id="photoPlus" aria-label="Ajouter">+</button>
             </div>
           </div>
+          <!-- Option "Album photo imprime" (+140 EUR) retiree le 15/08/2026.
+               Le tarif reste declare dans PRIX.album et le devis sait toujours
+               l'afficher : recoller ce bloc suffit a la remettre en vente.
           <div class="opt" data-opt="album" id="optAlbum">
             <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
             <div class="ob"><div class="ot">Album photo imprimé</div><div class="os">Vos plus belles images réunies</div></div>
             <div class="op">+140 €</div>
           </div>
+          -->
         </div>
       </div>
 
@@ -390,6 +399,6 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
 </div>
 
 <script src="js/bon.js?v=4"></script>
-<script src="js/app.js?v=45"></script>
+<script src="js/app.js?v=46"></script>
 </body>
 </html>
