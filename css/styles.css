@@ -78,6 +78,29 @@ header.scrolled .burger span{background:var(--ink)}
 .hero-itin{display:inline-flex;align-items:center;gap:9px}
 .hero-itin svg{width:18px;height:18px}
 
+/* Colonne de droite du haut de page : les photos, puis les deux bulles de
+   contact. Elles reprennent l'habillage de la bulle "bon cadeau" de la
+   colonne de gauche pour que les deux cotes se repondent. */
+.hero-droite{display:flex;flex-direction:column;gap:14px}
+.hero-contact{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hero-bulle{display:flex;align-items:center;gap:11px;
+  background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;
+  text-decoration:none;text-align:left;
+  transition:transform .22s cubic-bezier(.2,.8,.3,1),box-shadow .22s,border-color .22s}
+.hero-bulle:hover{transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(94,68,48,.75)}
+.hero-bulle>svg{width:23px;height:23px;flex:none}
+.hero-bulle span{display:block;flex:1;min-width:0;font-size:12.5px;color:var(--ink-soft);line-height:1.35}
+.hero-bulle span b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-bulle-wa>svg{color:#25D366}
+.hero-bulle-wa:hover{border-color:#25D366}
+.hero-bulle-tel>svg{color:var(--coral-deep)}
+.hero-bulle-tel:hover{border-color:var(--coral)}
+
+/* Sur telephone, les deux bulles passent l'une sous l'autre : cote a cote,
+   le numero se ferait tronquer. */
+@media(max-width:520px){ .hero-contact{grid-template-columns:1fr} }
+
 /* bento images */
 .bento{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.2fr .8fr;gap:14px;height:540px}
 .bento figure{margin:0;border-radius:var(--r);overflow:hidden;position:relative;box-shadow:var(--shadow)}
