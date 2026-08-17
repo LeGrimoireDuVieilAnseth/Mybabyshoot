@@ -314,6 +314,13 @@ section{padding:100px 0}
 .reserve-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start}
 .reserve-solo{grid-template-columns:1fr;max-width:620px;margin:0 auto}
 .contact-bar{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+/* Vert WhatsApp officiel : sur ce bouton, la reconnaissance immediate compte
+   plus que l accord avec la palette du site. */
+.btn-wa{background:#25D366;color:#0B3D22;box-shadow:0 10px 26px -12px rgba(37,211,102,.7)}
+.btn-wa:hover{background:#1EBE5A;color:#08301B;transform:translateY(-3px)}
+.btn-wa svg{width:19px;height:19px}
+.reserve .contact-bar .btn-wa{background:#25D366;color:#0B3D22}
+.reserve .contact-bar .btn-wa:hover{background:#1EBE5A;color:#08301B}
 .contact-bar .btn svg{width:18px;height:18px}
 .reserve .contact-bar .btn-coral{background:var(--coral);color:#fff;box-shadow:0 10px 26px -12px rgba(176,130,79,.6)}
 .reserve .contact-bar .btn-coral:hover{background:var(--coral-deep)}

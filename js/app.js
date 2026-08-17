@@ -1553,6 +1553,7 @@ setTimeout(()=>{
     if(el.closest('.js-reserve'))      return 'reserver';
     if(el.closest('.js-gift-nav'))     return 'bon_cadeau';
     if(el.closest('#heroBon'))         return 'bon_cadeau';
+    if(el.closest('.js-wa'))           return 'whatsapp';
     const a = el.closest('a');
     if(!a) return '';
     const h = a.getAttribute('href') || '';
