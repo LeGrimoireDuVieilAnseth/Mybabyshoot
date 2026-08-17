@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512" role="img" aria-label="Mybabyshoot">
+  <title>Mybabyshoot</title>
+  <!-- Sceau compact : sans la ville, pour tout ce qui descend sous 48 px.
+       Le cercle et les lettres sont epaissis pour tenir a petite taille. -->
+  <circle cx="50" cy="50" r="43" fill="none" stroke="#322619" stroke-width="4"/>
+  <g fill="none" stroke="#322619" stroke-width="6" stroke-linecap="round" transform="translate(0,4)">
+    <path d="M25.5 56 V 41"/>
+    <path d="M25.5 46 A 5.5 5.5 0 0 1 36.5 46 V 56"/>
+    <path d="M36.5 46 A 5.5 5.5 0 0 1 47.5 46 V 56"/>
+    <path d="M52.5 56 V 28"/>
+    <circle cx="58.5" cy="50" r="6"/>
+    <path d="M70.5 41 A 3.75 3.75 0 1 0 70.5 48.5 A 3.75 3.75 0 1 1 70.5 56"/>
+  </g>
+</svg>

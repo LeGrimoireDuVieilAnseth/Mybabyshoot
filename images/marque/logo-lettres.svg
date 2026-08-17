@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512" role="img" aria-label="mbs">
+  <title>mbs</title>
+  <!-- Les lettres seules, sans cercle : en dessous de 24 px, le cercle se
+       confond avec le bord de la vignette et n'apporte plus rien. -->
+  <g fill="none" stroke="#322619" stroke-width="8" stroke-linecap="round">
+    <path d="M10 72 V 48"/>
+    <path d="M10 56 A 9 9 0 0 1 28 56 V 72"/>
+    <path d="M28 56 A 9 9 0 0 1 46 56 V 72"/>
+    <path d="M58 72 V 26"/>
+    <circle cx="68" cy="62" r="10"/>
+    <path d="M88 47 A 7 7 0 1 0 88 61 A 7 7 0 1 1 88 73"/>
+  </g>
+</svg>

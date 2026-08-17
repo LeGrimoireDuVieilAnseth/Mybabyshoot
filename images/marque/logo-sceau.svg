@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512" role="img" aria-label="Mybabyshoot">
+  <title>Mybabyshoot</title>
+  <!-- Sceau Mybabyshoot. Entierement en traces vectoriels : aucune police
+       n'est utilisee, le dessin est donc identique partout, y compris chez
+       un imprimeur qui n'aurait pas la police installee. -->
+  <circle cx="50" cy="50" r="43" fill="none" stroke="#322619" stroke-width="3"/>
+  <g fill="none" stroke="#322619" stroke-width="5" stroke-linecap="round">
+    <path d="M25.5 56 V 41"/>
+    <path d="M25.5 46 A 5.5 5.5 0 0 1 36.5 46 V 56"/>
+    <path d="M36.5 46 A 5.5 5.5 0 0 1 47.5 46 V 56"/>
+    <path d="M52.5 56 V 28"/>
+    <circle cx="58.5" cy="50" r="6"/>
+    <path d="M70.5 41 A 3.75 3.75 0 1 0 70.5 48.5 A 3.75 3.75 0 1 1 70.5 56"/>
+  </g>
+  <g fill="none" stroke="#B0824F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M35 66 V 73 H 39"/>
+    <path d="M42 66 L 44.5 69.8 L 47 66"/>
+    <path d="M44.5 69.8 V 73"/>
+    <circle cx="53.5" cy="69.5" r="3.5"/>
+    <path d="M60 73 V 66 L 65 73 V 66"/>
+  </g>
+</svg>

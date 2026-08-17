@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sitemap Mybabyshoot.
+
+     Une seule adresse, et c'est normal : le site tient en une page. Les
+     sections (galerie, tarifs, avis) sont des ancres de cette page, elles
+     n'ont pas d'adresse propre a declarer.
+
+     La page des mentions legales n'y figure pas : elle porte une balise
+     noindex, l'inscrire ici enverrait deux consignes contraires a Google.
+     bon.html non plus : sans code, elle n'affiche rien. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.mybabyshoot.fr/</loc>
+    <lastmod>2026-08-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

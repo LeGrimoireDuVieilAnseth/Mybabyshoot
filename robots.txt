@@ -1,0 +1,13 @@
+# Mybabyshoot
+# Tout est ouvert a l indexation : le site tient en une page publique.
+
+User-agent: *
+Allow: /
+
+# Rien a explorer la-dedans : ce sont des reponses de paiement et des
+# pages personnelles, pas du contenu a referencer.
+Disallow: /*?reservation=
+Disallow: /*?paiement=
+Disallow: /bon.html?code=
+
+Sitemap: https://www.mybabyshoot.fr/sitemap.xml
