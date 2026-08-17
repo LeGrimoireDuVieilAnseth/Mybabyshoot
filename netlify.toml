@@ -1,18 +1,195 @@
-# Le fichier _redirects n'etait pas pris en compte sur ce projet. Les regles
-# declarees ici sont lues a la racine du depot, quel que soit le dossier
-# publie, ce qui est plus fiable.
-
-# Le site tient en une seule page. Les anciennes adresses du site Wix
-# (indexees par Google, presentes dans de vieux liens) n'existent plus.
-# Sans cette regle elles renvoient une erreur 404.
+# Redirections des anciennes pages Wix.
 #
-# Netlify sert d'abord les fichiers qui existent : index.html, legal.html,
-# bon.html, les images, le CSS et le JS ne sont pas concernes. La regle ne
-# s'applique qu'aux adresses introuvables.
+# Le site Wix avait 96 adresses, retrouvees dans les archives du web. Google
+# les a toujours en memoire et les affiche sous le resultat principal :
+# "LE PHOTOGRAPHE", "Mariage", "BAIN DE LAIT", "Grossesse + Naissance,
+# 5 tirages photos". Des prestations que Matt ne propose plus.
 #
-# 301 = deplacement definitif. C'est ce qui dit a Google de reporter sur la
-# page d'accueil ce qu'il attribuait a l'ancienne page.
+# Aujourd'hui ces adresses renvoient une erreur 404. Google finit par retirer
+# une page en erreur, mais il attend d'etre sur, ce qui prend des semaines.
+# Une redirection 301 est comprise immediatement et reporte sur la nouvelle
+# page ce que Google attribuait a l'ancienne.
+#
+# Deux traitements differents selon les cas :
+#   301 vers la bonne section pour tout ce qui existe encore
+#   410 (definitivement supprime) pour ce que Matt ne fait plus. C'est le
+#       signal le plus rapide pour disparaitre des resultats, et le plus
+#       honnete : rediriger "mariage" vers un studio grossesse serait trompeur,
+#       et Google traite ce genre de redirection comme une erreur deguisee.
+#
+# ATTENTION : ce fichier n'a AUCUN effet tant que le champ "Base directory"
+# de Netlify n'est pas vide. C'est ce reglage qui empeche Netlify de le lire.
 
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# ---------------------------------------------------------------
+# Ce que Matt ne propose plus : on demande la suppression
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/mariage"
+  status = 410
+  force = true
+
+[[redirects]]
+  from = "/bapteme"
+  status = 410
+  force = true
+
+# ---------------------------------------------------------------
+# Les pages de prestations et de produits Wix : vers les formules
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/service-page/*"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/product-page/*"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/booking-calendar/*"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/category/*"
+  to = "/#tarifs"
+  status = 301
+
+# ---------------------------------------------------------------
+# Les anciennes pages principales, vers la section equivalente
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/reservation"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/grossesse"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/naissance"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/naissance-1"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/shootinggrossesseenstudio"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/baindelait"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/bon-cadeau"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/services-1"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/cart-page"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/contact"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/lestudio"
+  to = "/#photographe"
+  status = 301
+
+[[redirects]]
+  from = "/apropos"
+  to = "/#photographe"
+  status = 301
+
+[[redirects]]
+  from = "/les-retouches"
+  to = "/#galerie"
+  status = 301
+
+[[redirects]]
+  from = "/infoetconseil"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/faq"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/faq-bain-de-lait"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/acceuil"
+  to = "/"
+  status = 301
+
+# ---------------------------------------------------------------
+# Pages legales de l'ancien site
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/cgv"
+  to = "/legal.html"
+  status = 301
+
+[[redirects]]
+  from = "/mentions-legales"
+  to = "/legal.html"
+  status = 301
+
+# ---------------------------------------------------------------
+# Sitemaps Wix : ils annoncaient les 96 pages disparues
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/pages-sitemap.xml"
+  status = 410
+  force = true
+
+[[redirects]]
+  from = "/booking-services-sitemap.xml"
+  status = 410
+  force = true
+
+[[redirects]]
+  from = "/store-products-sitemap.xml"
+  status = 410
+  force = true
+
+[[redirects]]
+  from = "/store-categories-sitemap.xml"
+  status = 410
+  force = true
+
+# ---------------------------------------------------------------
+# Tout le reste des anciennes adresses : vers l'accueil.
+# En dernier, car Netlify applique la premiere regle qui correspond.
+# Les fichiers qui existent (index.html, legal.html, images, robots.txt,
+# sitemap.xml) sont servis avant d'arriver ici.
+# ---------------------------------------------------------------
 [[redirects]]
   from = "/*"
   to = "/"

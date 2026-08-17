@@ -1,15 +1,32 @@
-# Redirections Netlify.
+# Les regles font foi dans netlify.toml, plus lisible et mieux documente.
+# Ce fichier ne sert que de filet si netlify.toml n'etait pas lu.
 #
-# Le site tient en une seule page. Les anciennes adresses du site Wix
-# (indexees par Google, presentes dans des liens, des captures, des vieux
-# messages) n'existent plus. Sans cette regle elles renverraient une erreur
-# apres la bascule du domaine.
-#
-# Netlify sert d'abord les fichiers qui existent : index.html, legal.html,
-# bon.html, les images, le CSS et le JS ne sont pas concernes. La regle ne
-# s'applique qu'aux adresses introuvables.
-#
-# 301 = deplacement definitif. C'est ce qui dit a Google de reporter sur la
-# page d'accueil ce qu'il attribuait a l'ancienne page.
+# ATTENTION : sans effet tant que le champ "Base directory" de Netlify
+# n'est pas vide.
 
-/*    /    301
+/mariage                      404!
+/bapteme                      404!
+/service-page/*               /#tarifs   301
+/product-page/*               /#tarifs   301
+/booking-calendar/*           /#tarifs   301
+/category/*                   /#tarifs   301
+/reservation                  /#tarifs   301
+/grossesse                    /#tarifs   301
+/naissance                    /#tarifs   301
+/naissance-1                  /#tarifs   301
+/shootinggrossesseenstudio    /#tarifs   301
+/baindelait                   /#tarifs   301
+/bon-cadeau                   /#tarifs   301
+/services-1                   /#tarifs   301
+/cart-page                    /#tarifs   301
+/contact                      /#tarifs   301
+/lestudio                     /#photographe   301
+/apropos                      /#photographe   301
+/les-retouches                /#galerie  301
+/infoetconseil                /          301
+/faq                          /          301
+/faq-bain-de-lait             /          301
+/acceuil                      /          301
+/cgv                          /legal.html  301
+/mentions-legales             /legal.html  301
+/*                            /          301
