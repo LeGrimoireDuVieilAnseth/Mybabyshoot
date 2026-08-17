@@ -29,11 +29,13 @@
 # ---------------------------------------------------------------
 [[redirects]]
   from = "/mariage"
+  to = "/404.html"
   status = 410
   force = true
 
 [[redirects]]
   from = "/bapteme"
+  to = "/404.html"
   status = 410
   force = true
 
@@ -166,21 +168,25 @@
 # ---------------------------------------------------------------
 [[redirects]]
   from = "/pages-sitemap.xml"
+  to = "/404.html"
   status = 410
   force = true
 
 [[redirects]]
   from = "/booking-services-sitemap.xml"
+  to = "/404.html"
   status = 410
   force = true
 
 [[redirects]]
   from = "/store-products-sitemap.xml"
+  to = "/404.html"
   status = 410
   force = true
 
 [[redirects]]
   from = "/store-categories-sitemap.xml"
+  to = "/404.html"
   status = 410
   force = true
 

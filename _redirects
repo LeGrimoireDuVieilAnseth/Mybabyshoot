@@ -1,11 +1,15 @@
-# Les regles font foi dans netlify.toml, plus lisible et mieux documente.
-# Ce fichier ne sert que de filet si netlify.toml n'etait pas lu.
+# Les regles font foi dans netlify.toml. Ce fichier n'est qu'un filet.
 #
-# ATTENTION : sans effet tant que le champ "Base directory" de Netlify
-# n'est pas vide.
+# Syntaxe : chemin d'origine, destination, code. La destination est
+# obligatoire, meme pour un 410 : sans elle la regle est invalide et
+# Netlify ignore tout le fichier.
 
-/mariage                      404!
-/bapteme                      404!
+/mariage                      /404.html  410!
+/bapteme                      /404.html  410!
+/pages-sitemap.xml            /404.html  410!
+/booking-services-sitemap.xml /404.html  410!
+/store-products-sitemap.xml   /404.html  410!
+/store-categories-sitemap.xml /404.html  410!
 /service-page/*               /#tarifs   301
 /product-page/*               /#tarifs   301
 /booking-calendar/*           /#tarifs   301
@@ -20,8 +24,8 @@
 /services-1                   /#tarifs   301
 /cart-page                    /#tarifs   301
 /contact                      /#tarifs   301
-/lestudio                     /#photographe   301
-/apropos                      /#photographe   301
+/lestudio                     /#photographe  301
+/apropos                      /#photographe  301
 /les-retouches                /#galerie  301
 /infoetconseil                /          301
 /faq                          /          301
