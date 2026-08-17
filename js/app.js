@@ -701,6 +701,7 @@ let bookViewOnly=false;
 function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
+    section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,
     exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
@@ -945,7 +946,13 @@ async function submitBooking(){
   btn.textContent=gratuit?'Confirmation en cours...':'Redirection vers le paiement...';
   try{
     const r=await fetch(CRM_API+'/mbs-checkout',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:bookState.type,total:bookState.total,date:bookState.date,time:bookState.time,client,
+      // On envoie la FORMULE, pas un montant : c'est le serveur qui fixe le
+      // prix. totalAffiche ne sert qu'a verifier que l'ecran de la cliente
+      // et le serveur disent bien la meme chose.
+      body:JSON.stringify({type:bookState.type,
+        section:bookState.section,gamme:bookState.gamme,photos:bookState.photos,album:bookState.album,
+        totalAffiche:bookState.total,
+        date:bookState.date,time:bookState.time,client,
         coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly,
         exterieur:bookState.exterieur||null})});
     const j=await r.json();
@@ -953,6 +960,7 @@ async function submitBooking(){
     // bon cadeau couvrant tout : pas de passage par Stripe, c'est deja confirme
     if(j.ok&&j.gratuit){renderBookGratuit(client);return;}
     if(j.error==='exterieur'){bookErr(j.message||"Adresse du lieu non reconnue.");resetPayBtn();return;}
+    if(j.error==='prix'||j.error==='formule'){bookErr(j.message||"Rechargez la page pour voir le prix à jour.");resetPayBtn();return;}
     if(j.error==='slot_taken'){bookErr('Ce créneau vient d\'être pris. Choisissez-en un autre.');resetPayBtn();loadAvailability();return;}
     if(j.error==='coupon'){
       if(bookState.giftOnly){ renderBonCode('', j.message||"Ce bon n'est plus utilisable."); return; }
