@@ -1,46 +1,32 @@
 # Redirections des anciennes pages Wix.
 #
 # Le site Wix avait 96 adresses, retrouvees dans les archives du web. Google
-# les a toujours en memoire et les affiche sous le resultat principal :
-# "LE PHOTOGRAPHE", "Mariage", "BAIN DE LAIT", "Grossesse + Naissance,
-# 5 tirages photos". Des prestations que Matt ne propose plus.
+# les affiche toujours sous le resultat principal : "LE PHOTOGRAPHE",
+# "Mariage", "BAIN DE LAIT", "Grossesse + Naissance, 5 tirages photos".
+# Des prestations que Matt ne propose plus.
 #
-# Aujourd'hui ces adresses renvoient une erreur 404. Google finit par retirer
-# une page en erreur, mais il attend d'etre sur, ce qui prend des semaines.
-# Une redirection 301 est comprise immediatement et reporte sur la nouvelle
-# page ce que Google attribuait a l'ancienne.
+# Une redirection 301 est comprise tout de suite par Google et reporte sur la
+# nouvelle page ce qu'il attribuait a l'ancienne. Une erreur 404 finit par
+# marcher aussi, mais Google attend d'etre sur, ce qui prend des semaines.
 #
-# Deux traitements differents selon les cas :
-#   301 vers la bonne section pour tout ce qui existe encore
-#   410 (definitivement supprime) pour ce que Matt ne fait plus. C'est le
-#       signal le plus rapide pour disparaitre des resultats, et le plus
-#       honnete : rediriger "mariage" vers un studio grossesse serait trompeur,
-#       et Google traite ce genre de redirection comme une erreur deguisee.
+# PAS DE REGLE ATTRAPE-TOUT.
+# Le fichier en contenait une, "/*" vers "/", et elle n'a jamais fonctionne :
+# ce motif attrape aussi "/" lui-meme, la regle se mord la queue et Netlify
+# l'ecarte. C'est ce qui a fait croire que le reglage "Base directory"
+# bloquait le fichier, alors que le champ etait vide et que le reste marchait.
 #
-# ATTENTION : ce fichier n'a AUCUN effet tant que le champ "Base directory"
-# de Netlify n'est pas vide. C'est ce reglage qui empeche Netlify de le lire.
+# On s'en passe tres bien : les 96 anciennes adresses sont connues et toutes
+# couvertes ci-dessous, nommement ou par motif. Ce qui n'y figure pas tombe
+# sur la page 404 du site, qui propose de vraies portes de sortie. C'est
+# aussi ce que Google prefere : rediriger n'importe quelle adresse inconnue
+# vers l'accueil est traite comme une erreur deguisee.
 
 [build]
   publish = "."
   functions = "netlify/functions"
 
 # ---------------------------------------------------------------
-# Ce que Matt ne propose plus : on demande la suppression
-# ---------------------------------------------------------------
-[[redirects]]
-  from = "/mariage"
-  to = "/404.html"
-  status = 410
-  force = true
-
-[[redirects]]
-  from = "/bapteme"
-  to = "/404.html"
-  status = 410
-  force = true
-
-# ---------------------------------------------------------------
-# Les pages de prestations et de produits Wix : vers les formules
+# Prestations et produits Wix : une soixantaine d'adresses
 # ---------------------------------------------------------------
 [[redirects]]
   from = "/service-page/*"
@@ -63,7 +49,7 @@
   status = 301
 
 # ---------------------------------------------------------------
-# Les anciennes pages principales, vers la section equivalente
+# Anciennes pages, vers la section equivalente
 # ---------------------------------------------------------------
 [[redirects]]
   from = "/reservation"
@@ -116,6 +102,16 @@
   status = 301
 
 [[redirects]]
+  from = "/adomicile"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
+  from = "/àdomicile"
+  to = "/#tarifs"
+  status = 301
+
+[[redirects]]
   from = "/lestudio"
   to = "/#photographe"
   status = 301
@@ -150,6 +146,21 @@
   to = "/"
   status = 301
 
+[[redirects]]
+  from = "/blank"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/info-demenagement"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/info-déménagement"
+  to = "/"
+  status = 301
+
 # ---------------------------------------------------------------
 # Pages legales de l'ancien site
 # ---------------------------------------------------------------
@@ -163,40 +174,18 @@
   to = "/legal.html"
   status = 301
 
-# ---------------------------------------------------------------
-# Sitemaps Wix : ils annoncaient les 96 pages disparues
-# ---------------------------------------------------------------
 [[redirects]]
-  from = "/pages-sitemap.xml"
-  to = "/404.html"
-  status = 410
-  force = true
-
-[[redirects]]
-  from = "/booking-services-sitemap.xml"
-  to = "/404.html"
-  status = 410
-  force = true
-
-[[redirects]]
-  from = "/store-products-sitemap.xml"
-  to = "/404.html"
-  status = 410
-  force = true
-
-[[redirects]]
-  from = "/store-categories-sitemap.xml"
-  to = "/404.html"
-  status = 410
-  force = true
-
-# ---------------------------------------------------------------
-# Tout le reste des anciennes adresses : vers l'accueil.
-# En dernier, car Netlify applique la premiere regle qui correspond.
-# Les fichiers qui existent (index.html, legal.html, images, robots.txt,
-# sitemap.xml) sont servis avant d'arriver ici.
-# ---------------------------------------------------------------
-[[redirects]]
-  from = "/*"
-  to = "/"
+  from = "/mentions-légales"
+  to = "/legal.html"
   status = 301
+
+# ---------------------------------------------------------------
+# Ce qui n'est PAS redirige, volontairement :
+#
+#   /mariage, /bapteme                prestations abandonnees
+#   /pages-sitemap.xml et les autres  ils annoncaient les 96 pages
+#   /_files/ugd/*.pdf                 anciens documents
+#
+# Pour ces adresses, une erreur est la reponse juste. Google finira par les
+# retirer, et entre-temps la page 404 du site oriente le visiteur.
+# ---------------------------------------------------------------
