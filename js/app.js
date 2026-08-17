@@ -952,6 +952,7 @@ async function submitBooking(){
       body:JSON.stringify({type:bookState.type,
         section:bookState.section,gamme:bookState.gamme,photos:bookState.photos,album:bookState.album,
         totalAffiche:bookState.total,
+        origine:origineMemorisee(),
         date:bookState.date,time:bookState.time,client,
         coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly,
         exterieur:bookState.exterieur||null})});
@@ -1568,3 +1569,58 @@ setTimeout(()=>{
     if(n) envoyer({ type:'clic', quoi:n });
   }, true);
 })();
+
+
+/* =====================================================================
+   D'OU VIENT LA CLIENTE
+
+   Sert a une seule chose : savoir ce que la publicite rapporte vraiment,
+   en mettant face a face le chiffre d'affaires qu'elle amene et ce
+   qu'elle coute.
+
+   On ne retient qu'une CATEGORIE, jamais un identifiant : "Google Ads",
+   "Instagram", "Google", "Direct". Le gclid n'est pas conserve. Rien ici
+   ne permet de reconnaitre quelqu'un, ni de le suivre d'un site a
+   l'autre.
+
+   Derniere origine non directe, sur 30 jours. C'est le modele
+   d'attribution courant : quelqu'un qui arrive par une annonce, repart,
+   puis revient en tapant l'adresse reste attribue a l'annonce.
+   ===================================================================== */
+const ORIGINE_CLE = 'mbs_origine';
+const ORIGINE_JOURS = 30;
+
+function categorieVisite(){
+  if(/[?&]gclid=/.test(location.search)) return 'Google Ads';
+  const brut = (location.search.match(/[?&]utm_(?:source|medium)=([^&]*)/) || [])[1] || '';
+  let u = '';
+  try{ u = decodeURIComponent(brut).toLowerCase(); }catch(e){ u = brut.toLowerCase(); }
+  if(u.indexOf('google')>-1 || u==='cpc' || u==='ads') return 'Google Ads';
+  if(u.indexOf('insta')>-1)  return 'Instagram';
+  if(u.indexOf('tiktok')>-1) return 'TikTok';
+  const r = (document.referrer || '').toLowerCase();
+  if(!r || r.indexOf('mybabyshoot')>-1) return 'Direct';
+  if(r.indexOf('google')>-1)    return 'Google';
+  if(r.indexOf('instagram')>-1) return 'Instagram';
+  if(r.indexOf('tiktok')>-1)    return 'TikTok';
+  if(r.indexOf('facebook')>-1)  return 'Facebook';
+  if(r.indexOf('bing')>-1 || r.indexOf('duckduck')>-1 || r.indexOf('ecosia')>-1) return 'Autre moteur';
+  return 'Autre site';
+}
+
+/* Une visite directe n'ecrase pas une provenance connue : sinon revenir sur
+   le site par ses favoris effacerait l'annonce qui a amene la cliente. */
+(function memoriserOrigine(){
+  const c = categorieVisite();
+  if(c === 'Direct') return;
+  try{ localStorage.setItem(ORIGINE_CLE, JSON.stringify({ c: c, t: Date.now() })); }catch(e){}
+})();
+
+function origineMemorisee(){
+  try{
+    const o = JSON.parse(localStorage.getItem(ORIGINE_CLE) || 'null');
+    if(!o || !o.c) return 'Direct';
+    if(Date.now() - o.t > ORIGINE_JOURS * 864e5) return 'Direct';
+    return String(o.c).slice(0, 20);
+  }catch(e){ return 'Direct'; }
+}
