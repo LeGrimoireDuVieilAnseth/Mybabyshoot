@@ -701,6 +701,7 @@ let bookViewOnly=false;
 function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
+    paiement:'acompte',
     section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,
     exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
   bookModal.classList.add('show');
@@ -863,7 +864,9 @@ function renderBookStep2(){
   const remise=bookState.remise||0;
   const totalNet=bookState.total-remise;
   // un bon cadeau peut couvrir toute la seance : il ne reste alors rien a payer
-  const aPayer=Math.max(0,Math.min(bookState.acompte,totalNet));
+  // "integral" : tout est regle maintenant, il ne reste rien pour le jour J.
+  const integral=bookState.paiement==='integral';
+  const aPayer=integral?totalNet:Math.max(0,Math.min(bookState.acompte,totalNet));
   const reste=totalNet-aPayer;
   const cadeau=bookState.kind==='cadeau';
   const libRemise=cadeau?'Bon cadeau':'Code de réduction';
@@ -885,6 +888,7 @@ function renderBookStep2(){
     +'<div class="frow"><div class="field"><label for="bEmail">Email</label><input id="bEmail" type="email" autocomplete="email"></div>'
     +'<div class="field"><label for="bTel">Téléphone</label><input id="bTel" type="tel" autocomplete="tel"></div></div>'
     +champCode
+    +choixReglement(totalNet,remise)
     // sur un bon cadeau on n'affiche aucun montant : la personne qui l'a recu
     // n'a pas a decouvrir le prix de son cadeau
     +(bookState.giftOnly
@@ -894,14 +898,19 @@ function renderBookStep2(){
        +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
                +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
        +(aPayer>0
-           ?'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
-            +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div>'
+           ?'<div class="book-sum-l"><span>'+(integral?'À régler maintenant':'Acompte à régler maintenant')+'</span><b>'+euro(aPayer)+'</b></div>'
+            +'<div class="book-sum-note">'+(integral
+                ?'Tout est réglé : il n\'y aura rien à payer le jour de la séance.'
+                :'Le solde ('+euro(reste)+') se règle le jour de la séance.')+'</div>'
            :'<div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
             +'<div class="book-sum-note">Votre bon cadeau couvre la totalité de la séance : il n\'y a rien à payer, ni maintenant, ni le jour J.</div>')
        +'</div>')
     +'<div class="book-err" id="bookErr"></div>'
     +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bookBack">Retour</button>'
-    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?'Payer l\'acompte de '+aPayer+' €':'Confirmer ma réservation')+'</button></div>';
+    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?(integral?'Régler '+aPayer+' €':'Payer l\'acompte de '+aPayer+' €'):'Confirmer ma réservation')+'</button></div>';
+  bookBody.querySelectorAll('[data-regl]').forEach(b=>b.addEventListener('click',()=>{
+    bookState.paiement=b.dataset.regl; renderBookStep2();
+  }));
   document.getElementById('bookBack').addEventListener('click',renderBookStep1);
   document.getElementById('bookPay').addEventListener('click',submitBooking);
   const pb=document.getElementById('bPromoBtn');
@@ -953,6 +962,7 @@ async function submitBooking(){
         section:bookState.section,gamme:bookState.gamme,photos:bookState.photos,album:bookState.album,
         totalAffiche:bookState.total,
         origine:origineMemorisee(),
+        paiement:bookState.paiement||'acompte',
         date:bookState.date,time:bookState.time,client,
         coupon:bookState.coupon||'',giftOnly:!!bookState.giftOnly,
         exterieur:bookState.exterieur||null})});
@@ -1624,4 +1634,43 @@ function origineMemorisee(){
     if(Date.now() - o.t > ORIGINE_JOURS * 864e5) return 'Direct';
     return String(o.c).slice(0, 20);
   }catch(e){ return 'Direct'; }
+}
+
+
+/* =====================================================================
+   COMMENT REGLER : acompte, ou tout maintenant en trois fois
+
+   Klarna verse la totalite au studio des la reservation et se fait
+   rembourser par la cliente en trois mensualites. Le studio n'attend
+   plus le solde du jour J, et la cliente n'a plus a sortir 300 ou 700
+   euros d'un coup en pleine preparation d'arrivee.
+
+   Le choix n'apparait que s'il y a vraiment un solde a etaler : sur un
+   bon cadeau qui couvre tout, ou si le total egale l'acompte, il n'y a
+   rien a proposer.
+   ===================================================================== */
+function choixReglement(totalNet, remise){
+  if(bookState.giftOnly) return '';
+  const acompte = Math.max(0, Math.min(bookState.acompte, totalNet));
+  if(acompte >= totalNet) return '';               // rien a etaler
+  const integral = bookState.paiement === 'integral';
+  const mensualite = Math.ceil(totalNet / 3);
+
+  const carte = (mode, titre, detail, actif) =>
+    '<button type="button" class="regl' + (actif ? ' on' : '') + '" data-regl="' + mode + '">'
+      + '<span class="regl-pt"></span>'
+      + '<span class="regl-txt"><b>' + titre + '</b>' + detail + '</span>'
+    + '</button>';
+
+  return '<div class="regl-bloc">'
+    + '<div class="regl-lab">Comment souhaitez-vous régler ?</div>'
+    + carte('acompte', 'Acompte de ' + euro(acompte),
+        'Le solde de ' + euro(totalNet - acompte) + ' se règle le jour de la séance.', !integral)
+    + carte('integral', 'Tout régler, en 3 fois',
+        euro(mensualite) + ' par mois pendant 3 mois, avec Klarna. Sans frais pour vous.', integral)
+    + (integral
+        ? '<div class="regl-note">En cas d\'annulation, ' + euro(acompte)
+          + ' restent acquis comme pour un acompte, le reste vous est remboursé.</div>'
+        : '')
+  + '</div>';
 }

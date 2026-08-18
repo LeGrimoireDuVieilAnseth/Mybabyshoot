@@ -496,6 +496,23 @@ footer a:hover{color:var(--coral)}
 .dispo-ic{color:#2E7D52;font-size:18px;line-height:0;vertical-align:-1px}
 .dispo-rare{color:#B3402F;font-weight:700}
 
+/* choix du mode de reglement */
+.regl-bloc{margin:16px 0 2px;display:flex;flex-direction:column;gap:9px}
+.regl-lab{font-size:13px;font-weight:700;color:var(--ink)}
+.regl{display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;cursor:pointer;
+  background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px 14px;
+  font-family:var(--body);transition:border-color .2s,background .2s}
+.regl:hover{border-color:var(--coral)}
+.regl.on{border-color:var(--cta);background:var(--cream)}
+.regl-pt{flex:none;width:17px;height:17px;margin-top:2px;border-radius:50%;
+  border:2px solid var(--line);position:relative;transition:border-color .2s}
+.regl.on .regl-pt{border-color:var(--cta)}
+.regl.on .regl-pt::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--cta)}
+.regl-txt{flex:1;min-width:0;font-size:12.8px;color:var(--ink-soft);line-height:1.45}
+.regl-txt b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:2px}
+.regl-note{font-size:12.2px;color:var(--ink-soft);line-height:1.45;
+  background:var(--cream-2);border-radius:9px;padding:9px 11px}
+
 .promo-field{margin-top:2px}
 .promo-field .opt{font-weight:400;color:var(--ink-soft);font-size:12.5px}
 .promo-row{display:flex;gap:8px}
