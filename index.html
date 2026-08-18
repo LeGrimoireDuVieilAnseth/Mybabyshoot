@@ -142,7 +142,7 @@
   }
 }
 </script>
-<link rel="stylesheet" href="css/styles.css?v=37">
+<link rel="stylesheet" href="css/styles.css?v=38">
 <script>
 /* Le theme retenu de la derniere visite est applique tout de suite, sinon
    la page changerait de couleur une fois le serveur interroge. Il est
@@ -308,10 +308,20 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
       <p>Vous choisissez, le prix s'affiche en direct. Aucune surprise.</p>
     </div>
 
+    <!-- Le paiement fractionne, annonce avant meme les formules : c'est la
+         reponse a l'objection du prix, elle doit arriver avant l'objection. -->
+    <div class="k3 reveal">
+      <span class="k3-b">3x</span>
+      <div class="k3-t">
+        <b>Payez en 3 fois, sans frais.</b>
+        <span>Entre le lit, la poussette et le siège auto, on sait que le budget est déjà bien occupé. Réservez votre date maintenant, réglez sur trois mois.</span>
+      </div>
+    </div>
+
     <ol class="howto reveal">
       <li><span class="hn">1</span><div><h4>Choisissez la formule qui vous convient</h4><p>Simple et clair, à votre rythme.</p></div></li>
       <li><span class="hn">2</span><div><h4>Vous choisissez votre créneau</h4><p>La date et l'heure à laquelle vous souhaitez venir.</p></div></li>
-      <li><span class="hn">3</span><div><h4>Vous réglez l'acompte</h4><p>Un acompte fixe en ligne pour bloquer le créneau. Le solde le jour J.</p></div></li>
+      <li><span class="hn">3</span><div><h4>Vous réglez l'acompte</h4><p>Un acompte fixe en ligne pour bloquer le créneau. Le solde le jour J, ou tout en 3 fois sans frais.</p></div></li>
       <li><span class="hn">4</span><div><h4>On se retrouve au studio</h4><p>16 chemin du Buisset, La Mulatière. A très vite !</p></div></li>
     </ol>
 
@@ -551,6 +561,6 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
 </div>
 
 <script src="js/bon.js?v=4"></script>
-<script src="js/app.js?v=53"></script>
+<script src="js/app.js?v=54"></script>
 </body>
 </html>

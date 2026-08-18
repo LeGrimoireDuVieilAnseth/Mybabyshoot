@@ -533,7 +533,7 @@ function renderGammes(){
     return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
       +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
       +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
-      +'<div class="gamme-3x">ou '+mensualite3(g.prix)+' par mois, en 3 fois</div>'
+      +'<div class="gamme-3x">ou '+mensualite3(g.prix)+' par mois en 3 fois, sans frais</div>'
       +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+resolveInc(i)+'</li>').join('')+'</ul>'
       +'</button>';
   }).join('');
@@ -568,7 +568,7 @@ function render(){
     // rien a etaler si l'acompte couvre deja tout
     t3.innerHTML = acompte<t
       ? '<button type="button" id="go3x" class="tf"><span class="tf-p">3x</span>'
-        +'<span class="tf-t"><b>ou '+mensualite3(t)+' par mois</b>Payez en 3 fois avec Klarna, sans attendre le jour J</span>'
+        +'<span class="tf-t"><b>ou '+mensualite3(t)+' par mois</b>Payez en 3 fois sans frais, sans attendre le jour J</span>'
         +'<span class="tf-fl">&rsaquo;</span></button>'
       : '';
     const b3=document.getElementById('go3x');
@@ -1671,13 +1671,7 @@ function choixReglement(totalNet, remise){
   const acompte = Math.max(0, Math.min(bookState.acompte, totalNet));
   if(acompte >= totalNet) return '';               // rien a etaler
   const integral = bookState.paiement === 'integral';
-  /* Le decoupage exact est decide par Klarna, pas par nous : on ne peut donc
-     pas annoncer trois echeances precises sans risquer de se tromper. Quand
-     le total tombe juste, on donne le montant exact. Sinon on dit 'environ',
-     qui reste vrai quel que soit l'arrondi retenu par Klarna. */
-  const cents = Math.round(totalNet * 100);
-  const tombeJuste = cents % 3 === 0;
-  const parMois = tombeJuste ? euro(cents / 300) : ('environ ' + euro(Math.round(totalNet / 3)));
+  const parMois = mensualite3(totalNet);
 
   const carte = (mode, titre, detail, actif) =>
     '<button type="button" class="regl' + (actif ? ' on' : '') + '" data-regl="' + mode + '">'
@@ -1690,7 +1684,7 @@ function choixReglement(totalNet, remise){
     + carte('acompte', 'Acompte de ' + euro(acompte),
         'Le solde de ' + euro(totalNet - acompte) + ' se règle le jour de la séance.', !integral)
     + carte('integral', 'Tout régler, en 3 fois',
-        parMois + ' par mois pendant 3 mois, avec Klarna. Le détail des échéances vous est indiqué avant de valider.', integral)
+        parMois + ' par mois pendant 3 mois avec Klarna, sans frais pour vous. Le détail des échéances vous est indiqué avant de valider.', integral)
     + (integral
         ? '<div class="regl-note">En cas d\'annulation, ' + euro(acompte)
           + ' restent acquis comme pour un acompte, le reste vous est remboursé.</div>'
