@@ -1654,7 +1654,13 @@ function choixReglement(totalNet, remise){
   const acompte = Math.max(0, Math.min(bookState.acompte, totalNet));
   if(acompte >= totalNet) return '';               // rien a etaler
   const integral = bookState.paiement === 'integral';
-  const mensualite = Math.ceil(totalNet / 3);
+  /* Le decoupage exact est decide par Klarna, pas par nous : on ne peut donc
+     pas annoncer trois echeances precises sans risquer de se tromper. Quand
+     le total tombe juste, on donne le montant exact. Sinon on dit 'environ',
+     qui reste vrai quel que soit l'arrondi retenu par Klarna. */
+  const cents = Math.round(totalNet * 100);
+  const tombeJuste = cents % 3 === 0;
+  const parMois = tombeJuste ? euro(cents / 300) : ('environ ' + euro(Math.round(totalNet / 3)));
 
   const carte = (mode, titre, detail, actif) =>
     '<button type="button" class="regl' + (actif ? ' on' : '') + '" data-regl="' + mode + '">'
@@ -1667,7 +1673,7 @@ function choixReglement(totalNet, remise){
     + carte('acompte', 'Acompte de ' + euro(acompte),
         'Le solde de ' + euro(totalNet - acompte) + ' se règle le jour de la séance.', !integral)
     + carte('integral', 'Tout régler, en 3 fois',
-        euro(mensualite) + ' par mois pendant 3 mois, avec Klarna. Sans frais pour vous.', integral)
+        parMois + ' par mois pendant 3 mois, avec Klarna. Le détail des échéances vous est indiqué avant de valider.', integral)
     + (integral
         ? '<div class="regl-note">En cas d\'annulation, ' + euro(acompte)
           + ' restent acquis comme pour un acompte, le reste vous est remboursé.</div>'
