@@ -496,6 +496,20 @@ footer a:hover{color:var(--coral)}
 .dispo-ic{color:#2E7D52;font-size:18px;line-height:0;vertical-align:-1px}
 .dispo-rare{color:#B3402F;font-weight:700}
 
+/* le 3 fois, mis en avant la ou la decision se prend */
+.gamme-3x{font-size:12px;color:var(--coral-deep);font-weight:600;margin:-2px 0 8px}
+.gamme.active .gamme-3x{color:var(--cta)}
+.tf{display:flex;align-items:center;gap:11px;width:100%;margin-top:12px;cursor:pointer;
+  text-align:left;font-family:var(--body);
+  background:var(--cream);border:1.5px dashed var(--coral);border-radius:13px;padding:11px 13px;
+  transition:border-color .2s,background .2s,transform .2s}
+.tf:hover{background:#fff;border-color:var(--cta);transform:translateY(-2px)}
+.tf-p{flex:none;font-family:var(--display);font-weight:800;font-size:15px;color:#fff;
+  background:var(--coral);border-radius:8px;padding:5px 8px;line-height:1}
+.tf-t{flex:1;min-width:0;font-size:12px;color:var(--ink-soft);line-height:1.4}
+.tf-t b{display:block;font-size:14px;color:var(--ink);margin-bottom:1px}
+.tf-fl{flex:none;color:var(--cta);font-size:20px;line-height:1}
+
 /* choix du mode de reglement */
 .regl-bloc{margin:16px 0 2px;display:flex;flex-direction:column;gap:9px}
 .regl-lab{font-size:13px;font-weight:700;color:var(--ink)}

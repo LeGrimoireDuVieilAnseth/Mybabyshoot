@@ -533,6 +533,7 @@ function renderGammes(){
     return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
       +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
       +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
+      +'<div class="gamme-3x">ou '+mensualite3(g.prix)+' par mois, en 3 fois</div>'
       +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+resolveInc(i)+'</li>').join('')+'</ul>'
       +'</button>';
   }).join('');
@@ -562,6 +563,17 @@ function render(){
   totalEl.classList.add('pulse');setTimeout(()=>totalEl.classList.remove('pulse'),250);
   const acompte=t>=PRIX.seuilAcompte?PRIX.acompteHaut:PRIX.acompteBas;
   document.getElementById('acompteVal').textContent=euro(acompte);
+  const t3=document.getElementById('troisFois');
+  if(t3){
+    // rien a etaler si l'acompte couvre deja tout
+    t3.innerHTML = acompte<t
+      ? '<button type="button" id="go3x" class="tf"><span class="tf-p">3x</span>'
+        +'<span class="tf-t"><b>ou '+mensualite3(t)+' par mois</b>Payez en 3 fois avec Klarna, sans attendre le jour J</span>'
+        +'<span class="tf-fl">&rsaquo;</span></button>'
+      : '';
+    const b3=document.getElementById('go3x');
+    if(b3) b3.addEventListener('click',()=>{ paiementVoulu='integral'; openBooking(false); });
+  }
   const eN=document.getElementById('ecoNormal'),eS=document.getElementById('ecoSave');
   if(eN)eN.classList.remove('show'); if(eS)eS.classList.remove('show');
   const mp=document.getElementById('mctaPrice');
@@ -698,12 +710,17 @@ let bookState=null;
 /* mode consultation : on montre les creneaux libres, sans permettre de reserver */
 let bookViewOnly=false;
 
+/* Retenu entre le clic sur "3 fois" et l'ouverture de la fenetre : celle qui
+   entre par ce bouton doit trouver l'option deja cochee, pas la rechercher. */
+let paiementVoulu='acompte';
+
 function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
-    paiement:'acompte',
+    paiement:paiementVoulu,
     section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,
     exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
+  paiementVoulu='acompte';   // ne vaut que pour l'ouverture qui vient de se faire
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
   bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
@@ -1679,4 +1696,13 @@ function choixReglement(totalNet, remise){
           + ' restent acquis comme pour un acompte, le reste vous est remboursé.</div>'
         : '')
   + '</div>';
+}
+
+
+/* Mensualite affichee. Le decoupage exact est decide par Klarna : quand le
+   total ne tombe pas juste sur trois, on dit "environ", ce qui reste vrai
+   quel que soit son arrondi. */
+function mensualite3(total){
+  const cents = Math.round(total * 100);
+  return cents % 3 === 0 ? euro(cents / 300) : ('environ ' + euro(Math.round(total / 3)));
 }
