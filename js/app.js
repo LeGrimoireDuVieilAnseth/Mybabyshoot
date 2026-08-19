@@ -54,8 +54,9 @@ const MESURE = (function(){
   let chargee = false;
   const actif = () => !!GOOGLE_ADS.id;
 
-  // Un refus vaut refus jusqu'au bout : meme si la visiteuse reserve
-  // ensuite, rien n'est envoye et le script de Google n'est pas charge.
+  // Repond "a-t-elle explicitement accepte", ce qui declenche le passage
+  // du consentement a "granted". Tant que c'est faux, la mesure reste
+  // anonyme : aucun cookie, aucun identifiant.
   function accepte(){
     try{
       const v = JSON.parse(localStorage.getItem(CLE_COOKIES) || 'null');
@@ -63,6 +64,19 @@ const MESURE = (function(){
     }catch(e){ return false; }
   }
 
+  /* A distinguer de "n'a pas encore repondu" : celle qui a clique sur
+     Refuser a exprime une volonte, pas une indifference. */
+  function refuse(){
+    try{
+      const v = JSON.parse(localStorage.getItem(CLE_COOKIES) || 'null');
+      return !!(v && v.q === 'non');
+    }catch(e){ return false; }
+  }
+
+  /* Appele des l'arrivee sur le site, sans attendre de reponse au
+     bandeau. C'est ce qui permet a Google d'estimer les conversions des
+     visiteuses qui ne repondent pas : sans ce chargement initial, elles
+     n'existent nulle part. */
   function charger(){
     if(chargee || !actif()) return;
     chargee = true;
@@ -97,8 +111,14 @@ const MESURE = (function(){
 
   function conversion(etiquette, valeur, ref){
     if(!actif() || !etiquette) return;
-    if(!accepte()) return;
+    // Elle a dit non. On ne cherche pas de biais anonyme pour compter
+    // quand meme : c'est cette mesure-la que le bandeau lui a proposee.
+    if(refuse()) return;
     if(dejaComptee(ref)) return;
+    /* Sans reponse, en revanche, l'evenement part : le Consent Mode est
+       reste sur "denied", donc sans cookie ni identifiant, et Google se
+       contente d'estimer. Bloquer cet envoi ne protegeait personne de
+       plus, ca effacait la vente des statistiques. */
     charger();
     const p = { send_to: etiquette, currency: 'EUR', transaction_id: ref || '' };
     const v = Number(valeur);
@@ -119,6 +139,7 @@ const MESURE = (function(){
   }
 
   return {
+    preparer: charger,
     autoriser,
     actif,
     reservation: (valeur, ref) => conversion(GOOGLE_ADS.conversionResa, valeur, ref),
@@ -181,8 +202,9 @@ const CONSENT = (function(){
   function demarrer(){
     if(!MESURE.actif()) return;      // rien a faire accepter
     const q = choix();
+    if(q === 'non') return;     // refus explicite : Google n'est pas charge
+    MESURE.preparer();          // consentement par defaut : tout refuse
     if(q === 'oui'){ MESURE.autoriser(); return; }
-    if(q === 'non') return;
     afficher();
   }
   return { demarrer: demarrer, repondre: repondre };
