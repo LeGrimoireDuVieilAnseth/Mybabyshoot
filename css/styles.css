@@ -126,7 +126,10 @@ header.scrolled .burger span{background:var(--ink)}
 
 /* ---------- Marquee social ---------- */
 .proof-band{background:var(--ink);color:var(--cream);padding:18px 0;overflow:hidden}
-.marquee{display:flex;gap:56px;white-space:nowrap;animation:slide 30s linear infinite;font-family:var(--display);font-weight:600;font-size:1.1rem;letter-spacing:.01em}
+/* --ruban : duree d'un tour complet. Plus petit = plus rapide. C'est la
+   seule valeur a changer, la regle d'accessibilite plus bas s'en sert aussi. */
+.marquee{--ruban:26s;display:flex;gap:56px;white-space:nowrap;
+  animation:slide var(--ruban) linear infinite;will-change:transform;font-family:var(--display);font-weight:600;font-size:1.1rem;letter-spacing:.01em}
 .marquee span{display:inline-flex;align-items:center;gap:14px;color:rgba(252,248,242,.85)}
 .marquee span::after{content:"✦";color:var(--coral)}
 @keyframes slide{to{transform:translateX(-50%)}}
@@ -428,6 +431,9 @@ footer a:hover{color:var(--coral)}
   body{padding-bottom:74px}
 }
 @media(max-width:560px){
+  /* Sur un ecran etroit on ne voit qu'un ou deux mots a la fois : a vitesse
+     egale, l'attente entre deux arguments parait beaucoup plus longue. */
+  .marquee{--ruban:16s;gap:38px;font-size:1rem}
   body{font-size:16px}section{padding:70px 0}.wrap{padding:0 18px}
   .incl-grid{grid-template-columns:1fr}.incl{flex-direction:row;align-items:center}
   .philo{padding:34px 0 40px}.gallery{padding-top:40px}.philo .head{margin-bottom:20px}
@@ -441,8 +447,11 @@ footer a:hover{color:var(--coral)}
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .reveal{opacity:1;transform:none}
-  /* les deux rubans continuent de defiler (plus lentement) meme si le telephone reduit les animations */
-  .marquee{animation:slide 45s linear infinite!important}
+  /* Les deux rubans continuent de defiler meme si le telephone reduit les
+     animations. Le ruban du haut garde sa vitesse normale : la ralentir ici
+     revenait a punir les telephones en economie d'energie, qui activent ce
+     reglage tout seuls. */
+  .marquee{animation:slide var(--ruban) linear infinite!important}
   .rev-track{animation:revscroll 150s linear infinite!important}
 }
 .book-modal{position:fixed;inset:0;background:rgba(40,30,20,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1200;padding:18px}
