@@ -1480,8 +1480,13 @@ setTimeout(()=>{
       '<div class="book-head"><span class="book-eyebrow">Merci</span>'
       +'<h3>Votre séance est réservée</h3>'
       +'<p class="book-recap">Un email de confirmation vient de partir <span>Pensez à vérifier vos spams</span></p></div>'
-      +'<div class="book-sum"><div class="book-sum-note">Votre acompte est bien encaissé et votre créneau vous est réservé. '
-      +'Vous retrouverez la date, l\'heure et votre facture dans l\'email. Le solde se règle le jour de la séance, au studio.<br><br>'
+      +'<div class="book-sum"><div class="book-sum-note">'
+      +(paramRetour('integral')==='1'
+          ? 'Votre séance est réglée en totalité et votre créneau vous est réservé. '
+            +'Vous retrouverez la date, l\'heure et votre facture dans l\'email. Il n\'y aura rien à payer le jour de la séance.'
+          : 'Votre acompte est bien encaissé et votre créneau vous est réservé. '
+            +'Vous retrouverez la date, l\'heure et votre facture dans l\'email. Le solde se règle le jour de la séance, au studio.')
+      +'<br><br>'
       +'Une question d\'ici là ? Appelez-moi ou écrivez-moi sur WhatsApp au 06 47 76 54 17.</div></div>'
       +'<div class="book-actions"><button type="button" class="btn btn-coral" id="resaDone">Parfait, merci</button></div>';
     const b=document.getElementById('resaDone');
