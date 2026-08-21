@@ -1664,11 +1664,23 @@ function categorieVisite(){
 }
 
 /* Une visite directe n'ecrase pas une provenance connue : sinon revenir sur
-   le site par ses favoris effacerait l'annonce qui a amene la cliente. */
+   le site par ses favoris effacerait l'annonce qui a amene la cliente.
+
+   Et une provenance GRATUITE n'ecrase pas une provenance PAYANTE. Personne
+   ne reserve un photographe a la premiere visite : on clique sur une
+   annonce, on reflechit, on revient deux jours plus tard par une recherche
+   Google ordinaire. Sans cette regle, la seconde visite effacait l'annonce
+   et la reservation etait attribuee au referencement naturel. C'etait le
+   cas normal, pas le cas rare. */
 (function memoriserOrigine(){
   const c = categorieVisite();
   if(c === 'Direct') return;
-  try{ localStorage.setItem(ORIGINE_CLE, JSON.stringify({ c: c, t: Date.now() })); }catch(e){}
+  try{
+    const o = JSON.parse(localStorage.getItem(ORIGINE_CLE) || 'null');
+    const encoreValable = o && o.c && (Date.now() - o.t) <= ORIGINE_JOURS * 864e5;
+    if(encoreValable && o.c === 'Google Ads' && c !== 'Google Ads') return;
+    localStorage.setItem(ORIGINE_CLE, JSON.stringify({ c: c, t: Date.now() }));
+  }catch(e){}
 })();
 
 function origineMemorisee(){
