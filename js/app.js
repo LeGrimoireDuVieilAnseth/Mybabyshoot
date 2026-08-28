@@ -281,12 +281,15 @@ const GLOGO='<svg class="rev-g" viewBox="0 0 48 48" aria-label="Avis Google"><pa
    PHOTOS_GROSSESSE : tes photos de grossesse
    (un lien = juste l'identifiant Wix, comme dans les exemples)
    ===================================================================== */
+/* GALERIE-BEBE:DEBUT */ /* Ces deux listes sont reecrites par le CRM. Ne pas modifier a la main. */
 const PHOTOS_BEBE = [
   'images/apres.jpg','images/apres2.jpg','images/apres3.jpg',
   'images/g1.jpg','images/g2.jpg','images/g3.jpg','images/g4.jpg','images/g5.jpg',
   'images/g6.jpg','images/g7.jpg','images/g8.jpg','images/g9.jpg','images/g10.jpg',
   'images/g11.jpg','images/g12.jpg',
 ];
+/* GALERIE-BEBE:FIN */
+/* GALERIE-GROSSESSE:DEBUT */
 const PHOTOS_GROSSESSE = [
   'images/apres4.jpg',
   'images/w01.jpg',
@@ -308,6 +311,7 @@ const PHOTOS_GROSSESSE = [
   'images/w17.jpg',
   'images/w18.jpg'
 ];
+/* GALERIE-GROSSESSE:FIN */
 /* Toutes les photos sont desormais hebergees avec le site : plus aucune
    dependance a Wix. */
 function srcOf(v){return v;}
