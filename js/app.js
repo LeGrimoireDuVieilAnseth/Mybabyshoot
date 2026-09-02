@@ -952,16 +952,22 @@ function renderBookStep2(){
        +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
                +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
        +(aPayer>0
-           ?'<div class="book-sum-l"><span>'+(integral?'À régler maintenant':'Acompte à régler maintenant')+'</span><b>'+euro(aPayer)+'</b></div>'
-            +'<div class="book-sum-note">'+(integral
-                ?'Tout est réglé : il n\'y aura rien à payer le jour de la séance.'
-                :'Le solde ('+euro(reste)+') se règle le jour de la séance.')+'</div>'
+           /* Sur un paiement en 3 fois, ecrire "a regler maintenant 290 EUR"
+              fait croire qu'on prend tout d'un coup. On montre la mensualite,
+              le total reste lisible juste au-dessus. */
+           ?(integral
+               ?'<div class="book-sum-l"><span>Réglé en 3 fois, sans frais</span><b>3 &times; '+mensualite3(aPayer)+'</b></div>'
+                +'<div class="book-sum-note">Première mensualité aujourd\'hui, les deux autres à un mois d\'intervalle, prélevées par Klarna. Le détail vous est confirmé avant de valider. Rien à payer le jour de la séance.</div>'
+               :'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
+                +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div>')
            :'<div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
             +'<div class="book-sum-note">Votre bon cadeau couvre la totalité de la séance : il n\'y a rien à payer, ni maintenant, ni le jour J.</div>')
        +'</div>')
     +'<div class="book-err" id="bookErr"></div>'
     +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bookBack">Retour</button>'
-    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?(integral?'Régler '+aPayer+' €':'Payer l\'acompte de '+aPayer+' €'):'Confirmer ma réservation')+'</button></div>';
+    /* Le bouton ne porte plus le total sur un 3 fois : "Regler 290 EUR"
+       juste avant de partir chez Klarna faisait hesiter au dernier moment. */
+    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?(integral?'Régler en 3 fois sans frais':'Payer l\'acompte de '+aPayer+' €'):'Confirmer ma réservation')+'</button></div>';
   bookBody.querySelectorAll('[data-regl]').forEach(b=>b.addEventListener('click',()=>{
     bookState.paiement=b.dataset.regl; renderBookStep2();
   }));
@@ -1371,7 +1377,7 @@ setTimeout(()=>{
          celui qui a hesite entre offrir une seance et l'acheter pour lui
          retrouve le meme geste au meme endroit. */
       +'<button type="button" id="gPay3" class="tf"><span class="tf-p">3x</span>'
-      +'<span class="tf-t"><b>ou '+mensualite3(offre.prix)+' par mois</b>Payez en 3 fois sans frais, avec Klarna</span>'
+      +'<span class="tf-t"><b>Régler le bon cadeau en 3 fois</b>'+mensualite3(offre.prix)+' par mois, sans frais, avec Klarna</span>'
       +'<span class="tf-fl">&rsaquo;</span></button>';
     document.getElementById('gCancel').addEventListener('click',close);
     document.getElementById('gPay').addEventListener('click',function(){ payer('carte'); });
@@ -1753,7 +1759,10 @@ function choixReglement(totalNet, remise){
     + '<div class="regl-lab">Comment souhaitez-vous régler ?</div>'
     + carte('acompte', 'Acompte de ' + euro(acompte),
         'Le solde de ' + euro(totalNet - acompte) + ' se règle le jour de la séance.', !integral)
-    + carte('integral', 'Tout régler, en 3 fois',
+    /* "Tout regler" disait la verite comptable mais pas ce que vit la
+       cliente : elle ne sort pas tout d'un coup, elle etale. Le titre dit
+       donc ce qu'elle achete et comment, pas le solde du studio. */
+    + carte('integral', 'Régler la séance en 3 fois',
         parMois + ' par mois pendant 3 mois avec Klarna, sans frais pour vous. Le détail des échéances vous est indiqué avant de valider.', integral)
     + (integral
         ? '<div class="regl-note">En cas d\'annulation, ' + euro(acompte)
