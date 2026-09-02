@@ -1366,9 +1366,16 @@ setTimeout(()=>{
       +'Après le paiement vous recevez le bon à imprimer, avec son code unique. Elle choisira sa date elle-même. Le bon s\'utilise en une seule fois.</div></div>'
       +'<div class="book-err" id="giftErr"></div>'
       +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
-      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>';
+      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>'
+      /* Le meme bouton que sur le configurateur de seance, a l'identique :
+         celui qui a hesite entre offrir une seance et l'acheter pour lui
+         retrouve le meme geste au meme endroit. */
+      +'<button type="button" id="gPay3" class="tf"><span class="tf-p">3x</span>'
+      +'<span class="tf-t"><b>ou '+mensualite3(offre.prix)+' par mois</b>Payez en 3 fois sans frais, avec Klarna</span>'
+      +'<span class="tf-fl">&rsaquo;</span></button>';
     document.getElementById('gCancel').addEventListener('click',close);
-    document.getElementById('gPay').addEventListener('click',payer);
+    document.getElementById('gPay').addEventListener('click',function(){ payer('carte'); });
+    document.getElementById('gPay3').addEventListener('click',function(){ payer('3x'); });
     renderStyles(offre);
     lancerApercu(offre);
     // le bon se redessine pendant la frappe : on voit son cadeau se composer
@@ -1378,23 +1385,32 @@ setTimeout(()=>{
     });
   }
 
-  async function payer(){
+  /* moyen vaut 'carte' ou '3x'. Le choix est fait ICI, avant Stripe, pour
+     que sa page n'affiche qu'un seul moyen de paiement. Lui en presenter
+     deux ferait reapparaitre l'ecran Link par-dessus Klarna, et l'acheteur
+     devrait deviner qu'il faut cliquer "payer autrement" pour arriver a ce
+     qu'il vient justement de demander. */
+  async function payer(moyen){
     const offre=offreCourante();
     if(!offre) return;
     const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
     const prenom=val('gPrenom'), email=val('gEmail');
     if(!prenom||!email){ err('Indiquez au moins votre prénom et votre email.'); return; }
-    const btn=document.getElementById('gPay');
-    btn.disabled=true; btn.textContent='Redirection vers le paiement...';
+    const btn=document.getElementById(moyen==='3x'?'gPay3':'gPay');
+    const btnAutre=document.getElementById(moyen==='3x'?'gPay':'gPay3');
+    const texteInitial=btn.innerHTML;
+    btn.disabled=true; if(btnAutre) btnAutre.disabled=true;
+    btn.textContent='Redirection vers le paiement...';
     try{
       const r=await fetch(CRM_API+'/mbs-gift',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({offre:offre.id,seance:offre.duo?'duo':state.type,prenom,nom:val('gNom'),email,tel:val('gTel'),
-          pour:val('gPour'),message:val('gMot'),style:styleChoisi})});
+          pour:val('gPour'),message:val('gMot'),style:styleChoisi,paiement:moyen==='3x'?'3x':'carte'})});
       const j=await r.json();
       if(j&&j.ok&&j.url){ window.location.href=j.url; return; }
       err("Le paiement en ligne n'est pas disponible pour le moment. Appelez Matt au 06 47 76 54 17.");
     }catch(e){ err('Une erreur est survenue. Réessayez, ou appelez le 06 47 76 54 17.'); }
-    btn.disabled=false; btn.textContent='Payer '+euro(offre.prix);
+    btn.disabled=false; if(btnAutre) btnAutre.disabled=false;
+    btn.innerHTML=texteInitial;
   }
 
   function open(){ modal.classList.add('show'); document.body.style.overflow='hidden'; render(); }
