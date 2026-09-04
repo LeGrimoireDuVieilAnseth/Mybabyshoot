@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/images/marque/logo-compact.svg" type="image/svg+xml">
+<link rel="icon" href="/images/marque/icone-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/images/marque/apple-touch-icon.png">
+<meta name="robots" content="noindex">
+<title>Votre règlement | Mybabyshoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#FAF4EA;--ink:#322619;--ink-soft:#80705C;--line:#E6D8C3;--cta:#5E4430;--gold:#C2A06B;
+  --ok:#2E7D5B;--danger:#B4472F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Mulish,system-ui,sans-serif;
+  padding:26px 18px 70px;line-height:1.6}
+.wrap{max-width:520px;margin:0 auto}
+.marque{text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-.02em;margin:0 0 30px}
+.carte{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px 24px;
+  box-shadow:0 20px 50px -30px rgba(35,27,25,.5)}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px);margin:0 0 6px}
+.sous{color:var(--ink-soft);font-size:15px;margin:0 0 22px}
+.ligne{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:15px 0;border-top:1px solid var(--line)}
+.ligne:last-of-type{border-bottom:1px solid var(--line)}
+.ligne .quoi{font-size:15.5px}
+.montant{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;white-space:nowrap}
+.btn{font-family:inherit;font-weight:700;font-size:16px;padding:16px 24px;border:0;border-radius:999px;
+  cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn-plein{background:var(--cta);color:var(--cream);margin-top:22px}
+.btn-plein:hover{background:var(--ink)}
+.btn-clair{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+.btn-clair:hover{border-color:var(--cta)}
+.btn[disabled]{opacity:.55;cursor:default}
+.note{font-size:13px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.55}
+.etat{text-align:center;padding:14px 0}
+.etat .pic{font-size:38px;line-height:1;margin-bottom:10px}
+.etat h2{font-family:'Bricolage Grotesque',sans-serif;font-size:21px;margin:0 0 8px}
+.etat p{color:var(--ink-soft);font-size:15px;margin:0}
+.ok{color:var(--ok)} .ko{color:var(--danger)}
+.pied{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:26px}
+.pied a{color:var(--cta)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marque">mybabyshoot</div>
+  <div class="carte" id="zone">
+    <div class="etat"><p>Un instant…</p></div>
+  </div>
+  <div class="pied">Une question ? <a href="tel:0647765417">06 47 76 54 17</a></div>
+</div>
+
+<script>
+/* La page d'un lien de paiement.
+
+   Le montant n'est jamais lu dans l'adresse : il est demande au serveur a
+   chaque affichage. Modifier l'adresse ne change donc rien au prix.
+
+   La session Stripe n'est creee qu'au clic. C'est ce qui permet au lien
+   d'etre envoye par SMS et d'etre encore valable trois semaines plus tard :
+   une session Stripe, elle, expire au bout de 24 heures. */
+const API = "https://matt-crm.netlify.app/.netlify/functions";
+const params = new URLSearchParams(location.search);
+const CODE = (params.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+const RETOUR_OK = params.get("ok") === "1";
+const zone = document.getElementById("zone");
+
+const esc = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function message(pic, titre, texte, classe){
+  zone.innerHTML = `<div class="etat">
+    <div class="pic ${classe || ""}">${pic}</div>
+    <h2>${esc(titre)}</h2>
+    <p>${texte}</p>
+  </div>`;
+}
+
+async function charger(){
+  if(!CODE){
+    message("🤔", "Lien incomplet",
+      "L'adresse semble tronquée. Vérifiez le message reçu, ou appelez Matteo.");
+    return;
+  }
+  let j = null;
+  try{
+    const r = await fetch(`${API}/mbs-lien?code=${encodeURIComponent(CODE)}`, {cache:"no-store"});
+    j = await r.json();
+  }catch(e){
+    message("📡", "Connexion impossible",
+      "Vérifiez votre connexion et rechargez la page.");
+    return;
+  }
+
+  if(!j || !j.ok){
+    message("🤔", "Lien introuvable",
+      "Ce lien n'existe pas ou plus. Appelez Matteo au 06 47 76 54 17, il vous en renverra un.");
+    return;
+  }
+
+  const l = j.lien;
+
+  /* Retour de Stripe : le webhook a peut-etre quelques secondes de retard,
+     on affiche le merci sans attendre qu'il ait fini. */
+  if(RETOUR_OK || l.statut === "paye"){
+    message("✅", "C'est réglé, merci !",
+      "Votre facture vous est envoyée par email dans la minute.<br>À très vite au studio.", "ok");
+    return;
+  }
+
+  if(l.statut === "annule"){
+    message("🚫", "Ce lien a été annulé",
+      "Appelez Matteo au 06 47 76 54 17 s'il s'agit d'une erreur.", "ko");
+    return;
+  }
+
+  zone.innerHTML = `
+    <h1>${l.prenom ? "Bonjour " + esc(l.prenom) + " !" : "Bonjour !"}</h1>
+    <p class="sous">Voici ce qu'il reste à régler. Le paiement est sécurisé, et votre facture
+      vous sera envoyée automatiquement.</p>
+    <div class="ligne">
+      <span class="quoi">${esc(l.libelle)}</span>
+      <span class="montant">${l.montant} €</span>
+    </div>
+    <button class="btn btn-plein" id="payer">Régler ${l.montant} € par carte</button>
+    ${l.troisFois ? `<button class="btn btn-clair" id="payer3">ou en 3 fois sans frais, avec Klarna</button>` : ``}
+    <div class="note" id="note">Vous serez redirigée vers notre prestataire de paiement.
+      Aucune donnée bancaire ne transite par ce site.</div>`;
+
+  document.getElementById("payer").addEventListener("click", () => lancer("carte"));
+  const b3 = document.getElementById("payer3");
+  if(b3) b3.addEventListener("click", () => lancer("3x"));
+}
+
+async function lancer(moyen){
+  const boutons = [...zone.querySelectorAll("button")];
+  boutons.forEach(b => b.disabled = true);
+  const note = document.getElementById("note");
+  if(note) note.textContent = "Ouverture du paiement sécurisé…";
+  try{
+    const r = await fetch(`${API}/mbs-lien?code=${encodeURIComponent(CODE)}`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ paiement: moyen })
+    });
+    const j = await r.json();
+    if(j && j.ok && j.url){ location.href = j.url; return; }
+    if(j && j.erreur === "deja_paye"){ charger(); return; }
+    if(note) note.innerHTML = `<span class="ko">Le paiement n'a pas pu s'ouvrir.
+      Réessayez, ou appelez Matteo au 06 47 76 54 17.</span>`;
+  }catch(e){
+    if(note) note.innerHTML = `<span class="ko">Connexion perdue. Réessayez dans un instant.</span>`;
+  }
+  boutons.forEach(b => b.disabled = false);
+}
+
+charger();
+</script>
+</body>
+</html>
