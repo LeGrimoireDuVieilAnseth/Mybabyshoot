@@ -36,6 +36,15 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 .btn-clair{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
 .btn-clair:hover{border-color:var(--cta)}
 .btn[disabled]{opacity:.55;cursor:default}
+.argument{font-size:15.5px;line-height:1.7;margin:0 0 20px}
+.argument p{margin:0 0 12px}
+.gains{list-style:none;padding:0;margin:0 0 22px;background:#FBF6EF;border-radius:14px;
+  border:1px solid var(--line);overflow:hidden}
+.gains li{padding:11px 16px 11px 40px;position:relative;font-size:14.5px;
+  border-bottom:1px solid var(--line)}
+.gains li:last-child{border-bottom:none}
+.gains li::before{content:"";position:absolute;left:16px;top:17px;width:9px;height:9px;
+  border-radius:50%;background:var(--gold)}
 .note{font-size:13px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.55}
 .etat{text-align:center;padding:14px 0}
 .etat .pic{font-size:38px;line-height:1;margin-bottom:10px}
@@ -119,10 +128,23 @@ async function charger(){
     return;
   }
 
+  /* Le texte de Matt d'abord, le montant ensuite. Une page qui ouvre sur
+     une somme se referme ; une page qui explique ce qu'on y gagne se lit.
+     Le texte est du texte brut : on echappe tout, et on ne garde que les
+     sauts de ligne. Aucune balise ecrite dans le CRM ne peut s'executer. */
+  const argument = l.argument
+    ? `<div class="argument">${esc(l.argument).replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>")}</div>`
+    : `<p class="sous">Voici ce qu'il reste à régler. Le paiement est sécurisé, et votre facture
+       vous sera envoyée automatiquement.</p>`;
+
+  const gains = (l.gains && l.gains.length)
+    ? `<ul class="gains">${l.gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>`
+    : "";
+
   zone.innerHTML = `
     <h1>${l.prenom ? "Bonjour " + esc(l.prenom) + " !" : "Bonjour !"}</h1>
-    <p class="sous">Voici ce qu'il reste à régler. Le paiement est sécurisé, et votre facture
-      vous sera envoyée automatiquement.</p>
+    ${argument}
+    ${gains}
     <div class="ligne">
       <span class="quoi">${esc(l.libelle)}</span>
       <span class="montant">${l.montant} €</span>
