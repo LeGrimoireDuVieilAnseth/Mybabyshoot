@@ -36,6 +36,10 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 .btn-clair{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
 .btn-clair:hover{border-color:var(--cta)}
 .btn[disabled]{opacity:.55;cursor:default}
+/* Sans cette ligne, hidden ne cache rien : display:flex ci-dessus l'emporte
+   sur la regle du navigateur. Le bouton "3 fois" restait visible sur une
+   marche a 100 €, alors que Klarna n'est pas proposable en dessous de 150. */
+.btn[hidden]{display:none}
 .argument{font-size:15.5px;line-height:1.7;margin:0 0 20px}
 .argument p{margin:0 0 12px}
 .gains{list-style:none;padding:0;margin:0 0 22px;background:#FBF6EF;border-radius:14px;
@@ -45,6 +49,39 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 .gains li:last-child{border-bottom:none}
 .gains li::before{content:"";position:absolute;left:16px;top:17px;width:9px;height:9px;
   border-radius:50%;background:var(--gold)}
+
+/* Les marches, quand il y en a plusieurs. Elles sont volontairement de la
+   meme taille : c'est le contenu qui doit faire pencher, pas la mise en
+   page. Seule celle que Matt conseille porte une pastille. */
+.titre-opts{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-soft);margin:0 0 11px}
+.opts{display:grid;gap:11px;margin:0 0 6px}
+.opt{display:block;position:relative;border:1.5px solid var(--line);border-radius:16px;
+  padding:15px 17px 16px 46px;cursor:pointer;background:#fff;
+  transition:border-color .15s,box-shadow .15s}
+.opt:hover{border-color:var(--gold)}
+.opt input{position:absolute;opacity:0;width:0;height:0}
+.opt .puce{position:absolute;left:17px;top:18px;width:19px;height:19px;border-radius:50%;
+  border:1.5px solid var(--line);background:#fff}
+.opt .puce::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--cta);
+  transform:scale(0);transition:transform .14s}
+.opt.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.09)}
+.opt.on .puce{border-color:var(--cta)}
+.opt.on .puce::after{transform:scale(1)}
+.opt:focus-within{border-color:var(--cta)}
+.conseil{display:inline-block;background:var(--gold);color:#fff;font-size:11px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px}
+.opt .tete{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.opt .nom{font-weight:700;font-size:15.5px;line-height:1.35}
+.opt .prix{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;white-space:nowrap}
+.opt ul{list-style:none;padding:0;margin:9px 0 0}
+.opt li{position:relative;padding-left:15px;font-size:14px;color:var(--ink-soft);margin-top:5px;line-height:1.5}
+.opt li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;
+  background:var(--gold)}
+.opt .ecart{font-size:13.5px;color:var(--ink-soft);margin-top:10px;padding-top:9px;
+  border-top:1px dashed var(--line)}
+.libre{font-size:13px;color:var(--ink-soft);margin:0 0 20px;text-align:center}
+
 .note{font-size:13px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.55}
 .etat{text-align:center;padding:14px 0}
 .etat .pic{font-size:38px;line-height:1;margin-bottom:10px}
@@ -67,12 +104,18 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 <script>
 /* La page d'un lien de paiement.
 
-   Le montant n'est jamais lu dans l'adresse : il est demande au serveur a
-   chaque affichage. Modifier l'adresse ne change donc rien au prix.
+   Les montants ne sont jamais lus dans l'adresse : ils sont demandes au
+   serveur a chaque affichage, et au moment du clic c'est encore le serveur
+   qui relit le prix de la marche choisie. Modifier l'adresse ne change
+   donc rien.
 
    La session Stripe n'est creee qu'au clic. C'est ce qui permet au lien
    d'etre envoye par SMS et d'etre encore valable trois semaines plus tard :
-   une session Stripe, elle, expire au bout de 24 heures. */
+   une session Stripe, elle, expire au bout de 24 heures.
+
+   Un lien peut porter plusieurs marches. Dans ce cas la page les met cote
+   a cote : une proposition seule s'arbitre contre "non", deux propositions
+   s'arbitrent l'une contre l'autre. */
 const API = "https://matt-crm.netlify.app/.netlify/functions";
 const params = new URLSearchParams(location.search);
 const CODE = (params.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
@@ -81,6 +124,9 @@ const zone = document.getElementById("zone");
 
 const esc = s => String(s == null ? "" : s)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+let OPTIONS = [];
+let choisie = null;
 
 function message(pic, titre, texte, classe){
   zone.innerHTML = `<div class="etat">
@@ -128,7 +174,17 @@ async function charger(){
     return;
   }
 
-  /* Le texte de Matt d'abord, le montant ensuite. Une page qui ouvre sur
+  /* Un lien d'avant les marches multiples n'a pas de champ options : on lui
+     en fabrique une seule, et le reste de la page ne voit pas la difference. */
+  OPTIONS = (Array.isArray(l.options) && l.options.length) ? l.options : [{
+    id: "o1", titre: l.libelle, montant: l.montant,
+    gains: l.gains || [], conseil: false, troisFois: !!l.troisFois
+  }];
+  /* Celle que Matt conseille est cochee d'avance, sinon la moins chere.
+     Rien n'est cache : le montant du bouton change avec le choix. */
+  choisie = OPTIONS.find(o => o.conseil) || OPTIONS[0];
+
+  /* Le texte de Matt d'abord, les montants ensuite. Une page qui ouvre sur
      une somme se referme ; une page qui explique ce qu'on y gagne se lit.
      Le texte est du texte brut : on echappe tout, et on ne garde que les
      sauts de ligne. Aucune balise ecrite dans le CRM ne peut s'executer. */
@@ -137,29 +193,84 @@ async function charger(){
     : `<p class="sous">Voici ce qu'il reste à régler. Le paiement est sécurisé, et votre facture
        vous sera envoyée automatiquement.</p>`;
 
-  const gains = (l.gains && l.gains.length)
-    ? `<ul class="gains">${l.gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>`
+  const multi = OPTIONS.length > 1;
+
+  /* Une seule marche : on garde la liste des gains en bandeau, comme avant.
+     Plusieurs : chaque marche porte les siens, dans sa propre carte. */
+  const gainsUniques = (!multi && OPTIONS[0].gains && OPTIONS[0].gains.length)
+    ? `<ul class="gains">${OPTIONS[0].gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>`
     : "";
+
+  const cartes = multi ? `
+    <div class="titre-opts">Vous choisissez</div>
+    <div class="opts">${OPTIONS.map((o, i) => carteOption(o, i)).join("")}</div>
+    <p class="libre">Aucune obligation : vous ne réglez que si vous le souhaitez.</p>` : "";
 
   zone.innerHTML = `
     <h1>${l.prenom ? "Bonjour " + esc(l.prenom) + " !" : "Bonjour !"}</h1>
     ${argument}
-    ${gains}
+    ${cartes}
+    ${gainsUniques}
     <div class="ligne">
-      <span class="quoi">${esc(l.libelle)}</span>
-      <span class="montant">${l.montant} €</span>
+      <span class="quoi" id="quoi"></span>
+      <span class="montant" id="mt"></span>
     </div>
-    <button class="btn btn-plein" id="payer">Régler ${l.montant} € par carte</button>
-    ${l.troisFois ? `<button class="btn btn-clair" id="payer3">ou en 3 fois sans frais, avec Klarna</button>` : ``}
+    <button class="btn btn-plein" id="payer"></button>
+    <button class="btn btn-clair" id="payer3" hidden>ou en 3 fois sans frais, avec Klarna</button>
     <div class="note" id="note">Vous serez redirigée vers notre prestataire de paiement.
       Aucune donnée bancaire ne transite par ce site.</div>`;
 
+  zone.querySelectorAll('input[name="marche"]').forEach(r => {
+    r.addEventListener("change", () => {
+      const o = OPTIONS.find(x => x.id === r.value);
+      if(!o) return;
+      choisie = o;
+      zone.querySelectorAll(".opt").forEach(el =>
+        el.classList.toggle("on", el.dataset.id === o.id));
+      majPied();
+    });
+  });
+
   document.getElementById("payer").addEventListener("click", () => lancer("carte"));
-  const b3 = document.getElementById("payer3");
-  if(b3) b3.addEventListener("click", () => lancer("3x"));
+  document.getElementById("payer3").addEventListener("click", () => lancer("3x"));
+  majPied();
+}
+
+/* Une marche. L'ecart avec celle du dessus est dit explicitement : c'est
+   le seul chiffre qui compte quand on hesite entre deux formules voisines.
+   Sans lui, la cliente compare 100 euros a 200 euros et prend le moins
+   cher ; avec lui, elle compare 100 euros de plus a ce que ca lui apporte. */
+function carteOption(o, i){
+  const precedente = i > 0 ? OPTIONS[i - 1] : null;
+  const ecart = precedente ? o.montant - precedente.montant : 0;
+  return `<label class="opt${o === choisie ? " on" : ""}" data-id="${esc(o.id)}">
+    <input type="radio" name="marche" value="${esc(o.id)}"${o === choisie ? " checked" : ""}>
+    <span class="puce"></span>
+    ${o.conseil ? `<span class="conseil">Mon conseil</span>` : ""}
+    <span class="tete">
+      <span class="nom">${esc(o.titre)}</span>
+      <span class="prix">${o.montant} €</span>
+    </span>
+    ${(o.gains && o.gains.length)
+      ? `<ul>${o.gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>` : ""}
+    ${ecart > 0
+      ? `<div class="ecart">Soit ${ecart} € de plus que la proposition juste au-dessus.</div>` : ""}
+  </label>`;
+}
+
+/* Le bas de page suit le choix : le libelle, le montant, le bouton, et la
+   presence du 3 fois. Une marche a 100 euros n'y a pas droit, celle a 200
+   oui : le bouton doit donc apparaitre et disparaitre au clic. */
+function majPied(){
+  if(!choisie) return;
+  document.getElementById("quoi").textContent = choisie.titre;
+  document.getElementById("mt").textContent = choisie.montant + " €";
+  document.getElementById("payer").textContent = "Régler " + choisie.montant + " € par carte";
+  document.getElementById("payer3").hidden = !choisie.troisFois;
 }
 
 async function lancer(moyen){
+  if(!choisie) return;
   const boutons = [...zone.querySelectorAll("button")];
   boutons.forEach(b => b.disabled = true);
   const note = document.getElementById("note");
@@ -167,7 +278,9 @@ async function lancer(moyen){
   try{
     const r = await fetch(`${API}/mbs-lien?code=${encodeURIComponent(CODE)}`, {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ paiement: moyen })
+      /* On n'envoie que l'identifiant de la marche. Le prix, lui, est relu
+         par le serveur : c'est ce qui rend la page infalsifiable. */
+      body: JSON.stringify({ paiement: moyen, option: choisie.id })
     });
     const j = await r.json();
     if(j && j.ok && j.url){ location.href = j.url; return; }
