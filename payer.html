@@ -105,6 +105,19 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 .duo .champ:first-child{flex:0 0 38%}
 .astuce{font-size:13.5px;background:#FBF6EF;border:1px solid var(--line);border-radius:12px;
   padding:10px 13px;margin:0 0 12px;color:var(--ink)}
+/* Les raccourcis : cinq ou dix d'un seul geste. */
+.raccourcis{display:flex;gap:9px;margin:2px 0 4px;flex-wrap:wrap}
+.raccourcis button{flex:1 1 0;min-width:140px;display:flex;justify-content:space-between;
+  align-items:baseline;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:14px;
+  padding:11px 14px;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+.raccourcis button:hover{border-color:var(--gold)}
+.raccourcis button.on{border-color:var(--cta);box-shadow:0 0 0 3px rgba(94,68,48,.09)}
+.raccourcis button b{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;
+  white-space:nowrap}
+/* Un champ obligatoire encore vide, quand ce qu'il complete a ete choisi. */
+.num.manque{border-color:var(--danger);background:#FDF0EC}
+.oblig{color:var(--danger);font-weight:600}
 
 .recap{margin-top:22px;border-top:1px solid var(--line);padding-top:6px}
 .rl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:14.5px}
@@ -345,6 +358,10 @@ function dessiner(l){
         <span class="tx"><b>Photo retouchée</b><span>${GRILLE.photo} € l'unité · à partir de ${GRILLE.uneOfferteDes}, une offerte · à partir de ${GRILLE.grosDes}, ${GRILLE.photoDes10} € l'unité</span></span>
         ${pas("photos", choix.photos, GRILLE.photosMax)}
       </div>
+      <div class="raccourcis">
+        <button type="button" data-photos="${GRILLE.uneOfferteDes}">${GRILLE.uneOfferteDes} photos retouchées <b>${eur(prixPhotos(GRILLE.uneOfferteDes))}</b></button>
+        <button type="button" data-photos="${GRILLE.grosDes}">${GRILLE.grosDes} photos retouchées <b>${eur(prixPhotos(GRILLE.grosDes))}</b></button>
+      </div>
       <div id="conseilPhotos"></div>`;
   }
   if(EXTRAS.album){
@@ -362,28 +379,29 @@ function dessiner(l){
         ${pas("t:" + t.cle, choix.tirages[t.cle] || 0, GRILLE.tiragesMax)}
       </div>
       <input class="num" id="num-${esc(t.cle)}" data-num="${esc(t.cle)}" hidden
-        placeholder="Numéros des photos à tirer en ${esc(t.nom)} — ex. 12, 45"
+        placeholder="Obligatoire : numéros des photos en ${esc(t.nom)}, ex. 12, 45"
         value="${esc(choix.numeros[t.cle] || "")}">`;
     });
     h += `<div id="zoneAdresse" hidden>
       <div class="titre-sec">Où envoyer vos tirages</div>
       <div class="astuce">L'envoi coûte ${GRILLE.envoi} €, offert à partir de ${GRILLE.envoiOffertDes} € de tirages.</div>
-      <div class="champ"><label for="adNom">Nom inscrit sur la boîte aux lettres</label>
+      <div class="champ"><label for="adNom">Nom inscrit sur la boîte aux lettres <span class="oblig">obligatoire</span></label>
         <input class="num" id="adNom" data-ad="nom" style="margin:0" value="${esc(choix.adresse.nom || "")}"></div>
-      <div class="champ"><label for="adL1">Adresse</label>
+      <div class="champ"><label for="adL1">Adresse <span class="oblig">obligatoire</span></label>
         <input class="num" id="adL1" data-ad="ligne1" style="margin:0" placeholder="12 rue des Lilas" value="${esc(choix.adresse.ligne1 || "")}"></div>
       <div class="champ"><label for="adL2">Complément <span style="opacity:.7">(facultatif)</span></label>
         <input class="num" id="adL2" data-ad="ligne2" style="margin:0" placeholder="Bâtiment, étage, digicode" value="${esc(choix.adresse.ligne2 || "")}"></div>
       <div class="duo">
-        <div class="champ"><label for="adCp">Code postal</label>
+        <div class="champ"><label for="adCp">Code postal <span class="oblig">obligatoire</span></label>
           <input class="num" id="adCp" data-ad="cp" style="margin:0" inputmode="numeric" value="${esc(choix.adresse.cp || "")}"></div>
-        <div class="champ" style="flex:1"><label for="adVille">Ville</label>
+        <div class="champ" style="flex:1"><label for="adVille">Ville <span class="oblig">obligatoire</span></label>
           <input class="num" id="adVille" data-ad="ville" style="margin:0" value="${esc(choix.adresse.ville || "")}"></div>
       </div>
     </div>`;
   }
 
   h += `<div class="recap" id="recap"></div>
+    <div id="manque"></div>
     <div id="erreurs"></div>
     <button class="btn btn-plein" id="payer"></button>
     <button class="btn btn-clair" id="payer3" hidden>ou en 3 fois sans frais, avec Klarna</button>
@@ -415,6 +433,17 @@ function oublierErreurs(){
 }
 
 function surClic(ev){
+  /* Un raccourci POSE la quantite au lieu de l'incrementer. Reappuyer
+     dessus la remet a zero : on ne se retrouve pas coince avec dix photos
+     sans savoir comment revenir en arriere. */
+  const rac = ev.target.closest("[data-photos]");
+  if(rac){
+    oublierErreurs();
+    const n = parseInt(rac.dataset.photos, 10) || 0;
+    choix.photos = (choix.photos === n) ? 0 : n;
+    majTotal();
+    return;
+  }
   const plus = ev.target.closest("[data-plus]"), moins = ev.target.closest("[data-moins]");
   if(!plus && !moins) return;
   oublierErreurs();
@@ -442,6 +471,29 @@ function surSaisie(ev){
   if(ad){ choix.adresse[ad.dataset.ad] = ad.value; majTotal(); }
 }
 
+/* Ce qui manque encore pour que Matt puisse executer la commande. Le
+   serveur refuse deja sans ces informations, mais apres le clic : ici on
+   empeche carrement de valider, pour que Matt n'ait jamais a rappeler une
+   cliente pour lui redemander son adresse. */
+function manquants(){
+  const m = [];
+  if(!EXTRAS.tirages) return m;
+  let nb = 0;
+  GRILLE.tailles.forEach(t => {
+    const q = choix.tirages[t.cle] || 0;
+    if(!q) return;
+    nb += q;
+    if(!(choix.numeros[t.cle] || "").trim())
+      m.push({ champ: "num-" + t.cle, texte: "les numéros des photos à tirer en " + t.nom });
+  });
+  if(!nb) return m;
+  if(!(choix.adresse.nom || "").trim())    m.push({ champ:"adNom",   texte:"le nom inscrit sur la boîte aux lettres" });
+  if(!(choix.adresse.ligne1 || "").trim()) m.push({ champ:"adL1",    texte:"l'adresse postale" });
+  if(!(choix.adresse.cp || "").trim())     m.push({ champ:"adCp",    texte:"le code postal" });
+  if(!(choix.adresse.ville || "").trim())  m.push({ champ:"adVille", texte:"la ville" });
+  return m;
+}
+
 /* On ne redessine que ce qui bouge : redessiner la page entiere ferait
    perdre le curseur au milieu d'une adresse. */
 function majTotal(){
@@ -461,6 +513,11 @@ function majTotal(){
   });
   zone.querySelectorAll("[data-num]").forEach(el => {
     el.hidden = !(choix.tirages[el.dataset.num] > 0);
+  });
+  /* Le raccourci s allume quand la quantite correspond exactement : elle
+     voit d un coup d oeil ou elle en est, au compteur comme au raccourci. */
+  zone.querySelectorAll("[data-photos]").forEach(b => {
+    b.classList.toggle("on", choix.photos === (parseInt(b.dataset.photos, 10) || 0));
   });
 
   const za = document.getElementById("zoneAdresse");
@@ -482,10 +539,27 @@ function majTotal(){
       + (p.envoiOffert ? `<div class="rl"><span class="d">Envoi offert</span></div>` : "")
     : `<p class="sous" style="margin:14px 0 0">Choisissez ce qui vous fait plaisir : le total s'affiche ici.</p>`;
 
+  /* Les champs encore vides se signalent, mais seulement ceux qui sont
+     devenus necessaires : pas de rouge avant qu'elle ait choisi un tirage. */
+  const m = manquants();
+  const aCorriger = new Set(m.map(x => x.champ));
+  zone.querySelectorAll(".num").forEach(el => el.classList.toggle("manque", aCorriger.has(el.id)));
+
+  const boite = document.getElementById("manque");
+  boite.innerHTML = m.length
+    ? `<div class="erreurs">Avant de régler, il me manque ${m.length > 1 ? "" : ""}
+        <ul>${m.map(x => "<li>" + esc(x.texte) + "</li>").join("")}</ul>
+        <div style="margin-top:6px">Sans ça, je ne pourrai pas préparer ni envoyer vos tirages.</div>
+      </div>`
+    : "";
+
   const payer = document.getElementById("payer");
-  payer.disabled = p.total <= 0;
-  payer.textContent = p.total > 0 ? "Régler " + eur(p.total) + " par carte" : "Rien de sélectionné";
-  document.getElementById("payer3").hidden = !(p.total >= SEUIL3X);
+  const pret = p.total > 0 && !m.length;
+  payer.disabled = !pret;
+  payer.textContent = p.total <= 0 ? "Rien de sélectionné"
+    : m.length ? "Complétez les informations ci-dessus"
+    : "Régler " + eur(p.total) + " par carte";
+  document.getElementById("payer3").hidden = !(pret && p.total >= SEUIL3X);
 }
 
 async function lancer(moyen){
