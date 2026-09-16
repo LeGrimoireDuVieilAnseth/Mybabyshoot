@@ -2,7 +2,7 @@
 /* =====================================================================
    1) PRIX  (modifie librement)
    ===================================================================== */
-const PRIX = { photoSupp:20, album:140, seuilAcompte:590, acompteBas:90, acompteHaut:190 };
+const PRIX = { photoSupp:15, album:150, seuilAcompte:590, acompteBas:90, acompteHaut:190 };
 
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {

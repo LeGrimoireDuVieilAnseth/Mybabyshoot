@@ -35,7 +35,7 @@ Polices : Bricolage Grotesque (titres), Mulish (texte), Fraunces italique (accen
 
 ### Blocs de configuration JS (en haut du script)
 
-- `PRIX` : seanceBase 290, photosIncluses 5, photoSupp 10, duoBase 580, duoPhotosIncluses 10, galerie 100, galRetouche 250, galRetoucheDuo 350, album 140, acompteFixe 90.
+- `PRIX` : seanceBase 290, photosIncluses 5, photoSupp 15, duoBase 580, duoPhotosIncluses 10, galerie 100, galRetouche 250, galRetoucheDuo 350, album 150, acompteFixe 90.
 - `CHIFFRES` : note Google, abonnes, avis.
 - `AVIS` : tableau d'avis (a remplacer par les vrais avis Google).
 - `KOALENDAR_URL` : lien de la page Koalendar embarquee (systeme a remplacer, voir chantier 3).

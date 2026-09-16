@@ -50,11 +50,12 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 .gains li::before{content:"";position:absolute;left:16px;top:17px;width:9px;height:9px;
   border-radius:50%;background:var(--gold)}
 
-/* Les marches, quand il y en a plusieurs. Elles sont volontairement de la
-   meme taille : c'est le contenu qui doit faire pencher, pas la mise en
-   page. Seule celle que Matt conseille porte une pastille. */
-.titre-opts{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--ink-soft);margin:0 0 11px}
+.titre-sec{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-soft);margin:26px 0 11px}
+.titre-sec:first-child{margin-top:0}
+.facultatif{font-weight:400;text-transform:none;letter-spacing:0;font-size:12.5px}
+
+/* Les montees en gamme : une seule a la fois. */
 .opts{display:grid;gap:11px;margin:0 0 6px}
 .opt{display:block;position:relative;border:1.5px solid var(--line);border-radius:16px;
   padding:15px 17px 16px 46px;cursor:pointer;background:#fff;
@@ -80,7 +81,40 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
   background:var(--gold)}
 .opt .ecart{font-size:13.5px;color:var(--ink-soft);margin-top:10px;padding-top:9px;
   border-top:1px dashed var(--line)}
-.libre{font-size:13px;color:var(--ink-soft);margin:0 0 20px;text-align:center}
+
+/* Les complements, qui se cumulent. */
+.art{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
+.art:first-of-type{border-top:none}
+.art .tx{flex:1;min-width:0}
+.art .tx b{display:block;font-size:15px;font-weight:700}
+.art .tx span{display:block;font-size:13px;color:var(--ink-soft);line-height:1.45;margin-top:2px}
+.pas{display:flex;align-items:center;gap:2px;flex:0 0 auto;border:1.5px solid var(--line);
+  border-radius:999px;padding:3px}
+.pas button{width:34px;height:34px;border:0;background:none;font-family:inherit;font-size:19px;
+  font-weight:700;color:var(--cta);cursor:pointer;border-radius:50%;line-height:1}
+.pas button:disabled{opacity:.3;cursor:default}
+.pas .n{min-width:26px;text-align:center;font-weight:800;font-size:16px;
+  font-family:'Bricolage Grotesque',sans-serif}
+.num{width:100%;margin:2px 0 12px;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;
+  font-family:inherit;font-size:15px;background:#FBF6EF;color:var(--ink)}
+.num:focus{outline:none;border-color:var(--cta);background:#fff}
+.num::placeholder{color:#B9A88F}
+.champ{margin-bottom:10px}
+.champ label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:4px}
+.duo{display:flex;gap:10px}
+.duo .champ:first-child{flex:0 0 38%}
+.astuce{font-size:13.5px;background:#FBF6EF;border:1px solid var(--line);border-radius:12px;
+  padding:10px 13px;margin:0 0 12px;color:var(--ink)}
+
+.recap{margin-top:22px;border-top:1px solid var(--line);padding-top:6px}
+.rl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:14.5px}
+.rl .d{color:var(--ink-soft);font-size:13px}
+.rl b{white-space:nowrap}
+.rtotal{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  border-top:1px solid var(--line);margin-top:6px;padding-top:14px}
+.erreurs{background:#FDF0EC;border:1px solid #F0C9BD;color:var(--danger);border-radius:12px;
+  padding:11px 14px;font-size:13.5px;margin-top:14px}
+.erreurs ul{margin:0;padding-left:18px}
 
 .note{font-size:13px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.55}
 .etat{text-align:center;padding:14px 0}
@@ -104,18 +138,19 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4.5vw,28px)
 <script>
 /* La page d'un lien de paiement.
 
-   Les montants ne sont jamais lus dans l'adresse : ils sont demandes au
-   serveur a chaque affichage, et au moment du clic c'est encore le serveur
-   qui relit le prix de la marche choisie. Modifier l'adresse ne change
-   donc rien.
+   Elle sert deux choses a la fois :
+   - les montees en gamme, dont on ne prend qu'UNE (on ne passe pas a la
+     fois en Confort et en Prestige) ;
+   - les complements, qui se cumulent librement avec leurs quantites.
 
-   La session Stripe n'est creee qu'au clic. C'est ce qui permet au lien
-   d'etre envoye par SMS et d'etre encore valable trois semaines plus tard :
-   une session Stripe, elle, expire au bout de 24 heures.
+   AUCUN PRIX NE VIENT D'ICI. La page en affiche pour que la cliente suive
+   son total pendant qu'elle choisit, mais au moment de payer elle n'envoie
+   que des identifiants et des quantites : le serveur refait le calcul
+   entier. Les deux formules sont volontairement identiques, et un test
+   compare les deux sur des paniers tires au hasard.
 
-   Un lien peut porter plusieurs marches. Dans ce cas la page les met cote
-   a cote : une proposition seule s'arbitre contre "non", deux propositions
-   s'arbitrent l'une contre l'autre. */
+   La session Stripe n'est creee qu'au clic : une session expire au bout de
+   24 heures, alors qu'un lien envoye par SMS doit vivre des semaines. */
 const API = "https://matt-crm.netlify.app/.netlify/functions";
 const params = new URLSearchParams(location.search);
 const CODE = (params.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
@@ -124,9 +159,10 @@ const zone = document.getElementById("zone");
 
 const esc = s => String(s == null ? "" : s)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const eur = n => n + " €";
 
-let OPTIONS = [];
-let choisie = null;
+let OPTIONS = [], EXTRAS = {}, GRILLE = null, SEUIL3X = 150;
+let choix = { formule: "", photos: 0, album: 0, tirages: {}, numeros: {}, adresse: {} };
 
 function message(pic, titre, texte, classe){
   zone.innerHTML = `<div class="etat">
@@ -136,6 +172,76 @@ function message(pic, titre, texte, classe){
   </div>`;
 }
 
+/* ---------- les prix, copie exacte de mbs-panier.mjs ---------- */
+function prixPhotos(n){
+  n = Math.max(0, Math.min(parseInt(n, 10) || 0, GRILLE.photosMax));
+  if(!n) return 0;
+  if(n >= GRILLE.grosDes) return n * GRILLE.photoDes10;
+  if(n >= GRILLE.uneOfferteDes) return (n - 1) * GRILLE.photo;
+  return n * GRILLE.photo;
+}
+
+/* Ce panier sert a AFFICHER. Le serveur refait le meme calcul au clic. */
+function calculer(){
+  const lignes = [];
+  const f = OPTIONS.find(o => o.id === choix.formule);
+  if(f) lignes.push({ libelle: f.titre, detail: "", montant: f.montant });
+
+  if(EXTRAS.photos && choix.photos > 0){
+    const n = choix.photos;
+    const offerte = n >= GRILLE.uneOfferteDes && n < GRILLE.grosDes;
+    lignes.push({
+      libelle: n + " photo" + (n > 1 ? "s" : "") + " retouchée" + (n > 1 ? "s" : "") + " en plus",
+      detail: n >= GRILLE.grosDes ? GRILLE.photoDes10 + " € l'unité"
+            : offerte ? GRILLE.photo + " € l'unité, une offerte"
+            : GRILLE.photo + " € l'unité",
+      montant: prixPhotos(n)
+    });
+  }
+  if(EXTRAS.album && choix.album > 0){
+    const n = choix.album;
+    lignes.push({
+      libelle: n > 1 ? n + " albums photo imprimés" : "Album photo imprimé",
+      detail: n > 1 ? GRILLE.album + " € l'unité" : "",
+      montant: n * GRILLE.album
+    });
+  }
+
+  let totalTirages = 0, nbTirages = 0;
+  if(EXTRAS.tirages){
+    GRILLE.tailles.forEach(t => {
+      const n = choix.tirages[t.cle] || 0;
+      if(!n) return;
+      const numeros = (choix.numeros[t.cle] || "").trim();
+      const montant = n * t.prix;
+      totalTirages += montant; nbTirages += n;
+      lignes.push({
+        libelle: n + " tirage" + (n > 1 ? "s" : "") + " " + t.nom,
+        detail: numeros ? "photo" + (n > 1 ? "s" : "") + " n° " + numeros : "",
+        montant
+      });
+    });
+  }
+  const envoiOffert = totalTirages >= GRILLE.envoiOffertDes;
+  if(nbTirages > 0 && !envoiOffert){
+    lignes.push({ libelle: "Envoi postal",
+      detail: "offert à partir de " + GRILLE.envoiOffertDes + " € de tirages",
+      montant: GRILLE.envoi });
+  }
+  const total = lignes.reduce((s, l) => s + l.montant, 0);
+  return { lignes, total, nbTirages, envoiOffert };
+}
+
+/* "Vous en avez 9 pour 120 € ; a 10, c'est 100." On le dit quand c'est vrai
+   et a son avantage : sinon le total baisserait en ajoutant une photo sans
+   que personne comprenne pourquoi. */
+function conseilPhotos(n){
+  if(!n || n >= GRILLE.grosDes) return null;
+  const ici = prixPhotos(n), dix = prixPhotos(GRILLE.grosDes);
+  return dix < ici ? { prix: dix, economie: ici - dix } : null;
+}
+
+/* ---------- l'affichage ---------- */
 async function charger(){
   if(!CODE){
     message("🤔", "Lien incomplet",
@@ -147,11 +253,9 @@ async function charger(){
     const r = await fetch(`${API}/mbs-lien?code=${encodeURIComponent(CODE)}`, {cache:"no-store"});
     j = await r.json();
   }catch(e){
-    message("📡", "Connexion impossible",
-      "Vérifiez votre connexion et rechargez la page.");
+    message("📡", "Connexion impossible", "Vérifiez votre connexion et rechargez la page.");
     return;
   }
-
   if(!j || !j.ok){
     message("🤔", "Lien introuvable",
       "Ce lien n'existe pas ou plus. Appelez Matteo au 06 47 76 54 17, il vous en renverra un.");
@@ -159,118 +263,234 @@ async function charger(){
   }
 
   const l = j.lien;
-
-  /* Retour de Stripe : le webhook a peut-etre quelques secondes de retard,
-     on affiche le merci sans attendre qu'il ait fini. */
   if(RETOUR_OK || l.statut === "paye"){
     message("✅", "C'est réglé, merci !",
       "Votre facture vous est envoyée par email dans la minute.<br>À très vite au studio.", "ok");
     return;
   }
-
   if(l.statut === "annule"){
     message("🚫", "Ce lien a été annulé",
       "Appelez Matteo au 06 47 76 54 17 s'il s'agit d'une erreur.", "ko");
     return;
   }
 
-  /* Un lien d'avant les marches multiples n'a pas de champ options : on lui
-     en fabrique une seule, et le reste de la page ne voit pas la difference. */
-  OPTIONS = (Array.isArray(l.options) && l.options.length) ? l.options : [{
-    id: "o1", titre: l.libelle, montant: l.montant,
-    gains: l.gains || [], conseil: false, troisFois: !!l.troisFois
-  }];
-  /* Celle que Matt conseille est cochee d'avance, sinon la moins chere.
-     Rien n'est cache : le montant du bouton change avec le choix. */
-  choisie = OPTIONS.find(o => o.conseil) || OPTIONS[0];
+  OPTIONS = (Array.isArray(l.options) && l.options.length) ? l.options : [];
+  EXTRAS = l.extras || {};
+  GRILLE = l.grille;
+  SEUIL3X = l.seuil3x || 150;
 
-  /* Le texte de Matt d'abord, les montants ensuite. Une page qui ouvre sur
-     une somme se referme ; une page qui explique ce qu'on y gagne se lit.
-     Le texte est du texte brut : on echappe tout, et on ne garde que les
-     sauts de ligne. Aucune balise ecrite dans le CRM ne peut s'executer. */
+  /* Un lien d'avant, sans marches ni complements : une seule chose a regler. */
+  if(!OPTIONS.length && !GRILLE){
+    OPTIONS = [{ id:"o1", titre:l.libelle, montant:l.montant, gains:l.gains || [],
+                 conseil:false, troisFois:!!l.troisFois }];
+  }
+  /* Quand rien d'autre n'est propose, la marche est cochee d'avance : il n'y
+     a pas de choix a faire. Des qu'il y a des complements, elle reste libre
+     de ne rien changer a sa formule. */
+  if(!GRILLE && OPTIONS.length) choix.formule = (OPTIONS.find(o => o.conseil) || OPTIONS[0]).id;
+
+  dessiner(l);
+}
+
+function carteOption(o, i){
+  const precedente = i > 0 ? OPTIONS[i - 1] : null;
+  const ecart = precedente ? o.montant - precedente.montant : 0;
+  return `<label class="opt${o.id === choix.formule ? " on" : ""}" data-id="${esc(o.id)}">
+    <input type="radio" name="marche" value="${esc(o.id)}"${o.id === choix.formule ? " checked" : ""}>
+    <span class="puce"></span>
+    ${o.conseil ? `<span class="conseil">Mon conseil</span>` : ""}
+    <span class="tete">
+      <span class="nom">${esc(o.titre)}</span>
+      <span class="prix">${eur(o.montant)}</span>
+    </span>
+    ${(o.gains && o.gains.length)
+      ? `<ul>${o.gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>` : ""}
+    ${ecart > 0
+      ? `<div class="ecart">Soit ${eur(ecart)} de plus que la proposition juste au-dessus.</div>` : ""}
+  </label>`;
+}
+
+function pas(cle, n, max){
+  return `<span class="pas">
+    <button type="button" data-moins="${cle}" aria-label="Retirer">−</button>
+    <span class="n" data-n="${cle}">${n}</span>
+    <button type="button" data-plus="${cle}" aria-label="Ajouter" ${n >= max ? "disabled" : ""}>+</button>
+  </span>`;
+}
+
+function dessiner(l){
   const argument = l.argument
     ? `<div class="argument">${esc(l.argument).replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>")}</div>`
     : `<p class="sous">Voici ce qu'il reste à régler. Le paiement est sécurisé, et votre facture
        vous sera envoyée automatiquement.</p>`;
 
-  const multi = OPTIONS.length > 1;
+  const aDesExtras = !!GRILLE;
+  let h = `<h1>${l.prenom ? "Bonjour " + esc(l.prenom) + " !" : "Bonjour !"}</h1>${argument}`;
 
-  /* Une seule marche : on garde la liste des gains en bandeau, comme avant.
-     Plusieurs : chaque marche porte les siens, dans sa propre carte. */
-  const gainsUniques = (!multi && OPTIONS[0].gains && OPTIONS[0].gains.length)
-    ? `<ul class="gains">${OPTIONS[0].gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>`
-    : "";
+  if(OPTIONS.length){
+    h += `<div class="titre-sec">${aDesExtras
+      ? `Changer de formule <span class="facultatif">— une seule, si vous le souhaitez</span>`
+      : `Vous choisissez`}</div>
+      <div class="opts">${OPTIONS.map(carteOption).join("")}
+      ${aDesExtras ? `<label class="opt${choix.formule === "" ? " on" : ""}" data-id="">
+        <input type="radio" name="marche" value=""${choix.formule === "" ? " checked" : ""}>
+        <span class="puce"></span>
+        <span class="tete"><span class="nom">Je garde ma formule</span></span>
+      </label>` : ""}</div>`;
+  }
 
-  const cartes = multi ? `
-    <div class="titre-opts">Vous choisissez</div>
-    <div class="opts">${OPTIONS.map((o, i) => carteOption(o, i)).join("")}</div>
-    <p class="libre">Aucune obligation : vous ne réglez que si vous le souhaitez.</p>` : "";
+  if(EXTRAS.photos){
+    h += `<div class="titre-sec">Photos retouchées en plus</div>
+      <div class="art">
+        <span class="tx"><b>Photo retouchée</b><span>${GRILLE.photo} € l'unité · à partir de ${GRILLE.uneOfferteDes}, une offerte · à partir de ${GRILLE.grosDes}, ${GRILLE.photoDes10} € l'unité</span></span>
+        ${pas("photos", choix.photos, GRILLE.photosMax)}
+      </div>
+      <div id="conseilPhotos"></div>`;
+  }
+  if(EXTRAS.album){
+    h += `<div class="titre-sec">Album imprimé</div>
+      <div class="art">
+        <span class="tx"><b>Album photo imprimé</b><span>${GRILLE.album} € · vos plus belles images, reliées</span></span>
+        ${pas("album", choix.album, GRILLE.albumsMax)}
+      </div>`;
+  }
+  if(EXTRAS.tirages){
+    h += `<div class="titre-sec">Tirages papier</div>`;
+    GRILLE.tailles.forEach(t => {
+      h += `<div class="art">
+        <span class="tx"><b>${esc(t.nom)}</b><span>${t.prix} € le tirage</span></span>
+        ${pas("t:" + t.cle, choix.tirages[t.cle] || 0, GRILLE.tiragesMax)}
+      </div>
+      <input class="num" id="num-${esc(t.cle)}" data-num="${esc(t.cle)}" hidden
+        placeholder="Numéros des photos à tirer en ${esc(t.nom)} — ex. 12, 45"
+        value="${esc(choix.numeros[t.cle] || "")}">`;
+    });
+    h += `<div id="zoneAdresse" hidden>
+      <div class="titre-sec">Où envoyer vos tirages</div>
+      <div class="astuce">L'envoi coûte ${GRILLE.envoi} €, offert à partir de ${GRILLE.envoiOffertDes} € de tirages.</div>
+      <div class="champ"><label for="adNom">Nom inscrit sur la boîte aux lettres</label>
+        <input class="num" id="adNom" data-ad="nom" style="margin:0" value="${esc(choix.adresse.nom || "")}"></div>
+      <div class="champ"><label for="adL1">Adresse</label>
+        <input class="num" id="adL1" data-ad="ligne1" style="margin:0" placeholder="12 rue des Lilas" value="${esc(choix.adresse.ligne1 || "")}"></div>
+      <div class="champ"><label for="adL2">Complément <span style="opacity:.7">(facultatif)</span></label>
+        <input class="num" id="adL2" data-ad="ligne2" style="margin:0" placeholder="Bâtiment, étage, digicode" value="${esc(choix.adresse.ligne2 || "")}"></div>
+      <div class="duo">
+        <div class="champ"><label for="adCp">Code postal</label>
+          <input class="num" id="adCp" data-ad="cp" style="margin:0" inputmode="numeric" value="${esc(choix.adresse.cp || "")}"></div>
+        <div class="champ" style="flex:1"><label for="adVille">Ville</label>
+          <input class="num" id="adVille" data-ad="ville" style="margin:0" value="${esc(choix.adresse.ville || "")}"></div>
+      </div>
+    </div>`;
+  }
 
-  zone.innerHTML = `
-    <h1>${l.prenom ? "Bonjour " + esc(l.prenom) + " !" : "Bonjour !"}</h1>
-    ${argument}
-    ${cartes}
-    ${gainsUniques}
-    <div class="ligne">
-      <span class="quoi" id="quoi"></span>
-      <span class="montant" id="mt"></span>
-    </div>
+  h += `<div class="recap" id="recap"></div>
+    <div id="erreurs"></div>
     <button class="btn btn-plein" id="payer"></button>
     <button class="btn btn-clair" id="payer3" hidden>ou en 3 fois sans frais, avec Klarna</button>
     <div class="note" id="note">Vous serez redirigée vers notre prestataire de paiement.
       Aucune donnée bancaire ne transite par ce site.</div>`;
 
-  zone.querySelectorAll('input[name="marche"]').forEach(r => {
-    r.addEventListener("change", () => {
-      const o = OPTIONS.find(x => x.id === r.value);
-      if(!o) return;
-      choisie = o;
-      zone.querySelectorAll(".opt").forEach(el =>
-        el.classList.toggle("on", el.dataset.id === o.id));
-      majPied();
-    });
-  });
+  zone.innerHTML = h;
 
+  /* Une seule fois : dessiner() peut etre rappelee (retour de Stripe,
+     lien deja regle), et rattacher les ecouteurs ferait compter chaque
+     clic deux fois. */
+  if(!zone.dataset.ecoute){
+    zone.dataset.ecoute = "1";
+    zone.addEventListener("click", surClic);
+    zone.addEventListener("input", surSaisie);
+    zone.addEventListener("change", surSaisie);
+  }
   document.getElementById("payer").addEventListener("click", () => lancer("carte"));
   document.getElementById("payer3").addEventListener("click", () => lancer("3x"));
-  majPied();
+  majTotal();
 }
 
-/* Une marche. L'ecart avec celle du dessus est dit explicitement : c'est
-   le seul chiffre qui compte quand on hesite entre deux formules voisines.
-   Sans lui, la cliente compare 100 euros a 200 euros et prend le moins
-   cher ; avec lui, elle compare 100 euros de plus a ce que ca lui apporte. */
-function carteOption(o, i){
-  const precedente = i > 0 ? OPTIONS[i - 1] : null;
-  const ecart = precedente ? o.montant - precedente.montant : 0;
-  return `<label class="opt${o === choisie ? " on" : ""}" data-id="${esc(o.id)}">
-    <input type="radio" name="marche" value="${esc(o.id)}"${o === choisie ? " checked" : ""}>
-    <span class="puce"></span>
-    ${o.conseil ? `<span class="conseil">Mon conseil</span>` : ""}
-    <span class="tete">
-      <span class="nom">${esc(o.titre)}</span>
-      <span class="prix">${o.montant} €</span>
-    </span>
-    ${(o.gains && o.gains.length)
-      ? `<ul>${o.gains.map(g => "<li>" + esc(g) + "</li>").join("")}</ul>` : ""}
-    ${ecart > 0
-      ? `<div class="ecart">Soit ${ecart} € de plus que la proposition juste au-dessus.</div>` : ""}
-  </label>`;
+/* Les messages d erreur du serveur restent a l ecran jusqu a ce qu elle
+   corrige : les effacer a la moindre mise a jour du total revenait a les
+   faire clignoter sans qu elle ait le temps de lire. */
+function oublierErreurs(){
+  const e = document.getElementById("erreurs");
+  if(e) e.innerHTML = "";
 }
 
-/* Le bas de page suit le choix : le libelle, le montant, le bouton, et la
-   presence du 3 fois. Une marche a 100 euros n'y a pas droit, celle a 200
-   oui : le bouton doit donc apparaitre et disparaitre au clic. */
-function majPied(){
-  if(!choisie) return;
-  document.getElementById("quoi").textContent = choisie.titre;
-  document.getElementById("mt").textContent = choisie.montant + " €";
-  document.getElementById("payer").textContent = "Régler " + choisie.montant + " € par carte";
-  document.getElementById("payer3").hidden = !choisie.troisFois;
+function surClic(ev){
+  const plus = ev.target.closest("[data-plus]"), moins = ev.target.closest("[data-moins]");
+  if(!plus && !moins) return;
+  oublierErreurs();
+  const cle = (plus || moins).dataset.plus || (plus || moins).dataset.moins;
+  const sens = plus ? 1 : -1;
+  if(cle === "photos") choix.photos = borne(choix.photos + sens, GRILLE.photosMax);
+  else if(cle === "album") choix.album = borne(choix.album + sens, GRILLE.albumsMax);
+  else if(cle.startsWith("t:")){
+    const t = cle.slice(2);
+    choix.tirages[t] = borne((choix.tirages[t] || 0) + sens, GRILLE.tiragesMax);
+  }
+  majTotal();
+}
+const borne = (n, max) => Math.max(0, Math.min(n, max));
+
+function surSaisie(ev){
+  oublierErreurs();
+  const r = ev.target.closest('input[name="marche"]');
+  if(r){ choix.formule = r.value;
+    zone.querySelectorAll(".opt").forEach(el => el.classList.toggle("on", el.dataset.id === r.value));
+    majTotal(); return; }
+  const num = ev.target.closest("[data-num]");
+  if(num){ choix.numeros[num.dataset.num] = num.value; majTotal(); return; }
+  const ad = ev.target.closest("[data-ad]");
+  if(ad){ choix.adresse[ad.dataset.ad] = ad.value; majTotal(); }
+}
+
+/* On ne redessine que ce qui bouge : redessiner la page entiere ferait
+   perdre le curseur au milieu d'une adresse. */
+function majTotal(){
+  const p = calculer();
+
+  zone.querySelectorAll("[data-n]").forEach(el => {
+    const cle = el.dataset.n;
+    el.textContent = cle === "photos" ? choix.photos
+      : cle === "album" ? choix.album
+      : (choix.tirages[cle.slice(2)] || 0);
+  });
+  zone.querySelectorAll("[data-plus]").forEach(b => {
+    const cle = b.dataset.plus;
+    const n = cle === "photos" ? choix.photos : cle === "album" ? choix.album : (choix.tirages[cle.slice(2)] || 0);
+    const max = cle === "photos" ? GRILLE.photosMax : cle === "album" ? GRILLE.albumsMax : GRILLE.tiragesMax;
+    b.disabled = n >= max;
+  });
+  zone.querySelectorAll("[data-num]").forEach(el => {
+    el.hidden = !(choix.tirages[el.dataset.num] > 0);
+  });
+
+  const za = document.getElementById("zoneAdresse");
+  if(za) za.hidden = !(p.nbTirages > 0);
+
+  const cp = document.getElementById("conseilPhotos");
+  if(cp){
+    const c = conseilPhotos(choix.photos);
+    cp.innerHTML = c
+      ? `<div class="astuce">À ${GRILLE.grosDes} photos, c'est ${eur(c.prix)} au lieu de ${eur(prixPhotos(choix.photos))} : ${eur(c.economie)} de moins pour une photo de plus.</div>`
+      : "";
+  }
+
+  const recap = document.getElementById("recap");
+  recap.innerHTML = p.lignes.length
+    ? p.lignes.map(l => `<div class="rl"><span>${esc(l.libelle)}${l.detail
+        ? `<span class="d">${esc(l.detail)}</span>` : ""}</span><b>${eur(l.montant)}</b></div>`).join("")
+      + `<div class="rtotal"><span class="quoi">Total</span><span class="montant">${eur(p.total)}</span></div>`
+      + (p.envoiOffert ? `<div class="rl"><span class="d">Envoi offert</span></div>` : "")
+    : `<p class="sous" style="margin:14px 0 0">Choisissez ce qui vous fait plaisir : le total s'affiche ici.</p>`;
+
+  const payer = document.getElementById("payer");
+  payer.disabled = p.total <= 0;
+  payer.textContent = p.total > 0 ? "Régler " + eur(p.total) + " par carte" : "Rien de sélectionné";
+  document.getElementById("payer3").hidden = !(p.total >= SEUIL3X);
 }
 
 async function lancer(moyen){
-  if(!choisie) return;
+  const p = calculer();
+  if(p.total <= 0) return;
   const boutons = [...zone.querySelectorAll("button")];
   boutons.forEach(b => b.disabled = true);
   const note = document.getElementById("note");
@@ -278,19 +498,26 @@ async function lancer(moyen){
   try{
     const r = await fetch(`${API}/mbs-lien?code=${encodeURIComponent(CODE)}`, {
       method:"POST", headers:{"Content-Type":"application/json"},
-      /* On n'envoie que l'identifiant de la marche. Le prix, lui, est relu
-         par le serveur : c'est ce qui rend la page infalsifiable. */
-      body: JSON.stringify({ paiement: moyen, option: choisie.id })
+      /* Uniquement des identifiants et des quantites : le serveur relit les
+         prix et refait le total. */
+      body: JSON.stringify({ paiement: moyen, choix })
     });
     const j = await r.json();
     if(j && j.ok && j.url){ location.href = j.url; return; }
     if(j && j.erreur === "deja_paye"){ charger(); return; }
-    if(note) note.innerHTML = `<span class="ko">Le paiement n'a pas pu s'ouvrir.
-      Réessayez, ou appelez Matteo au 06 47 76 54 17.</span>`;
+    if(j && j.messages && j.messages.length){
+      document.getElementById("erreurs").innerHTML =
+        `<div class="erreurs"><ul>${j.messages.map(m => "<li>" + esc(m) + "</li>").join("")}</ul></div>`;
+      if(note) note.textContent = "";
+    } else if(note){
+      note.innerHTML = `<span class="ko">Le paiement n'a pas pu s'ouvrir.
+        Réessayez, ou appelez Matteo au 06 47 76 54 17.</span>`;
+    }
   }catch(e){
     if(note) note.innerHTML = `<span class="ko">Connexion perdue. Réessayez dans un instant.</span>`;
   }
   boutons.forEach(b => b.disabled = false);
+  majTotal();
 }
 
 charger();
