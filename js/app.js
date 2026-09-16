@@ -4,6 +4,31 @@
    ===================================================================== */
 const PRIX = { photoSupp:15, album:150, seuilAcompte:590, acompteBas:90, acompteHaut:190 };
 
+/* Tirages papier commandes des la reservation.
+   LES MEMES PRIX QUE netlify/mbs-panier.mjs COTE CRM : le serveur recalcule
+   le total et refuse la reservation si les deux grilles divergent. */
+const TIRAGES = [
+  { cle:'20x30', nom:'20 × 30 cm', prix:10 },
+  { cle:'30x45', nom:'30 × 45 cm', prix:15 },
+  { cle:'40x60', nom:'40 × 60 cm', prix:20 }
+];
+const TIRAGE_ENVOI = 5, TIRAGE_ENVOI_OFFERT = 50, TIRAGE_MAX = 30;
+
+/* Ce que coutent les tirages choisis, envoi compris. L'envoi ne s'applique
+   qu'au papier : le reste de la seance ne se poste pas. */
+function tiragesDetail(){
+  const lignes=[]; let papier=0, nb=0;
+  TIRAGES.forEach(t=>{
+    const n=Math.max(0,Math.min(state.tirages[t.cle]||0,TIRAGE_MAX));
+    if(!n) return;
+    const p=n*t.prix; papier+=p; nb+=n;
+    lignes.push({n:n+' tirage'+(n>1?'s':'')+' '+t.nom, s:t.prix+' € le tirage', p:p});
+  });
+  const envoi=(nb>0 && papier<TIRAGE_ENVOI_OFFERT)?TIRAGE_ENVOI:0;
+  if(envoi) lignes.push({n:'Envoi postal', s:'offert à partir de '+TIRAGE_ENVOI_OFFERT+' € de tirages', p:envoi});
+  return { lignes:lignes, nb:nb, papier:papier, envoi:envoi, total:papier+envoi };
+}
+
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
@@ -470,13 +495,13 @@ const COMPAROS = [
 /* =====================================================================
    4) Configurateur
    ===================================================================== */
-const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false,
+const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false,tirages:{},
   ext:false,extLabel:'',extKm:0,extFrais:0};
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
 function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
 function bookingType(){return state.section==='duo'?'duo':state.type;}
 function resolveInc(i){return i.replace('@T', state.type==='naissance'?'naissance':'grossesse');}
-function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+(state.ext?state.extFrais:0);}
+function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
 const totalEl=document.getElementById('totalVal');
 
 /* ---------------------------------------------------------------
@@ -583,12 +608,14 @@ function render(){
   const album=document.getElementById('optAlbum');
   if(album) album.classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
+  document.querySelectorAll('[data-tir-val]').forEach(el=>{el.textContent=state.tirages[el.dataset.tirVal]||0;});
   const g=currentGamme();
   const L=[];
   const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+(state.type==='naissance'?'Naissance':'Grossesse'));
   L.push({n:nomLigne,s:resolveInc(g.inclus[0]),p:g.prix});
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
+  tiragesDetail().lignes.forEach(l=>L.push(l));
   if(state.ext&&state.extLabel){
     L.push({n:'Séance en extérieur',
             s:state.extFrais?state.extLabel+' . '+state.extKm+' km':state.extLabel+' . déplacement offert',
@@ -717,6 +744,15 @@ document.getElementById('typeSeg').addEventListener('click',e=>{
 });
 document.getElementById('photoPlus').addEventListener('click',()=>{state.photos++;render();});
 document.getElementById('photoMinus').addEventListener('click',()=>{if(state.photos>0){state.photos--;render();}});
+/* Les tirages : un seul ecouteur pour les six boutons. */
+document.addEventListener('click',e=>{
+  const plus=e.target.closest('[data-tir-plus]'), moins=e.target.closest('[data-tir-moins]');
+  if(!plus&&!moins) return;
+  const cle=(plus||moins).dataset.tirPlus||(plus||moins).dataset.tirMoins;
+  const n=state.tirages[cle]||0;
+  state.tirages[cle]=Math.max(0,Math.min(n+(plus?1:-1),TIRAGE_MAX));
+  render();
+});
 const optAlbum=document.getElementById('optAlbum');
 if(optAlbum) optAlbum.addEventListener('click',()=>{state.album=!state.album;render();});
 
@@ -756,7 +792,7 @@ function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
     paiement:paiementVoulu,
-    section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,
+    section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,tirages:state.tirages,
     exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
   paiementVoulu='acompte';   // ne vaut que pour l'ouverture qui vient de se faire
   bookModal.classList.add('show');

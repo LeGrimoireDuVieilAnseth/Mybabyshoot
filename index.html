@@ -377,6 +377,35 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
               <button type="button" id="photoPlus" aria-label="Ajouter">+</button>
             </div>
           </div>
+          <!-- Tirages papier, commandes des la reservation. Les numeros des
+               photos et l'adresse sont demandes apres la seance : au moment
+               de reserver, les photos n'existent pas encore. -->
+          <div class="opt-row">
+            <div class="ob"><div class="ot">Tirage 20 × 30 cm</div><div class="os">10 € le tirage</div></div>
+            <div class="stepper" role="group" aria-label="Tirages 20 par 30">
+              <button type="button" data-tir-moins="20x30" aria-label="Retirer">&minus;</button>
+              <span class="val" data-tir-val="20x30">0</span>
+              <button type="button" data-tir-plus="20x30" aria-label="Ajouter">+</button>
+            </div>
+          </div>
+          <div class="opt-row">
+            <div class="ob"><div class="ot">Tirage 30 × 45 cm</div><div class="os">15 € le tirage</div></div>
+            <div class="stepper" role="group" aria-label="Tirages 30 par 45">
+              <button type="button" data-tir-moins="30x45" aria-label="Retirer">&minus;</button>
+              <span class="val" data-tir-val="30x45">0</span>
+              <button type="button" data-tir-plus="30x45" aria-label="Ajouter">+</button>
+            </div>
+          </div>
+          <div class="opt-row">
+            <div class="ob"><div class="ot">Tirage 40 × 60 cm</div><div class="os">20 € le tirage</div></div>
+            <div class="stepper" role="group" aria-label="Tirages 40 par 60">
+              <button type="button" data-tir-moins="40x60" aria-label="Retirer">&minus;</button>
+              <span class="val" data-tir-val="40x60">0</span>
+              <button type="button" data-tir-plus="40x60" aria-label="Ajouter">+</button>
+            </div>
+          </div>
+          <div class="ext-msg" style="margin-top:2px">Vous choisirez les photos à tirer après la séance, et vous me donnerez votre adresse à ce moment-là. Envoi 5 €, offert à partir de 50 € de tirages.</div>
+
           <!-- Album remis en vente le 16/09/2026, a 150 EUR. -->
           <div class="opt" data-opt="album" id="optAlbum">
             <span class="check"><svg width="13" height="13" viewBox="0 0 12 12"><path d="M2 6l3 3 5-6" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
