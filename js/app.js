@@ -8,13 +8,13 @@ const PRIX = { photoSupp:15, album:150, seuilAcompte:590, acompteBas:90, acompte
 const GAMMES = {
   simple: [
     { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','5 photos retouchées'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:10, inclus:['Séance @T en studio','10 photos retouchées','Galerie complète au naturel (toutes les photos de la séance, brutes)'] },
-    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','Toutes les plus belles photos retouchées, sans limite'] }
+    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:10, inclus:['Séance @T en studio','10 photos retouchées','<b>Galerie complète au naturel</b> : toutes les photos de la séance, à récupérer en fin de séance'] },
+    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Galerie complète au naturel</b> : toutes les photos de la séance, à récupérer en fin de séance'] }
   ],
   duo: [
-    { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
-    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, retouchees:30, inclus:['2 séances : grossesse et naissance','30 photos retouchées, à répartir sur les 2 séances','Galerie complète au naturel (toutes les photos brutes des 2 séances)'] },
-    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','Toutes les plus belles photos retouchées sans limite, pour les 2 séances'] }
+    { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] },
+    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, retouchees:30, inclus:['2 séances : grossesse et naissance','30 photos retouchées, à répartir sur les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] },
+    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','<b>Toutes les plus belles photos retouchées</b> sans limite, pour les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] }
   ]
 };
 
@@ -569,8 +569,9 @@ function renderGammes(){
     const active=(state.gamme===g.id);
     return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
       +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
-      +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span><span class="gamme-prix">'+euro(g.prix)+'</span></div>'
-      +'<div class="gamme-3x">ou '+mensualite3(g.prix)+' par mois en 3 fois, sans frais</div>'
+      +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span>'
+        +'<span class="gamme-px"><span class="gamme-prix">'+euro(g.prix)+'</span>'
+        +'<span class="gamme-3x">ou <b>'+mensualite3(g.prix)+'/mois</b> en 3 fois sans frais</span></span></div>'
       +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+resolveInc(i)+'</li>').join('')+'</ul>'
       +'</button>';
   }).join('');
