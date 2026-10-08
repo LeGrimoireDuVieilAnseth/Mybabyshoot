@@ -32,9 +32,9 @@ function tiragesDetail(){
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
-    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','5 photos retouchées'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:10, inclus:['Séance @T en studio','10 photos retouchées','<b>Galerie complète au naturel</b> : toutes les photos de la séance, à récupérer en fin de séance'] },
-    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Galerie complète au naturel</b> : toutes les photos de la séance, à récupérer en fin de séance'] }
+    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','<b>5 photos retouchées</b>','<b>Galerie complète</b> au naturel : toutes les photos de la séance, à récupérer en fin de séance'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>','<b>Galerie complète</b> au naturel : toutes les photos de la séance, à récupérer en fin de séance'] },
+    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Galerie complète</b> au naturel : toutes les photos de la séance, à récupérer en fin de séance'] }
   ],
   duo: [
     { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] },
@@ -500,7 +500,10 @@ const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,albu
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
 function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
 function bookingType(){return state.section==='duo'?'duo':state.type;}
-function resolveInc(i){return i.replace('@T', state.type==='naissance'?'naissance':'grossesse');}
+/* Le mot de la seance, pour "Seance @T en studio". */
+const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé', famille:'famille' };
+function motSeance(t){ return MOT_SEANCE[t||state.type] || 'grossesse'; }
+function resolveInc(i){ return i.replace('@T', motSeance()); }
 function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
 const totalEl=document.getElementById('totalVal');
 
@@ -549,7 +552,11 @@ const DUO_EQUIV={essentielle:'essentiel',confort:'confort',prestige:'prestige'};
 function renderDuoNudge(){
   const box=document.getElementById('duoNudge');
   if(!box) return;
-  if(state.section==='duo'){ box.innerHTML=''; box.classList.remove('show'); return; }
+  /* Le pack ne concerne que la grossesse et la naissance : le proposer sur
+     une seance bebe ou famille n'aurait aucun sens. */
+  if(state.section==='duo' || (state.type!=='grossesse' && state.type!=='naissance')){
+    box.innerHTML=''; box.classList.remove('show'); return;
+  }
   const g=currentGamme();
   const duo=(GAMMES.duo||[]).find(d=>d.id===DUO_EQUIV[g.id]);
   if(!duo){ box.innerHTML=''; box.classList.remove('show'); return; }
@@ -611,7 +618,8 @@ function render(){
   document.querySelectorAll('[data-tir-val]').forEach(el=>{el.textContent=state.tirages[el.dataset.tirVal]||0;});
   const g=currentGamme();
   const L=[];
-  const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+(state.type==='naissance'?'Naissance':'Grossesse'));
+  const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
+  const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+titreSeance);
   L.push({n:nomLigne,s:resolveInc(g.inclus[0]),p:g.prix});
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
@@ -772,7 +780,11 @@ function bookDateLabel(iso){
   const wd=new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay();
   return BOOK_JOURS[wd]+' '+p[2]+' '+BOOK_MOIS[p[1]-1];
 }
-function bookTypeLabel(t){return t==='duo'?'Grossesse + naissance':t==='naissance'?'Séance naissance':'Séance grossesse';}
+function bookTypeLabel(t){
+  if(t==='duo') return 'Grossesse + naissance';
+  const m = MOT_SEANCE[t];
+  return m ? 'Séance ' + m : 'Séance grossesse';
+}
 function bookAcompte(t){return t>=590?190:90;}
 function hLabel(t){return t.replace(':','h');}
 
@@ -1531,7 +1543,7 @@ setTimeout(()=>{
       MBS_BON.dessiner(apercuCanvas, {
         style: styleChoisi,
         formule: offre.nom,
-        seance: offre.duo ? 'duo' : (state.type === 'naissance' ? 'naissance' : 'grossesse'),
+        seance: offre.duo ? 'duo' : state.type,
         // tant que les champs sont vides, on montre un exemple plutot qu'un blanc
         pour: lire('gPour') || 'Camille',
         message: lire('gMot') || 'Félicitations, profitez bien de ce moment !',
