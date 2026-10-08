@@ -1069,6 +1069,7 @@ async function submitBooking(){
       // et le serveur disent bien la meme chose.
       body:JSON.stringify({type:bookState.type,
         section:bookState.section,gamme:bookState.gamme,photos:bookState.photos,album:bookState.album,
+        tirages:bookState.tirages||{},
         totalAffiche:bookState.total,
         origine:origineMemorisee(),
         paiement:bookState.paiement||'acompte',
