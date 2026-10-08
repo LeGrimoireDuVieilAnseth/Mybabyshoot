@@ -36,12 +36,33 @@ const GAMMES = {
     { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>','<b>Galerie complète</b> au naturel : toutes les photos de la séance, à récupérer en fin de séance'] },
     { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Galerie complète</b> au naturel : toutes les photos de la séance, à récupérer en fin de séance'] }
   ],
-  duo: [
-    { id:'essentiel', nom:'Duo Essentiel', prix:590, retouchees:15, inclus:['2 séances : grossesse et naissance','15 photos retouchées, à répartir sur les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] },
-    { id:'confort', nom:'Duo Confort', prix:690, populaire:true, retouchees:30, inclus:['2 séances : grossesse et naissance','30 photos retouchées, à répartir sur les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] },
-    { id:'prestige', nom:'Duo Prestige', prix:890, inclus:['2 séances : grossesse et naissance','<b>Toutes les plus belles photos retouchées</b> sans limite, pour les 2 séances','<b>Galerie complète au naturel</b> : toutes les photos des 2 séances, à récupérer en fin de séance'] }
+};
+
+/* Le pack deux seances : une formule par seance, et la remise sur le total.
+   Les trois anciens packs imposaient la meme formule des deux cotes.
+
+   La remise descend a la dizaine inferieure : on n'affiche pas 663 euros, et
+   vers le bas la cliente paie toujours un peu moins que les 15 % promis. La
+   meme regle vit dans mbs-lib.mjs : le serveur seul fait foi pour le montant
+   preleve, le calcul ci-dessous ne sert qu'a l'affichage. */
+const DUO = {
+  remise: .15,
+  seances: [
+    { cle:'grossesse', titre:'Votre séance grossesse', sous:'Vers 7 ou 8 mois, quand le ventre est bien rond' },
+    { cle:'naissance', titre:'Votre séance naissance', sous:'Dans les 10 jours qui suivent la naissance' }
   ]
 };
+function gammeSimple(id){ return GAMMES.simple.find(g=>g.id===id)||GAMMES.simple[0]; }
+function prixPaireDuo(grossesse,naissance){
+  const plein=gammeSimple(grossesse).prix+gammeSimple(naissance).prix;
+  const prix=Math.floor(plein*(1-DUO.remise)/10)*10;
+  return { plein:plein, prix:prix, remise:plein-prix };
+}
+/* Ce que la formule donne en retouches, en une ligne, pour les colonnes du
+   pack et pour le devis. */
+function retouchesTexte(g){
+  return g.retouchees ? g.retouchees+' photos retouchées' : 'Toutes les plus belles retouchées';
+}
 
 /* =====================================================================
    2) CHIFFRES MARKETING  (mets tes vrais chiffres ici)
@@ -496,15 +517,25 @@ const COMPAROS = [
    4) Configurateur
    ===================================================================== */
 const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,album:false,tirages:{},
+  /* Le pack n'a pas une formule mais deux, une par seance. */
+  duo:{grossesse:'confort',naissance:'confort'},
   ext:false,extLabel:'',extKm:0,extFrais:0};
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
-function currentGamme(){return (GAMMES[state.section]||GAMMES.simple).find(g=>g.id===state.gamme)||GAMMES[state.section][0];}
+/* La formule d'une seance simple. Le pack n'en a pas une seule : il a
+   state.duo, une formule par seance. */
+function currentGamme(){ return gammeSimple(state.gamme); }
+/* Le prix de la seance ou du pack, avant les options. */
+function prixBase(){
+  return state.section==='duo'
+    ? prixPaireDuo(state.duo.grossesse,state.duo.naissance).prix
+    : currentGamme().prix;
+}
 function bookingType(){return state.section==='duo'?'duo':state.type;}
 /* Le mot de la seance, pour "Seance @T en studio". */
 const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé', famille:'famille' };
 function motSeance(t){ return MOT_SEANCE[t||state.type] || 'grossesse'; }
 function resolveInc(i){ return i.replace('@T', motSeance()); }
-function total(){return currentGamme().prix+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
+function total(){return prixBase()+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
 const totalEl=document.getElementById('totalVal');
 
 /* ---------------------------------------------------------------
@@ -546,9 +577,10 @@ async function chargerDispoNote(){
   }catch(e){ /* silencieux : on n'affiche rien plutot qu'une info fausse */ }
 }
 
-/* Equivalent duo d'une formule simple, pour proposer le pack au bon moment.
-   L'economie affichee est TOUJOURS calculee, jamais inventee. */
-const DUO_EQUIV={essentielle:'essentiel',confort:'confort',prestige:'prestige'};
+/* L'encart "vous pensez aussi faire la naissance ?". Il est commente dans
+   index.html depuis le 15/08/2026 ; renderDuoNudge se tait tout seul tant
+   que le conteneur n'existe pas, et il suffit de retablir la ligne pour le
+   remettre. L'economie affichee est TOUJOURS calculee, jamais inventee. */
 function renderDuoNudge(){
   const box=document.getElementById('duoNudge');
   if(!box) return;
@@ -557,46 +589,54 @@ function renderDuoNudge(){
   if(state.section==='duo' || (state.type!=='grossesse' && state.type!=='naissance')){
     box.innerHTML=''; box.classList.remove('show'); return;
   }
+  /* On propose la meme formule des deux cotes : c'est celle qu'elle vient
+     de choisir, et elle pourra changer chaque colonne ensuite. */
   const g=currentGamme();
-  const duo=(GAMMES.duo||[]).find(d=>d.id===DUO_EQUIV[g.id]);
-  if(!duo){ box.innerHTML=''; box.classList.remove('show'); return; }
-  // Ce que couterait la meme chose en deux seances separees : les deux
-  // formules, plus les photos retouchees supplementaires du duo, plus
-  // l'album quand il est offert. Comparer les seuls prix afficherait une
-  // economie fausse maintenant que les duos donnent davantage.
-  let deuxSeances=g.prix*2;
-  if(g.retouchees&&duo.retouchees){
-    deuxSeances+=Math.max(0,duo.retouchees-g.retouchees*2)*PRIX.photoSupp;
-  }
-  if(duo.album) deuxSeances+=PRIX.album;
-  const eco=deuxSeances-duo.prix;
+  const p=prixPaireDuo(g.id,g.id);
   const autre=state.type==='naissance'?'grossesse':'naissance';
-  // Annoncer un montant sec laisse croire a une simple remise. On dit
-  // d'abord ce qu'on recoit en plus, l'economie vient ensuite.
-  const photosEnPlus = (g.retouchees && duo.retouchees)
-    ? Math.max(0, duo.retouchees - g.retouchees * 2) : 0;
-  let detail = '';
-  if(photosEnPlus > 0){
-    detail = ' Vous y gagnez <b>' + photosEnPlus + ' photos retouchées de plus</b> que deux séances '
-      + g.nom + ' prises séparément, qui vous seraient facturées ' + euro(photosEnPlus * PRIX.photoSupp) + '.';
-  }
   box.innerHTML='<div class="duo-in">'
     +'<div class="duo-txt"><b>Vous pensez aussi faire la '+autre+' ?</b>'
-    +'<span>'+duo.nom+' : les 2 séances pour '+euro(duo.prix)+'.'+detail
-    +(eco>0?' Au total <b class="duo-eco">'+euro(eco)+' d\'économie</b> par rapport à 2 séances séparées.'
-           :' Les galeries complètes au naturel des 2 séances sont offertes.')+'</span></div>'
-    +'<button type="button" class="btn btn-ghost" id="duoGo">Voir le pack duo</button></div>';
+    +'<span>Les 2 séances en '+g.nom+' : '+euro(p.prix)+' au lieu de '+euro(p.plein)
+    +', soit <b class="duo-eco">'+euro(p.remise)+' d\'économie</b>. '
+    +'Vous choisissez ensuite votre formule pour chaque séance.</span></div>'
+    +'<button type="button" class="btn btn-ghost" id="duoGo">Voir le pack 2 séances</button></div>';
   box.classList.add('show');
   const b=document.getElementById('duoGo');
   if(b) b.addEventListener('click',()=>{
-    state.section='duo'; state.gamme=DUO_EQUIV[g.id]||'confort'; render();
+    state.section='duo'; state.duo.grossesse=g.id; state.duo.naissance=g.id; render();
     document.getElementById('gammes').scrollIntoView({behavior:'smooth',block:'center'});
   });
+}
+
+/* Le pack : une colonne par seance, trois formules dans chacune, puis
+   l'addition et la remise. Les formules etant celles d'une seance seule, on
+   ne repete pas la galerie trois fois par colonne : une seule ligne sous le
+   tableau le dit pour les deux seances. */
+function duoHtml(){
+  const p=prixPaireDuo(state.duo.grossesse,state.duo.naissance);
+  return '<div class="duo-wrap">'
+    +DUO.seances.map(s=>
+      '<div class="duo-col"><div class="duo-col-h"><b>'+s.titre+'</b><span>'+s.sous+'</span></div>'
+      +GAMMES.simple.map(g=>
+        '<button type="button" class="duo-pick'+(state.duo[s.cle]===g.id?' active':'')+'"'
+        +' data-duo="'+s.cle+'" data-duo-gamme="'+g.id+'">'
+        +'<span class="duo-pick-t"><b>'+g.nom+'</b><span>'+retouchesTexte(g)+'</span></span>'
+        +'<span class="duo-pick-p">'+euro(g.prix)+'</span></button>').join('')
+      +'</div>').join('')
+    +'</div>'
+    +'<p class="duo-gal"><b>Galerie complète</b> au naturel incluse dans les 2 séances : '
+    +'toutes les photos, à récupérer en fin de séance.</p>'
+    +'<div class="duo-sum">'
+      +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
+      +'<span class="duo-sum-r">Remise pack '+Math.round(DUO.remise*100)+' %<b>-'+euro(p.remise)+'</b></span>'
+      +'<span class="duo-sum-t">Votre pack<b>'+euro(p.prix)+'</b></span>'
+    +'</div>';
 }
 
 function renderGammes(){
   const sec=state.section;
   const box=document.getElementById('gammes');
+  if(sec==='duo'){ box.innerHTML=duoHtml(); return; }
   box.innerHTML=GAMMES[sec].map(g=>{
     const active=(state.gamme===g.id);
     return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
@@ -616,11 +656,24 @@ function render(){
   if(album) album.classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
   document.querySelectorAll('[data-tir-val]').forEach(el=>{el.textContent=state.tirages[el.dataset.tirVal]||0;});
-  const g=currentGamme();
   const L=[];
-  const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
-  const nomLigne=state.section==='duo'?g.nom:(g.nom+' . '+titreSeance);
-  L.push({n:nomLigne,s:resolveInc(g.inclus[0]),p:g.prix});
+  if(state.section==='duo'){
+    /* Le pack se lit ligne par ligne : chaque seance avec SA formule, puis
+       la remise en negatif. Un seul montant global cacherait ce qu'elle a
+       choisi pour chacune des deux. */
+    const p=prixPaireDuo(state.duo.grossesse,state.duo.naissance);
+    DUO.seances.forEach(s=>{
+      const gs=gammeSimple(state.duo[s.cle]);
+      L.push({n:gs.nom+' . '+(s.cle==='grossesse'?'Grossesse':'Naissance'),
+              s:retouchesTexte(gs)+', galerie complète',p:gs.prix});
+    });
+    L.push({n:'Remise pack 2 séances',
+            s:Math.round(DUO.remise*100)+' % sur le total des 2 séances',p:-p.remise});
+  }else{
+    const g=currentGamme();
+    const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
+    L.push({n:g.nom+' . '+titreSeance,s:resolveInc(g.inclus[0]),p:g.prix});
+  }
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
   tiragesDetail().lignes.forEach(l=>L.push(l));
@@ -742,11 +795,16 @@ async function calculerFrais(adresse){
   }
 }
 
-document.getElementById('gammes').addEventListener('click',e=>{const b=e.target.closest('.gamme');if(b){state.gamme=b.dataset.gamme;render();}});
+document.getElementById('gammes').addEventListener('click',e=>{
+  /* Le pack : un choix par seance, et non une formule unique. */
+  const d=e.target.closest('[data-duo]');
+  if(d){ state.duo[d.dataset.duo]=d.dataset.duoGamme; render(); return; }
+  const b=e.target.closest('.gamme'); if(b){ state.gamme=b.dataset.gamme; render(); }
+});
 document.getElementById('typeSeg').addEventListener('click',e=>{
   const b=e.target.closest('.seg-btn'); if(!b)return;
   const mode=b.dataset.mode;
-  if(mode==='duo'){ state.section='duo'; state.gamme='essentiel'; }
+  if(mode==='duo'){ state.section='duo'; }
   else { state.section='simple'; state.type=mode; if(!GAMMES.simple.some(g=>g.id===state.gamme)) state.gamme='essentielle'; }
   render();
 });
@@ -804,7 +862,11 @@ function openBooking(viewOnly){
   bookViewOnly=!!viewOnly;
   bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
     paiement:paiementVoulu,
-    section:state.section,gamme:state.gamme,photos:state.photos,album:!!state.album,tirages:state.tirages,
+    section:state.section,gamme:state.gamme,
+    /* Le pack : une formule par seance. Le serveur refait le calcul et son
+       montant seul compte ; ceci ne fait que le lui dire. */
+    gammes:state.section==='duo'?{grossesse:state.duo.grossesse,naissance:state.duo.naissance}:null,
+    photos:state.photos,album:!!state.album,tirages:state.tirages,
     exterieur:(state.ext&&state.extLabel)?{adresse:state.extLabel,km:state.extKm,frais:state.extFrais}:null};
   paiementVoulu='acompte';   // ne vaut que pour l'ouverture qui vient de se faire
   bookModal.classList.add('show');
@@ -871,7 +933,9 @@ async function validerBon(){
     if(b.desactive){ bookState.coupon=code; renderBonCode('', "Ce bon n'est plus valable. Appelez le 06 47 76 54 17."); return; }
     bookState.coupon=b.code;
     bookState.giftFormule=b.formule||'';
-    bookState.type=(b.seance==='duo'||b.seance==='naissance')?b.seance:'grossesse';
+    /* Le type vient du bon : les quatre seances, ou le pack. Sans bebe ni
+       famille dans cette liste, un bon bebe repartait en grossesse. */
+    bookState.type=(b.seance==='duo'||MOT_SEANCE[b.seance])?b.seance:'grossesse';
     bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
     loadAvailability();
   }catch(e){
@@ -1068,7 +1132,8 @@ async function submitBooking(){
       // prix. totalAffiche ne sert qu'a verifier que l'ecran de la cliente
       // et le serveur disent bien la meme chose.
       body:JSON.stringify({type:bookState.type,
-        section:bookState.section,gamme:bookState.gamme,photos:bookState.photos,album:bookState.album,
+        section:bookState.section,gamme:bookState.gamme,gammes:bookState.gammes||null,
+        photos:bookState.photos,album:bookState.album,
         tirages:bookState.tirages||{},
         totalAffiche:bookState.total,
         origine:origineMemorisee(),
@@ -1386,10 +1451,12 @@ setTimeout(()=>{
   const OFFRES=(window.MBS_BON&&MBS_BON.OFFRES_CADEAU)||[];
 
   /* La formule choisie dans le configurateur -> l'offre correspondante.
-     Les duos portent le prefixe "duo-" (l'id de gamme seul est ambigu :
-     "confort" existe des deux cotes). */
+     Le pack porte les deux formules dans son identifiant,
+     "duo-confort-prestige" : la grossesse d'abord, la naissance ensuite. */
   function offreCourante(){
-    const id=state.section==='duo' ? 'duo-'+state.gamme : state.gamme;
+    const id=state.section==='duo'
+      ? 'duo-'+state.duo.grossesse+'-'+state.duo.naissance
+      : state.gamme;
     return OFFRES.find(o=>o.id===id)||null;
   }
 
@@ -1403,7 +1470,8 @@ setTimeout(()=>{
       return;
     }
     const duo=offre.duo;
-    const quoi=duo?'Séances grossesse et naissance':(state.type==='naissance'?'Séance naissance':'Séance grossesse');
+    /* Le bon dit pour quelle seance il vaut : les quatre types, ou le pack. */
+    const quoi=duo?'Séances grossesse et naissance':('Séance '+motSeance());
     body.innerHTML=
       '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Offrir cette séance</h3>'
       +'<p class="book-recap">Formule '+offre.nom+' <span>'+quoi+' · '+euro(offre.prix)+'</span></p></div>'

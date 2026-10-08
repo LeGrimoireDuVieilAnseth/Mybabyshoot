@@ -274,6 +274,37 @@ section{padding:100px 0}
 .gamme.gduo .gamme-prix{color:var(--gold)}
 .gamme.gduo .gamme-inc li{color:rgba(252,248,242,.82)}
 .gamme.gduo .gamme-inc li::before{border-color:var(--coral)}
+/* ---- Le pack 2 seances : une colonne par seance ----
+   Deux colonnes cote a cote des 560 px, l'une sous l'autre en dessous :
+   sur un telephone, deux colonnes de trois formules rendraient les prix
+   illisibles. */
+.duo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.duo-col{border:1.5px solid var(--line);border-radius:14px;background:var(--cream);padding:12px}
+.duo-col-h{margin-bottom:10px}
+.duo-col-h b{display:block;font-family:var(--display);font-weight:800;font-size:1rem;color:var(--ink)}
+.duo-col-h span{display:block;font-size:12px;color:var(--ink-soft);line-height:1.35;margin-top:2px}
+.duo-pick{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+  text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:11px;
+  padding:9px 11px;margin-bottom:7px;cursor:pointer;font-family:var(--body);transition:.18s}
+.duo-pick:last-child{margin-bottom:0}
+.duo-pick:hover{border-color:var(--coral)}
+.duo-pick.active{border-color:var(--coral);box-shadow:0 0 0 2px var(--coral)}
+.duo-pick-t b{display:block;font-weight:800;font-size:14.5px;color:var(--ink)}
+.duo-pick-t span{display:block;font-size:11.5px;color:var(--ink-soft);line-height:1.3;margin-top:1px}
+.duo-pick-p{font-family:var(--display);font-weight:800;font-size:15px;color:var(--coral-deep);white-space:nowrap}
+.duo-gal{margin:11px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.45}
+.duo-gal b{color:var(--ink)}
+/* L'addition : le plein barre, la remise, puis le prix du pack. Le plein
+   doit rester lisible, c'est lui qui donne son sens a la remise. */
+.duo-sum{display:flex;flex-direction:column;gap:5px;margin-top:11px;padding:12px 14px;
+  border:1.5px solid var(--line);border-radius:13px;background:#fff}
+.duo-sum span{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13.5px;color:var(--ink-soft)}
+.duo-sum-l b{font-weight:700;color:var(--ink-soft);text-decoration:line-through}
+.duo-sum-r{color:var(--coral-deep)}
+.duo-sum-r b{font-weight:800;color:var(--coral-deep)}
+.duo-sum-t{border-top:1px solid var(--line);padding-top:7px;margin-top:2px;font-weight:700;color:var(--ink)}
+.duo-sum-t b{font-family:var(--display);font-weight:800;font-size:1.35rem;color:var(--coral-deep)}
+@media(max-width:560px){.duo-wrap{grid-template-columns:1fr}}
 .gamme-tag{position:absolute;top:-10px;right:16px;background:var(--coral);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px}
 .gamme-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:9px}
 /* Le prix et sa mensualite forment un bloc : le 3 fois se lit sous le
