@@ -32,9 +32,9 @@ function tiragesDetail(){
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
-    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','<b>5 photos retouchées</b>, que vous choisissez','<b>Galerie privée le jour même</b> : toutes les photos de la séance, brutes et sans retouche, à télécharger'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>, que vous choisissez','<b>Galerie privée le jour même</b> : toutes les photos de la séance, brutes et sans retouche, à télécharger'] },
-    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Galerie privée le jour même</b> : toutes les photos de la séance, brutes et sans retouche, à télécharger'] }
+    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','<b>5 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
+    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] }
   ],
 };
 
@@ -624,8 +624,8 @@ function duoHtml(){
         +'<span class="duo-pick-p">'+euro(g.prix)+'</span></button>').join('')
       +'</div>').join('')
     +'</div>'
-    +'<p class="duo-gal"><b>Galerie privée le jour même</b> pour chacune des 2 séances : '
-    +'toutes les photos, brutes et sans retouche, à télécharger.</p>'
+    +'<p class="duo-gal"><b>Toutes les photos des 2 séances</b> : à récupérer le jour même, '
+    +'brutes et sans retouche.</p>'
     +'<div class="duo-sum">'
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
       +'<span class="duo-sum-r">Remise pack '+Math.round(DUO.remise*100)+' %<b>-'+euro(p.remise)+'</b></span>'
@@ -665,7 +665,7 @@ function render(){
     DUO.seances.forEach(s=>{
       const gs=gammeSimple(state.duo[s.cle]);
       L.push({n:gs.nom+' . '+(s.cle==='grossesse'?'Grossesse':'Naissance'),
-              s:retouchesTexte(gs)+', galerie complète',p:gs.prix});
+              s:retouchesTexte(gs)+' + toutes les brutes',p:gs.prix});
     });
     L.push({n:'Remise pack 2 séances',
             s:Math.round(DUO.remise*100)+' % sur le total des 2 séances',p:-p.remise});
