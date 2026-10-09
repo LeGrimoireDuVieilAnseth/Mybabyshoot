@@ -211,7 +211,7 @@ section{padding:100px 0}
 /* Brute contre retouchee, cote a cote : c'est la seule facon de faire
    comprendre ce qu'on achete en montant d'une formule. */
 .ba-explain{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:780px;margin:26px auto 0}
-.bax{border:1.5px solid var(--line);border-radius:14px;padding:15px 17px;background:var(--cream)}
+.bax{border:1.5px solid var(--line);border-radius:14px;padding:15px 17px;background:var(--cream);display:flex;flex-direction:column;justify-content:center}
 .bax-t{display:block;font-family:var(--display);font-weight:800;font-size:15px;margin-bottom:6px}
 .bax-brute{color:var(--ink-soft)}
 .bax-retouche{color:var(--coral-deep)}
