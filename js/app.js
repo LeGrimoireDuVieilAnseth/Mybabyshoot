@@ -46,7 +46,7 @@ const GAMMES = {
    meme regle vit dans mbs-lib.mjs : le serveur seul fait foi pour le montant
    preleve, le calcul ci-dessous ne sert qu'a l'affichage. */
 const DUO = {
-  remise: .15,
+  remise: .10,
   seances: [
     { cle:'grossesse', titre:'Votre séance grossesse', sous:'Vers 7 ou 8 mois, quand le ventre est bien rond' },
     { cle:'naissance', titre:'Votre séance naissance', sous:'Dans les 10 jours qui suivent la naissance' }
@@ -55,7 +55,10 @@ const DUO = {
 function gammeSimple(id){ return GAMMES.simple.find(g=>g.id===id)||GAMMES.simple[0]; }
 function prixPaireDuo(grossesse,naissance){
   const plein=gammeSimple(grossesse).prix+gammeSimple(naissance).prix;
-  const prix=Math.floor(plein*(1-DUO.remise)/10)*10;
+  /* On arrondit au centime avant de descendre a la dizaine : sans ce
+     passage, un produit qui tombe pile sur une dizaine peut valoir
+     629,9999999 en binaire et perdre 10 euros. */
+  const prix=Math.floor(Math.round(plein*(1-DUO.remise))/10)*10;
   return { plein:plein, prix:prix, remise:plein-prix };
 }
 /* Ce que la formule donne en retouches, en une ligne, pour les colonnes du
@@ -620,12 +623,13 @@ function duoHtml(){
       +GAMMES.simple.map(g=>
         '<button type="button" class="duo-pick'+(state.duo[s.cle]===g.id?' active':'')+'"'
         +' data-duo="'+s.cle+'" data-duo-gamme="'+g.id+'">'
-        +'<span class="duo-pick-t"><b>'+g.nom+'</b><span>'+retouchesTexte(g)+'</span></span>'
+        +'<span class="duo-pick-t"><b>'+g.nom+'</b><span>'+retouchesTexte(g)+'</span>'
+        +'<span class="duo-pick-brutes">+ toutes les photos brutes</span></span>'
         +'<span class="duo-pick-p">'+euro(g.prix)+'</span></button>').join('')
       +'</div>').join('')
     +'</div>'
-    +'<p class="duo-gal"><b>Toutes les photos des 2 séances</b> : à récupérer le jour même, '
-    +'brutes et sans retouche.</p>'
+    +'<p class="duo-gal"><b>La séance naissance se programme plus tard</b> : vous réservez '
+    +'aujourd\'hui la date de la grossesse, et nous fixons la seconde dès l\'arrivée de bébé.</p>'
     +'<div class="duo-sum">'
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
       +'<span class="duo-sum-r">Remise pack '+Math.round(DUO.remise*100)+' %<b>-'+euro(p.remise)+'</b></span>'
