@@ -532,7 +532,7 @@ function prixBase(){
 }
 function bookingType(){return state.section==='duo'?'duo':state.type;}
 /* Le mot de la seance, pour "Seance @T en studio". */
-const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé', famille:'famille' };
+const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé' };
 function motSeance(t){ return MOT_SEANCE[t||state.type] || 'grossesse'; }
 function resolveInc(i){ return i.replace('@T', motSeance()); }
 function total(){return prixBase()+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
@@ -585,7 +585,7 @@ function renderDuoNudge(){
   const box=document.getElementById('duoNudge');
   if(!box) return;
   /* Le pack ne concerne que la grossesse et la naissance : le proposer sur
-     une seance bebe ou famille n'aurait aucun sens. */
+     une seance bebe n'aurait aucun sens. */
   if(state.section==='duo' || (state.type!=='grossesse' && state.type!=='naissance')){
     box.innerHTML=''; box.classList.remove('show'); return;
   }
@@ -933,8 +933,8 @@ async function validerBon(){
     if(b.desactive){ bookState.coupon=code; renderBonCode('', "Ce bon n'est plus valable. Appelez le 06 47 76 54 17."); return; }
     bookState.coupon=b.code;
     bookState.giftFormule=b.formule||'';
-    /* Le type vient du bon : les quatre seances, ou le pack. Sans bebe ni
-       famille dans cette liste, un bon bebe repartait en grossesse. */
+    /* Le type vient du bon : les trois seances, ou le pack. Sans bebe dans
+       cette liste, un bon bebe repartait en grossesse. */
     bookState.type=(b.seance==='duo'||MOT_SEANCE[b.seance])?b.seance:'grossesse';
     bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
     loadAvailability();

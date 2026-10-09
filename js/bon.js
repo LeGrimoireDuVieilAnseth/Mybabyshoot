@@ -42,7 +42,6 @@ const SEANCES = {
   grossesse: 'Séance photo grossesse',
   naissance: 'Séance photo naissance',
   bebe:      'Séance photo bébé',
-  famille:   'Séance photo famille',
   duo:       'Séances photo grossesse et naissance'
 };
 
@@ -52,7 +51,6 @@ const AMBIANCES = {
   grossesse: { accent:'#C2A06B', voile:'rgba(194,160,107,.13)', motif:'ventre'  },
   naissance: { accent:'#B0824F', voile:'rgba(176,130,79,.13)',  motif:'lune'    },
   bebe:      { accent:'#A8794E', voile:'rgba(168,121,78,.13)',  motif:'lune'    },
-  famille:   { accent:'#9A7B52', voile:'rgba(154,123,82,.12)',  motif:'anneaux' },
   duo:       { accent:'#8C6239', voile:'rgba(140,98,57,.12)',   motif:'anneaux' }
 };
 
