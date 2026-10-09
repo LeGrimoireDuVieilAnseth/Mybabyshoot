@@ -70,9 +70,15 @@ header.scrolled .burger span{background:var(--ink)}
 .hero-badge b{color:var(--ink)}
 .hero h1{font-size:clamp(2.7rem,6vw,4.6rem);font-weight:800}
 .hero h1 .ser{color:var(--coral-deep);font-weight:400}
-.hero-sub{font-size:clamp(1.05rem,1.6vw,1.22rem);color:var(--ink-soft);max-width:480px;margin:22px 0 14px}
-.hero-signature{font-size:14.5px;color:var(--ink);max-width:480px;margin:0 0 30px;font-family:var(--accent,inherit);font-style:italic}
-.hero-signature strong{font-style:normal;color:var(--coral-deep);font-weight:700}
+.hero-sub{font-size:clamp(.98rem,1.4vw,1.08rem);color:var(--ink-soft);max-width:480px;margin:16px 0 14px}
+/* La promesse : toutes les photos, le jour meme. C'est ce qui distingue le
+   studio, elle passe donc avant la presentation, et en gras plutot qu'en
+   italique de bas de paragraphe. */
+.hero-promesse{border-left:3px solid var(--coral);border-radius:0 12px 12px 0;background:rgba(194,160,107,.11);padding:13px 16px 14px 15px;margin:20px 0 0;max-width:520px}
+.hero-promesse .hp-tag{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--coral-deep);margin-bottom:5px}
+.hero-promesse b{display:block;font-family:var(--display);font-weight:800;font-size:clamp(1.08rem,2.4vw,1.3rem);line-height:1.22;color:var(--ink);margin-bottom:7px}
+.hero-promesse span{display:block;font-size:14.5px;line-height:1.52;color:#6E5C45}
+.hero-promesse strong{color:var(--ink);font-weight:800}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .hero-itin-wrap{margin-top:30px}
 .hero-itin{display:inline-flex;align-items:center;gap:9px}
@@ -202,6 +208,19 @@ section{padding:100px 0}
 .ba .handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--cream);transform:translateX(-50%);z-index:4;pointer-events:none;box-shadow:0 0 0 1px rgba(50,38,25,.15)}
 .ba .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow-soft);display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:ew-resize}
 .ba .grip svg{width:22px;height:22px;stroke:var(--wine)}
+/* Brute contre retouchee, cote a cote : c'est la seule facon de faire
+   comprendre ce qu'on achete en montant d'une formule. */
+.ba-explain{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:780px;margin:26px auto 0}
+.bax{border:1.5px solid var(--line);border-radius:14px;padding:15px 17px;background:var(--cream)}
+.bax-t{display:block;font-family:var(--display);font-weight:800;font-size:15px;margin-bottom:6px}
+.bax-brute{color:var(--ink-soft)}
+.bax-retouche{color:var(--coral-deep)}
+.bax p{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+.bax p b{color:var(--ink);font-weight:700}
+.ba-choix{max-width:780px;margin:18px auto 0;text-align:center;font-size:14.5px;line-height:1.65;color:var(--ink)}
+.ba-choix b{color:var(--coral-deep);white-space:nowrap}
+.ba-choix a{color:var(--coral-deep);font-weight:700;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+@media(max-width:560px){.ba-explain{grid-template-columns:1fr}}
 .ba-tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
 .ba-tab{font-family:var(--body);font-weight:700;font-size:14px;padding:9px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;transition:.2s}
 .ba-tab:hover{border-color:var(--coral);color:var(--coral-deep)}
@@ -226,6 +245,11 @@ section{padding:100px 0}
 .incl:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
 .incl .ic{width:28px;height:28px;border-radius:8px;background:var(--coral);display:flex;align-items:center;justify-content:center;flex:none}
 .incl .ic svg{width:15px;height:15px;stroke:#fff}
+/* La promesse occupe toute la premiere ligne de la grille : c'est elle
+   qu'on doit lire avant les six autres. */
+.incl-top{grid-column:1/-1;background:rgba(255,255,255,.13);box-shadow:inset 0 0 0 1px rgba(194,160,107,.45)}
+.incl-top b{font-size:15.5px}
+.incl-top .d{color:rgba(252,248,242,.78);font-size:13px}
 .incl-link{color:var(--coral);font-weight:700;text-decoration:underline;text-underline-offset:2px}
 .incl-link:hover{color:#fff}
 

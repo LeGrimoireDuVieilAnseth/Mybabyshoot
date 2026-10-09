@@ -822,6 +822,14 @@ document.addEventListener('click',e=>{
 const optAlbum=document.getElementById('optAlbum');
 if(optAlbum) optAlbum.addEventListener('click',()=>{state.album=!state.album;render();});
 
+/* Les nombres de retouches annonces dans la section Avant/apres. Ecrits en
+   dur dans le HTML, ils mentiraient le jour ou Matt change la grille : ils
+   viennent donc des formules, comme les cartes. */
+document.querySelectorAll('[data-retouches]').forEach(el=>{
+  const g=gammeSimple(el.dataset.retouches);
+  el.textContent = g.retouchees ? g.retouchees+' photos' : 'toutes les plus belles';
+});
+
 /* =====================================================================
    5) Réservation maison : sélecteur de créneau + acompte
    Interroge le CRM (disponibilités), collecte les infos client,
