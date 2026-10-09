@@ -63,10 +63,16 @@ function prixPaireDuo(grossesse,naissance){
 }
 /* Ce que la formule donne en retouches, en une ligne, pour les colonnes du
    pack et pour le devis. */
-/* Le taux affiche. Math.round ecrasait les demis : a 12,5 % l'ecran
-   annoncait "13 %", un chiffre que la cliente ne retrouve nulle part. Et
-   le francais met une virgule. */
-function tauxDuo(){ return (DUO.remise*100).toFixed(1).replace(/[.,]0$/,'').replace('.',','); }
+/* La remise maximum des neuf paires, pour l'annoncer en haut de la
+   section. Calculee et non ecrite a la main : au prochain changement de
+   taux, un montant fige mentirait a l'endroit le plus visible. */
+function remiseDuoMax(){
+  let m=0;
+  GAMMES.simple.forEach(a=>GAMMES.simple.forEach(b=>{
+    m=Math.max(m, prixPaireDuo(a.id,b.id).remise);
+  }));
+  return m;
+}
 function retouchesTexte(g){
   return g.retouchees ? g.retouchees+' photos retouchées' : 'Toutes les plus belles retouchées';
 }
@@ -636,7 +642,7 @@ function duoHtml(){
     +'aujourd\'hui la date de la grossesse, et nous fixons la seconde dès l\'arrivée de bébé.</p>'
     +'<div class="duo-sum">'
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
-      +'<span class="duo-sum-r">Remise pack '+tauxDuo()+' %<b>-'+euro(p.remise)+'</b></span>'
+      +'<span class="duo-sum-r">Remise pack duo<b>-'+euro(p.remise)+'</b></span>'
       +'<span class="duo-sum-t">Votre pack<b>'+euro(p.prix)+'</b></span>'
     +'</div>';
 }
@@ -675,8 +681,8 @@ function render(){
       L.push({n:gs.nom+' . '+(s.cle==='grossesse'?'Grossesse':'Naissance'),
               s:retouchesTexte(gs)+' + toutes les brutes',p:gs.prix});
     });
-    L.push({n:'Remise pack 2 séances',
-            s:tauxDuo()+' % sur le total des 2 séances',p:-p.remise});
+    L.push({n:'Remise pack duo',
+            s:'Sur le total des 2 séances',p:-p.remise});
   }else{
     const g=currentGamme();
     const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
@@ -827,6 +833,14 @@ document.addEventListener('click',e=>{
   state.tirages[cle]=Math.max(0,Math.min(n+(plus?1:-1),TIRAGE_MAX));
   render();
 });
+/* L'annonce de la remise, sous le titre "Votre formule" : celles qui
+   hesitent entre une seance et deux doivent le voir AVANT de choisir. */
+const bandeauDuo=document.getElementById('duoAnnonce');
+if(bandeauDuo){
+  bandeauDuo.innerHTML='<b>Vous prévoyez les deux séances ?</b> Le pack grossesse + naissance '
+    +'est remisé, jusqu\'à <b>'+euro(remiseDuoMax())+' d\'économie</b>.';
+}
+
 const optAlbum=document.getElementById('optAlbum');
 if(optAlbum) optAlbum.addEventListener('click',()=>{state.album=!state.album;render();});
 
