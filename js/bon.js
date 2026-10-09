@@ -32,7 +32,7 @@ const OFFRES_CADEAU = [
     OFFRES_CADEAU.push({
       id: "duo-" + a + "-" + b, duo: true,
       nom: "Pack 2 séances . " + (a === b ? nm(a) : nm(a) + " puis " + nm(b)),
-      prix: Math.floor(Math.round(plein * 0.90) / 10) * 10
+      prix: Math.floor(Math.round(plein * 0.875) / 10) * 10
     });
   });
 });

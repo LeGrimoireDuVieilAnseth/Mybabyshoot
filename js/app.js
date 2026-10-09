@@ -46,7 +46,7 @@ const GAMMES = {
    meme regle vit dans mbs-lib.mjs : le serveur seul fait foi pour le montant
    preleve, le calcul ci-dessous ne sert qu'a l'affichage. */
 const DUO = {
-  remise: .10,
+  remise: .125,
   seances: [
     { cle:'grossesse', titre:'Votre séance grossesse', sous:'Vers 7 ou 8 mois, quand le ventre est bien rond' },
     { cle:'naissance', titre:'Votre séance naissance', sous:'Dans les 10 jours qui suivent la naissance' }
@@ -63,6 +63,10 @@ function prixPaireDuo(grossesse,naissance){
 }
 /* Ce que la formule donne en retouches, en une ligne, pour les colonnes du
    pack et pour le devis. */
+/* Le taux affiche. Math.round ecrasait les demis : a 12,5 % l'ecran
+   annoncait "13 %", un chiffre que la cliente ne retrouve nulle part. Et
+   le francais met une virgule. */
+function tauxDuo(){ return (DUO.remise*100).toFixed(1).replace(/[.,]0$/,'').replace('.',','); }
 function retouchesTexte(g){
   return g.retouchees ? g.retouchees+' photos retouchées' : 'Toutes les plus belles retouchées';
 }
@@ -632,7 +636,7 @@ function duoHtml(){
     +'aujourd\'hui la date de la grossesse, et nous fixons la seconde dès l\'arrivée de bébé.</p>'
     +'<div class="duo-sum">'
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
-      +'<span class="duo-sum-r">Remise pack '+Math.round(DUO.remise*100)+' %<b>-'+euro(p.remise)+'</b></span>'
+      +'<span class="duo-sum-r">Remise pack '+tauxDuo()+' %<b>-'+euro(p.remise)+'</b></span>'
       +'<span class="duo-sum-t">Votre pack<b>'+euro(p.prix)+'</b></span>'
     +'</div>';
 }
@@ -672,7 +676,7 @@ function render(){
               s:retouchesTexte(gs)+' + toutes les brutes',p:gs.prix});
     });
     L.push({n:'Remise pack 2 séances',
-            s:Math.round(DUO.remise*100)+' % sur le total des 2 séances',p:-p.remise});
+            s:tauxDuo()+' % sur le total des 2 séances',p:-p.remise});
   }else{
     const g=currentGamme();
     const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
