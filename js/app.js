@@ -962,7 +962,14 @@ async function validerBon(){
   try{
     const r=await fetch(CRM_API+'/mbs-gift-view?code='+encodeURIComponent(code),{cache:'no-store'});
     const j=await r.json();
-    if(!j||!j.ok){ bookState.coupon=code; renderBonCode('', "Ce code n'existe pas. Vérifiez la saisie, ou appelez le 06 47 76 54 17."); return; }
+    if(!j||!j.ok){
+      bookState.coupon=code;
+      /* Trop d'essais rates depuis cette adresse : le serveur le dit, on
+         le repete plutot que de pretendre que le code n'existe pas. */
+      renderBonCode('', (j&&j.error==='trop'&&j.message) ? j.message
+        : "Ce code n'existe pas. Vérifiez la saisie, ou appelez le 06 47 76 54 17.");
+      return;
+    }
     const b=j.bon;
     /* Les deux genres de codes passent ici : un bon cadeau, ou le code
        d'une seconde séance de pack. Les mots ne sont pas les memes. */
