@@ -918,9 +918,14 @@ function openBookingBon(){
 
 function renderBonCode(msg,err){
   bookBody.innerHTML=
-    '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>On vous offre une séance photo</h3>'
-    +'<p class="book-recap">Tout est déjà réglé <span>Il ne reste qu\'à choisir votre date</span></p></div>'
+    '<div class="book-head"><span class="book-eyebrow">Votre code</span><h3>Choisissez votre date</h3>'
+    +'<p class="book-recap">Tout est déjà réglé <span>Bon cadeau, ou code pour votre seconde séance</span></p></div>'
 
+    /* La cliente d'un pack vient caler sa seconde seance : elle doit savoir
+       tout de suite qu'elle est au bon endroit, sans faire defiler un texte
+       qui parle de cadeau. */
+    +'<p class="bon-seconde">Vous avez réservé un <b>pack grossesse + naissance</b> et je vous ai donné un code '
+    +'pour la seconde séance ? C\'est ici : entrez-le plus bas, il n\'y a rien d\'autre à faire.</p>'
     +'<div class="bon-intro">'
     +'<p>Quelqu\'un vous offre une séance au studio Mybabyshoot, à La Mulatière, tout près de Lyon. '
     +'Des séances douces, guidées du début à la fin, dans une ambiance détendue.</p>'
@@ -936,7 +941,7 @@ function renderBonCode(msg,err){
     +'Vous n\'avez rien à payer, ni maintenant ni le jour de la séance.</p>'
     +'</div>'
 
-    +'<div class="field"><label for="bonCode">Le code inscrit sur votre bon</label>'
+    +'<div class="field"><label for="bonCode">Votre code</label>'
     +'<input id="bonCode" type="text" autocomplete="off" placeholder="Ex : K7M4PQ" maxlength="20" value="'+esc(bookState.coupon||'')+'"></div>'
     +'<div class="book-err'+(err?' show':'')+'" id="bonErr">'+(err?esc(err):'')+'</div>'
     +(msg?'<div class="book-info">'+esc(msg)+'</div>':'')
@@ -952,21 +957,30 @@ async function validerBon(){
   const inp=document.getElementById('bonCode');
   const btn=document.getElementById('bonGo');
   const code=(inp.value||'').trim();
-  if(!code){ renderBonCode('', 'Entrez le code inscrit sur votre bon.'); return; }
+  if(!code){ renderBonCode('', 'Entrez votre code.'); return; }
   btn.disabled=true; btn.textContent='Vérification...';
   try{
     const r=await fetch(CRM_API+'/mbs-gift-view?code='+encodeURIComponent(code),{cache:'no-store'});
     const j=await r.json();
     if(!j||!j.ok){ bookState.coupon=code; renderBonCode('', "Ce code n'existe pas. Vérifiez la saisie, ou appelez le 06 47 76 54 17."); return; }
     const b=j.bon;
-    if(b.utilise){ bookState.coupon=code; renderBonCode('', 'Ce bon a déjà été utilisé pour une réservation.'); return; }
-    if(b.desactive){ bookState.coupon=code; renderBonCode('', "Ce bon n'est plus valable. Appelez le 06 47 76 54 17."); return; }
+    /* Les deux genres de codes passent ici : un bon cadeau, ou le code
+       d'une seconde séance de pack. Les mots ne sont pas les memes. */
+    const estResa = b.kind==='reservation';
+    const quoi = estResa ? 'Ce code' : 'Ce bon';
+    if(b.utilise){ bookState.coupon=code; renderBonCode('', quoi+' a déjà été utilisé pour une réservation.'); return; }
+    if(b.desactive){ bookState.coupon=code; renderBonCode('', quoi+" n'est plus valable. Appelez le 06 47 76 54 17."); return; }
     bookState.coupon=b.code;
     bookState.giftFormule=b.formule||'';
+    bookState.estResa=estResa;
     /* Le type vient du bon : les trois seances, ou le pack. Sans bebe dans
        cette liste, un bon bebe repartait en grossesse. */
     bookState.type=(b.seance==='duo'||MOT_SEANCE[b.seance])?b.seance:'grossesse';
-    bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
+    bookBody.innerHTML='<div class="book-info">'
+      +(estResa
+        ? 'Code reconnu. Votre séance '+(MOT_SEANCE[b.seance]||'')+' est déjà réglée : choisissez simplement votre créneau.'
+        : 'Bon reconnu. Chargement des disponibilités...')
+      +'</div>';
     loadAvailability();
   }catch(e){
     bookState.coupon=code;
@@ -1029,7 +1043,7 @@ function renderBookStep1(){
     ? '<div class="book-head"><span class="book-eyebrow">Mes disponibilités</span><h3>Les créneaux encore libres</h3>'
       +'<p class="book-recap">Repérez la date qui vous convient, puis choisissez votre formule pour réserver.</p></div>'
     : bookState.giftOnly
-    ? '<div class="book-head"><span class="book-eyebrow">Votre bon cadeau</span><h3>Choisissez votre créneau</h3>'
+    ? '<div class="book-head"><span class="book-eyebrow">'+(bookState.estResa?'Votre seconde séance':'Votre bon cadeau')+'</span><h3>Choisissez votre créneau</h3>'
       +'<p class="book-recap">'+bookTypeLabel(bookState.type)
       +(bookState.giftFormule?' · formule '+bookState.giftFormule:'')
       +' <span>Séance déjà réglée</span></p></div>'
@@ -1090,7 +1104,9 @@ function renderBookStep2(){
     // n'a pas a decouvrir le prix de son cadeau
     +(bookState.giftOnly
       ?'<div class="book-sum"><div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
-       +'<div class="book-sum-note">Votre séance est déjà réglée par le bon cadeau. Rien à payer, ni maintenant, ni le jour J.</div></div>'
+       +'<div class="book-sum-note">'+(bookState.estResa
+           ?'Votre séance est déjà réglée dans votre pack. Rien à payer, ni maintenant, ni le jour J.'
+           :'Votre séance est déjà réglée par le bon cadeau. Rien à payer, ni maintenant, ni le jour J.')+'</div></div>'
       :'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
        +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
                +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')

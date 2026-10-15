@@ -292,6 +292,10 @@ section{padding:100px 0}
   background:rgba(194,160,107,.13);font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
 .duo-annonce b{color:var(--ink)}
 .duo-annonce b:last-child{color:var(--coral-deep)}
+/* La phrase pour la cliente d'un pack, en tete de l'ecran du code. */
+.bon-seconde{margin:0 0 14px;padding:10px 13px;border-radius:11px;background:rgba(194,160,107,.13);
+  font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
+.bon-seconde b{color:var(--ink)}
 .gammes{display:flex;flex-direction:column;gap:11px}
 .gamme{position:relative;display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--cream);border-radius:14px;padding:16px 18px;cursor:pointer;font-family:var(--body);transition:.2s}
 .gamme:hover{border-color:var(--coral);transform:translateY(-2px)}
