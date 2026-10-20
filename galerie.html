@@ -122,6 +122,7 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .recap .rl{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
 .recap .rl:first-child{border-top:0}
 .recap .rl .d{color:var(--ink-soft);font-size:13px;display:block}
+.recap .rl b{white-space:nowrap}
 .recap .total{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);
   margin-top:6px;padding-top:12px;font-weight:800}
 .recap .total b{font-family:'Bricolage Grotesque',sans-serif;font-size:26px}
@@ -136,6 +137,17 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .erreurs ul{margin:0;padding-left:18px}
 .choixpaie{display:grid;gap:8px;margin-top:14px}
 .note{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px}
+.envoi{border:1.5px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;background:#FDFAF5}
+.envoi-tete{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.envoi-tete b{font-family:'Bricolage Grotesque',sans-serif;font-size:16px}
+.retirer{background:none;border:0;color:var(--danger);font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;padding:4px}
+.ev-ligne{display:grid;grid-template-columns:52px 1fr auto;gap:6px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.ev-ligne img{width:52px;height:52px;object-fit:cover;border-radius:8px;grid-row:span 2;background:#EFE5D5}
+.ev-ligne select{width:100%;min-width:0;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14.5px;background:#fff;color:var(--ink)}
+.ev-bas{grid-column:2 / 4;display:flex;gap:8px;align-items:center}
+.ev-bas select{flex:1;padding:9px 6px;font-size:14px}
+.ev-x{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);font-size:18px;cursor:pointer;line-height:1}
+.ev-ajout{margin-top:8px;width:100%}
 .demo{background:#FFF7E8;border:1px dashed var(--gold);border-radius:12px;padding:9px 13px;font-size:13.5px;margin-bottom:14px}
 .pied{text-align:center;font-size:13px;color:var(--ink-soft);margin:26px 0 0}
 .pied a{color:var(--cta)}
@@ -204,6 +216,10 @@ let G = null, GRILLE = null;
 let coeurs = new Set();
 let tirages = {};            // { p004: { "30x45": 2 } }
 let adresse = {};
+/* Les tirages pour d'autres personnes, chacune a son adresse :
+   [{ adresse:{nom,ligne1,ligne2,cp,ville}, lignes:[{ id:"p004", cle:"20x30", n:2 }] }] */
+let envois = [];
+const ENVOIS_MAX = 5, LIGNES_MAX = 20;
 let filtre = "tout";
 let vueIdx = -1;
 let verrou = false;
@@ -245,9 +261,70 @@ function panier(){
     const q = tt.t[taille.cle]; if(!q) return;
     lignes.push({ l: q + " tirage" + (q > 1 ? "s" : "") + " " + taille.nom, d: taille.prix + " € le tirage", m: q * taille.prix });
   });
-  if(tt.envoi) lignes.push({ l: "Envoi postal", d: "offert à partir de " + GRILLE.envoiOffertDes + " € de tirages", m: tt.envoi });
+  if(tt.envoi) lignes.push({ l: envois.some(e => e.lignes.length) ? "Envoi postal chez vous" : "Envoi postal",
+    d: "offert à partir de " + GRILLE.envoiOffertDes + " € de vos tirages", m: tt.envoi });
+  /* Les autres adresses : leurs tirages, et le port de chacune, jamais
+     offert (meme calcul que lignesAutresEnvois, dans mbs-panier.mjs). */
+  envois.forEach((e, i) => {
+    const qui = (e.adresse.nom || "").trim() || "la personne n° " + (i + 1);
+    let nb = 0;
+    GRILLE.tailles.forEach(taille => {
+      const q = e.lignes.filter(x => x.cle === taille.cle).reduce((s, x) => s + x.n, 0);
+      if(!q) return;
+      nb += q;
+      lignes.push({ l: q + " tirage" + (q > 1 ? "s" : "") + " " + taille.nom + " pour " + qui, d: taille.prix + " € le tirage", m: q * taille.prix });
+    });
+    if(nb) lignes.push({ l: "Envoi postal à " + qui, d: "frais de port de cette adresse", m: GRILLE.envoi });
+  });
   return { lignes, total: lignes.reduce((s, x) => s + x.m, 0), papier: tt.nb > 0 };
 }
+/* Le plafond de tiragesMax par taille vaut pour toute la commande, ses
+   tirages et ceux des autres adresses ensemble : le serveur fait le meme
+   compte. */
+function totalTaille(cle){
+  return (totauxTirages().t[cle] || 0)
+    + envois.reduce((s, e) => s + e.lignes.filter(x => x.cle === cle).reduce((a, x) => a + x.n, 0), 0);
+}
+function plafondAtteint(cle, ajout){
+  if(totalTaille(cle) + ajout <= GRILLE.tiragesMax) return false;
+  const t = GRILLE.tailles.find(x => x.cle === cle);
+  alert("Au plus " + GRILLE.tiragesMax + " tirages en " + (t ? t.nom : cle) + " par commande, toutes adresses confondues. Pour davantage, appelez-moi au 06 47 76 54 17.");
+  return true;
+}
+
+/* Son adresse et ses envois restent sur son appareil le temps de payer :
+   si elle quitte la page de paiement, elle ne retape rien. Rien de tout
+   cela ne part ailleurs qu'au moment de valider. */
+const CLE_BROUILLON = "mbs-galerie-" + JETON;
+function garderBrouillon(){
+  if(ESSAI || !JETON) return;
+  try { localStorage.setItem(CLE_BROUILLON, JSON.stringify({ adresse, envois, tirages })); } catch(e){}
+}
+function lireBrouillon(){
+  if(ESSAI || !JETON) return;
+  try {
+    const b = JSON.parse(localStorage.getItem(CLE_BROUILLON) || "null");
+    if(!b) return;
+    const ids = new Set(G.photos.map(p => p.id)), cles = new Set(GRILLE.tailles.map(t => t.cle));
+    adresse = (b.adresse && typeof b.adresse === "object") ? b.adresse : {};
+    /* Ses propres tirages : ceux du serveur s'il en a (selection en attente
+       de paiement), sinon ceux qu'elle avait choisis sur cet appareil. */
+    if(!Object.keys(tirages).length && b.tirages && typeof b.tirages === "object"){
+      Object.entries(b.tirages).forEach(([id, q]) => {
+        if(!ids.has(id) || !q || typeof q !== "object") return;
+        const ok = {};
+        Object.entries(q).forEach(([cle, n]) => { n = parseInt(n, 10) || 0; if(cles.has(cle) && n > 0) ok[cle] = Math.min(n, GRILLE.tiragesMax); });
+        if(Object.keys(ok).length) tirages[id] = ok;
+      });
+    }
+    envois = (Array.isArray(b.envois) ? b.envois : []).slice(0, ENVOIS_MAX).map(e => ({
+      adresse: (e && e.adresse && typeof e.adresse === "object") ? e.adresse : {},
+      lignes: (e && Array.isArray(e.lignes) ? e.lignes : [])
+        .filter(x => x && ids.has(x.id) && cles.has(x.cle) && x.n > 0).slice(0, LIGNES_MAX)
+    }));
+  } catch(e){}
+}
+function oublierBrouillon(){ try { localStorage.removeItem(CLE_BROUILLON); } catch(e){} }
 
 /* ---------- chargement ---------- */
 function message(titre, texte){
@@ -283,6 +360,7 @@ function installer(){
   coeurs = new Set(s ? s.coeurs : G.coeurs);
   tirages = s ? JSON.parse(JSON.stringify(s.tirages || {})) : {};
   verrou = !!(s && !s.enAttente);
+  if(verrou) oublierBrouillon(); else lireBrouillon();
   dessiner();
 }
 
@@ -518,16 +596,12 @@ function changerTirage(id, cle, d){
   if(verrou) return;
   /* Le serveur refuse plus de tiragesMax tirages d'une meme taille, toutes
      photos confondues : on previent ici, avant le recapitulatif. */
-  if(d > 0 && (totauxTirages().t[cle] || 0) >= GRILLE.tiragesMax){
-    const t = GRILLE.tailles.find(x => x.cle === cle);
-    alert("Au plus " + GRILLE.tiragesMax + " tirages en " + (t ? t.nom : cle) + " par commande. Pour davantage, appelez-moi au 06 47 76 54 17.");
-    return;
-  }
+  if(d > 0 && plafondAtteint(cle, 1)) return;
   const q = tirages[id] = tirages[id] || {};
   q[cle] = Math.max(0, Math.min((q[cle] || 0) + d, GRILLE.tiragesMax));
   if(!q[cle]) delete q[cle];
   if(!Object.keys(q).length) delete tirages[id];
-  dessinerBasVue(); majCompte();
+  dessinerBasVue(); majCompte(); garderBrouillon();
 }
 
 /* ---------- valider ---------- */
@@ -537,22 +611,17 @@ function recap(){
   if(verrou) return;
   const p = panier();
   const reste = G.quota ? G.quota - coeurs.size : 0;
-  if(G.quota && !coeurs.size && !p.papier){ alert("Mettez un cœur sur les photos que vous voulez voir retouchées."); return; }
+  if(G.quota && !coeurs.size && !p.papier && !envois.length){ alert("Mettez un cœur sur les photos que vous voulez voir retouchées."); return; }
   if(reste > 0 && !confirm("Il vous reste " + reste + " photo" + (reste > 1 ? "s" : "") + " comprise" + (reste > 1 ? "s" : "")
     + " dans votre formule à choisir.\n\nValider quand même ?")) return;
 
   const n = coeurs.size, inclus = Math.min(n, G.quota);
-  let h = '<div class="carte recap"><h1 style="font-size:24px">Votre sélection</h1>'
+  let h = '<div class="carte recap" id="recap"><h1 style="font-size:24px">Votre sélection</h1>'
     + '<p class="sous" style="margin-bottom:12px">' + (G.quota
       ? n + ' photo' + (n > 1 ? "s" : "") + ' à retoucher, dont ' + inclus + ' comprise' + (inclus > 1 ? "s" : "") + ' dans votre formule.'
       : (n ? n + ' coup' + (n > 1 ? "s" : "") + ' de cœur pour me guider. Je retouche toutes les plus belles photos de la séance.'
-           : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>';
-  if(p.lignes.length){
-    h += p.lignes.map(l => '<div class="rl"><span>' + esc(l.l) + '<span class="d">' + esc(l.d) + '</span></span><b>' + eur(l.m) + '</b></div>').join("");
-    h += '<div class="total"><span>À régler</span><b>' + eur(p.total) + '</b></div>';
-  } else {
-    h += '<div class="rl"><span>Tout est compris dans votre formule</span><b>0 €</b></div>';
-  }
+           : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>'
+    + '<div id="rcLignes"></div>';
   if(p.papier){
     h += '<div class="titre-sec">Où envoyer vos tirages</div>'
       + champ("adNom", "Nom inscrit sur la boîte aux lettres", adresse.nom)
@@ -560,21 +629,138 @@ function recap(){
       + champ("adL2", "Complément d'adresse (facultatif)", adresse.ligne2)
       + '<div class="duo">' + champ("adCp", "Code postal", adresse.cp) + champ("adVille", "Ville", adresse.ville) + '</div>';
   }
-  h += '<div id="erreurs"></div>';
-  if(p.total > 0){
-    h += '<div class="choixpaie"><button class="btn btn-plein large" data-paie="carte">Payer ' + eur(p.total) + ' par carte</button>'
-      + (p.total >= 150 ? '<button class="btn btn-clair large" data-paie="3x">Payer en 3 fois sans frais avec Klarna</button>' : "")
-      + '</div><p class="note">Paiement sécurisé. Je reçois votre sélection dès que le paiement est confirmé.</p>';
-  } else {
-    h += '<div class="choixpaie"><button class="btn btn-plein large" data-paie="">Envoyer ma sélection</button></div>';
-  }
-  h += '<button class="btn btn-clair large" style="margin-top:8px" id="retour">Revenir aux photos</button></div>';
+  h += '<div id="rcEnvois"></div>'
+    + '<button class="btn btn-clair large" id="rcAjout" style="margin-top:6px">Envoyer des tirages à d\'autres personnes</button>'
+    + '<p class="note" id="rcNote" style="margin-top:6px">Vos proches reçoivent leurs tirages chez eux. Frais de port : '
+    + GRILLE.envoi + ' € par adresse.</p>'
+    + '<div id="erreurs"></div><div id="rcPaie"></div>'
+    + '<button class="btn btn-clair large" style="margin-top:8px" id="retour">Revenir aux photos</button></div>';
   zone.innerHTML = h;
   document.getElementById("barre").hidden = true;
   window.scrollTo(0, 0);
-  document.getElementById("retour").onclick = () => dessiner();
-  zone.querySelectorAll("[data-paie]").forEach(b => b.onclick = () => envoyer(b.dataset.paie, b));
+  dessinerEnvois();
+  majRecap();
+  brancherRecap(document.getElementById("recap"));
 }
+
+/* Les lignes de prix et les boutons de paiement : redessines a chaque
+   changement, sans toucher aux champs (la saisie n'est pas interrompue). */
+function majRecap(){
+  const p = panier();
+  const lig = document.getElementById("rcLignes"); if(!lig) return;
+  lig.innerHTML = p.lignes.length
+    ? p.lignes.map(l => '<div class="rl"><span>' + esc(l.l) + '<span class="d">' + esc(l.d) + '</span></span><b>' + eur(l.m) + '</b></div>').join("")
+      + '<div class="total"><span>À régler</span><b>' + eur(p.total) + '</b></div>'
+    : '<div class="rl"><span>Tout est compris dans votre formule</span><b>0 €</b></div>';
+  document.getElementById("rcPaie").innerHTML = p.total > 0
+    ? '<div class="choixpaie"><button class="btn btn-plein large" data-paie="carte">Payer ' + eur(p.total) + ' par carte</button>'
+      + (p.total >= 150 ? '<button class="btn btn-clair large" data-paie="3x">Payer en 3 fois sans frais avec Klarna</button>' : "")
+      + '</div><p class="note">Paiement sécurisé. Je reçois votre sélection dès que le paiement est confirmé.</p>'
+    : '<div class="choixpaie"><button class="btn btn-plein large" data-paie="">Envoyer ma sélection</button></div>';
+  const aj = document.getElementById("rcAjout");
+  if(aj){
+    aj.hidden = envois.length >= ENVOIS_MAX;
+    aj.textContent = envois.length ? "Ajouter une autre personne" : "Envoyer des tirages à d'autres personnes";
+  }
+}
+
+/* Une ligne par photo : d'abord ses coups de coeur, puis les autres. */
+function optionsPhotos(choisie){
+  const opt = p => '<option value="' + p.id + '"' + (p.id === choisie ? " selected" : "") + '>' + esc(p.nom) + '</option>';
+  const aimees = G.photos.filter(p => coeurs.has(p.id)), autres = G.photos.filter(p => !coeurs.has(p.id));
+  return (aimees.length ? '<optgroup label="Vos cœurs">' + aimees.map(opt).join("") + '</optgroup>' : "")
+    + '<optgroup label="' + (aimees.length ? "Les autres photos" : "Toutes les photos") + '">' + autres.map(opt).join("") + '</optgroup>';
+}
+function dessinerEnvois(){
+  const box = document.getElementById("rcEnvois"); if(!box) return;
+  box.innerHTML = envois.map((e, i) => {
+    const a = e.adresse;
+    const ch = (k, label, val) => '<div class="champ"><label for="ev' + i + k + '">' + esc(label) + '</label>'
+      + '<input id="ev' + i + k + '" data-e="' + i + '" data-k="' + k + '" value="' + esc(val || "") + '"></div>';
+    return '<div class="envoi" id="envoi' + i + '">'
+      + '<div class="envoi-tete"><b>Personne n° ' + (i + 1) + '</b><button class="retirer" data-retirer="' + i + '">Retirer</button></div>'
+      + ch("nom", "Nom et prénom", a.nom) + ch("ligne1", "Adresse", a.ligne1)
+      + ch("ligne2", "Complément d'adresse (facultatif)", a.ligne2)
+      + '<div class="duo">' + ch("cp", "Code postal", a.cp) + ch("ville", "Ville", a.ville) + '</div>'
+      + '<div class="titre-sec" style="margin:14px 0 4px">Ses tirages</div>'
+      + e.lignes.map((l, k) => '<div class="ev-ligne">'
+          + '<img src="' + esc(vignette(l.id)) + '" alt="" data-im="' + i + '.' + k + '">'
+          + '<select data-ph="' + i + '.' + k + '" aria-label="Photo">' + optionsPhotos(l.id) + '</select>'
+          + '<button class="ev-x" data-suppr="' + i + '.' + k + '" aria-label="Retirer ce tirage">×</button>'
+          + '<div class="ev-bas"><select data-ta="' + i + '.' + k + '" aria-label="Taille">'
+          + GRILLE.tailles.map(t => '<option value="' + t.cle + '"' + (t.cle === l.cle ? " selected" : "") + '>' + esc(t.nom.replace(/\s*cm$/, "")) + ' · ' + t.prix + ' €</option>').join("")
+          + '</select><div class="pas"><button data-moins="' + i + '.' + k + '"' + (l.n <= 1 ? " disabled" : "") + ' aria-label="Un de moins">−</button>'
+          + '<span class="q">' + l.n + '</span><button data-plus="' + i + '.' + k + '" aria-label="Un de plus">+</button></div></div>'
+          + '</div>').join("")
+      + (e.lignes.length < LIGNES_MAX ? '<button class="btn btn-clair ev-ajout" data-ajlig="' + i + '">+ Ajouter un tirage</button>' : "")
+      + '</div>';
+  }).join("");
+}
+
+function nouvelleLigne(){
+  const cle = GRILLE.tailles[0].cle;
+  if(plafondAtteint(cle, 1)) return null;
+  const premiere = G.photos.find(p => coeurs.has(p.id)) || G.photos[0];
+  return { id: premiere.id, cle, n: 1 };
+}
+
+function brancherRecap(carte){
+  const ligneDe = v => { const [i, k] = String(v).split(".").map(Number); return envois[i] && envois[i].lignes[k] ? { e: envois[i], l: envois[i].lignes[k], i, k } : null; };
+  carte.addEventListener("input", ev => {
+    const t = ev.target;
+    if(t.dataset.k && envois[t.dataset.e]){
+      envois[t.dataset.e].adresse[t.dataset.k] = t.value;
+      if(t.dataset.k === "nom") majRecap();   // le nom figure dans les lignes de prix
+      garderBrouillon();
+    } else if(/^ad/.test(t.id)){ lireAdresse(); garderBrouillon(); }
+  });
+  carte.addEventListener("change", ev => {
+    const t = ev.target;
+    if(t.dataset.ph){ const x = ligneDe(t.dataset.ph); if(!x) return;
+      x.l.id = t.value;
+      const im = carte.querySelector('[data-im="' + t.dataset.ph + '"]'); if(im) im.src = vignette(x.l.id);
+    }
+    if(t.dataset.ta){ const x = ligneDe(t.dataset.ta); if(!x) return;
+      if(t.value !== x.l.cle && plafondAtteint(t.value, x.l.n)){ t.value = x.l.cle; return; }
+      x.l.cle = t.value; majRecap();
+    }
+    garderBrouillon();
+  });
+  carte.addEventListener("click", ev => {
+    const b = ev.target.closest("button"); if(!b || b.disabled) return;
+    const d = b.dataset;
+    if(d.plus || d.moins){
+      const x = ligneDe(d.plus || d.moins); if(!x) return;
+      if(d.plus && plafondAtteint(x.l.cle, 1)) return;
+      x.l.n = Math.max(1, x.l.n + (d.plus ? 1 : -1));
+      dessinerEnvois();
+    } else if(d.suppr){
+      const x = ligneDe(d.suppr); if(!x) return;
+      x.e.lignes.splice(x.k, 1);
+      dessinerEnvois();
+    } else if(d.ajlig){
+      const e = envois[d.ajlig]; if(!e) return;
+      const l = nouvelleLigne(); if(!l) return;
+      e.lignes.push(l); dessinerEnvois();
+    } else if(d.retirer){
+      const e = envois[d.retirer]; if(!e) return;
+      const plein = e.adresse.nom || e.adresse.ligne1 || e.lignes.length > 1;
+      if(plein && !confirm("Retirer l'envoi pour " + (e.adresse.nom || "cette personne") + " ?")) return;
+      envois.splice(Number(d.retirer), 1); dessinerEnvois();
+    } else if(b.id === "rcAjout"){
+      if(envois.length >= ENVOIS_MAX) return;
+      const l = nouvelleLigne(); if(!l) return;
+      envois.push({ adresse: {}, lignes: [l] });
+      dessinerEnvois();
+      const bloc = document.getElementById("envoi" + (envois.length - 1));
+      if(bloc){ bloc.scrollIntoView({ behavior: "smooth", block: "start" }); const c = bloc.querySelector("input"); if(c) setTimeout(() => c.focus({ preventScroll: true }), 350); }
+    } else if(b.id === "retour"){ dessiner(); return; }
+    else if("paie" in d){ envoyer(d.paie, b); return; }
+    else return;
+    majRecap(); garderBrouillon();
+  });
+}
+
 function champ(id, label, val){
   return '<div class="champ"><label for="' + id + '">' + esc(label) + '</label><input id="' + id + '" value="' + esc(val || "") + '"></div>';
 }
@@ -583,7 +769,16 @@ function lireAdresse(){
   if(document.getElementById("adNom")) adresse = { nom: v("adNom"), ligne1: v("adL1"), ligne2: v("adL2"), cp: v("adCp"), ville: v("adVille") };
 }
 function erreurs(liste){
-  document.getElementById("erreurs").innerHTML = '<div class="erreurs"><ul>' + liste.map(m => "<li>" + esc(m) + "</li>").join("") + '</ul></div>';
+  const el = document.getElementById("erreurs");
+  el.innerHTML = '<div class="erreurs"><ul>' + liste.map(m => "<li>" + esc(m) + "</li>").join("") + '</ul></div>';
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+/* Les lignes d'une personne, comme le serveur les attend : photo par
+   photo, taille par taille (deux lignes de la meme photo s'additionnent). */
+function versTirages(lignes){
+  const t = {};
+  lignes.forEach(l => { const q = t[l.id] = t[l.id] || {}; q[l.cle] = (q[l.cle] || 0) + l.n; });
+  return t;
 }
 
 async function envoyer(paiement, bouton){
@@ -593,10 +788,12 @@ async function envoyer(paiement, bouton){
   const tous = [...zone.querySelectorAll("[data-paie]")];
   tous.forEach(b => b.disabled = true);
   const texte = bouton.textContent; bouton.textContent = "Un instant…";
+  garderBrouillon();
   let r, j;
   try {
     r = await fetch(API + "?g=" + JETON, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "valider", coeurs: [...coeurs], tirages, adresse, paiement }) });
+      body: JSON.stringify({ action: "valider", coeurs: [...coeurs], tirages, adresse, paiement,
+        envois: envois.map(e => ({ adresse: e.adresse, tirages: versTirages(e.lignes) })) }) });
     j = await r.json();
   } catch(e){ j = { ok: false, messages: ["Connexion impossible. Réessayez dans un instant."] }; }
   if(j && j.ok && j.url){ location.href = j.url; return; }
