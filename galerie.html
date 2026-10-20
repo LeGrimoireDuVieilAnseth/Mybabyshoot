@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/images/marque/logo-compact.svg" type="image/svg+xml">
+<link rel="icon" href="/images/marque/icone-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/images/marque/apple-touch-icon.png">
+<title>Votre galerie | Mybabyshoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Les memes couleurs et les memes polices que payer.html et le site. */
+:root{--cream:#FAF4EA;--ink:#322619;--ink-soft:#80705C;--line:#E6D8C3;--cta:#5E4430;--gold:#C2A06B;
+  --coeur:#C0605A;--ok:#2E7D5B;--danger:#B4472F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Mulish,system-ui,sans-serif;
+  line-height:1.6;padding-bottom:96px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+.marque{text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-.02em;padding:26px 0 22px}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+.sous{color:var(--ink-soft);font-size:15.5px;margin:0 0 20px;max-width:640px}
+.carte{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 22px;
+  box-shadow:0 20px 50px -34px rgba(35,27,25,.5);margin-bottom:16px}
+.etat{text-align:center;padding:40px 10px}
+.etat h2{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;margin:0 0 8px}
+.etat p{color:var(--ink-soft);margin:0}
+
+.btn{font-family:inherit;font-weight:700;font-size:15.5px;padding:14px 22px;border:0;border-radius:999px;
+  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-plein{background:var(--cta);color:var(--cream)} .btn-plein:hover{background:var(--ink)}
+.btn-clair{background:#fff;color:var(--ink);border:1.5px solid var(--line)} .btn-clair:hover{border-color:var(--cta)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn[hidden]{display:none}
+.large{width:100%}
+
+/* Le bandeau du haut : formule, telechargement, retouches. */
+.haut{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:14px}
+.haut .carte{margin-bottom:0}
+@media(min-width:760px){.haut{grid-template-columns:1.3fr 1fr;gap:14px}}
+/* Sur telephone, les photos doivent arriver vite : cartes plus serrees. */
+@media(max-width:759px){
+  .marque{padding:18px 0 14px}
+  .sous{margin-bottom:14px;font-size:15px}
+  .haut .carte{padding:15px 16px;border-radius:16px}
+  .dl p{margin-top:6px}
+}
+.formule b{font-family:'Bricolage Grotesque',sans-serif;font-size:17px}
+.formule p{margin:4px 0 0;color:var(--ink-soft);font-size:14.5px}
+.jauge{height:8px;border-radius:99px;background:#F1E7D7;overflow:hidden;margin:12px 0 6px}
+.jauge i{display:block;height:100%;background:var(--coeur);width:0;transition:width .25s}
+.compte{font-size:14px;font-weight:700}
+.compte .plus{color:var(--cta);font-weight:800}
+.dl p{margin:8px 0 0;font-size:13px;color:var(--ink-soft)}
+.retouches{background:#F2F8F4;border-color:#CFE6D8}
+.retouches b{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;color:var(--ok)}
+
+/* Le choix de ce qu'on regarde. */
+.filtres{display:flex;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
+.filtres button{font-family:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--line);background:#fff;
+  color:var(--ink);border-radius:999px;padding:8px 15px;cursor:pointer}
+.filtres button.on{background:var(--cta);border-color:var(--cta);color:var(--cream)}
+
+/* La grille. */
+.grille{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media(min-width:640px){.grille{grid-template-columns:repeat(4,1fr);gap:8px}}
+@media(min-width:1000px){.grille{grid-template-columns:repeat(5,1fr);gap:10px}}
+.case{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#EFE5D5;cursor:zoom-in}
+.case img{width:100%;height:100%;object-fit:cover;display:block}
+.case .num{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:700;color:#fff;
+  background:rgba(35,27,25,.55);padding:2px 7px;border-radius:99px;letter-spacing:.02em}
+.case .tir{position:absolute;left:6px;top:6px;font-size:11px;font-weight:800;color:var(--ink);
+  background:rgba(255,255,255,.92);padding:2px 7px;border-radius:99px}
+.coeur{position:absolute;right:6px;top:6px;width:38px;height:38px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,255,255,.88);display:grid;place-items:center;padding:0;
+  box-shadow:0 2px 8px -2px rgba(0,0,0,.25);transition:transform .12s}
+.coeur:active{transform:scale(.9)}
+.coeur svg{width:20px;height:20px;fill:none;stroke:var(--coeur);stroke-width:2}
+.coeur.on{background:var(--coeur)}
+.coeur.on svg{fill:#fff;stroke:#fff}
+.coeur[disabled]{cursor:default}
+.vide{text-align:center;color:var(--ink-soft);padding:40px 0}
+
+/* La barre du bas, toujours visible. */
+.barre{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+  box-shadow:0 -10px 30px -20px rgba(35,27,25,.5);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.barre .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.barre .txt{flex:1;min-width:0;font-size:14px;line-height:1.35}
+.barre .txt b{font-family:'Bricolage Grotesque',sans-serif;font-size:16px}
+.barre .txt span{display:block;color:var(--ink-soft);font-size:12.5px}
+
+/* La visionneuse. */
+.voile{position:fixed;inset:0;background:rgba(24,18,13,.94);z-index:50;display:flex;flex-direction:column}
+.voile[hidden]{display:none}
+.v-haut{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#fff}
+.v-haut .t{flex:1;font-weight:700;font-size:14px}
+.v-btn{width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;
+  font-size:20px;cursor:pointer;display:grid;place-items:center}
+.v-img{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;padding:0 8px}
+.v-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.v-nav{position:absolute;top:50%;transform:translateY(-50%)}
+.v-nav.g{left:8px} .v-nav.d{right:8px}
+.v-bas{background:var(--cream);border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.v-bas .in{max-width:620px;margin:0 auto}
+.v-coeur{width:100%}
+.v-coeur.on{background:var(--coeur);color:#fff}
+.tirages{margin-top:12px}
+.tirages .titre{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.tl{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.tl:first-of-type{border-top:0}
+.tl .n{flex:1;font-size:14.5px} .tl .n small{color:var(--ink-soft)}
+.pas{display:flex;align-items:center;gap:2px;border:1.5px solid var(--line);border-radius:999px;padding:2px;background:#fff}
+.pas button{width:32px;height:32px;border:0;background:none;font-family:inherit;font-size:18px;font-weight:700;
+  color:var(--cta);cursor:pointer;border-radius:50%;line-height:1}
+.pas button:disabled{opacity:.3;cursor:default}
+.pas .q{min-width:22px;text-align:center;font-weight:800;font-family:'Bricolage Grotesque',sans-serif}
+
+/* Le recapitulatif, avant de valider. */
+.recap .rl{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.recap .rl:first-child{border-top:0}
+.recap .rl .d{color:var(--ink-soft);font-size:13px;display:block}
+.recap .total{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);
+  margin-top:6px;padding-top:12px;font-weight:800}
+.recap .total b{font-family:'Bricolage Grotesque',sans-serif;font-size:26px}
+.champ{margin-bottom:10px}
+.champ label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:4px}
+.champ input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;
+  font-size:15px;background:#FBF6EF;color:var(--ink)}
+.champ input:focus{outline:none;border-color:var(--cta);background:#fff}
+.duo{display:flex;gap:10px} .duo .champ:first-child{flex:0 0 38%}
+.titre-sec{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin:20px 0 10px}
+.erreurs{background:#FDF0EC;border:1px solid #F0C9BD;color:var(--danger);border-radius:12px;padding:10px 14px;font-size:13.5px;margin-top:12px}
+.erreurs ul{margin:0;padding-left:18px}
+.choixpaie{display:grid;gap:8px;margin-top:14px}
+.note{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px}
+.demo{background:#FFF7E8;border:1px dashed var(--gold);border-radius:12px;padding:9px 13px;font-size:13.5px;margin-bottom:14px}
+.pied{text-align:center;font-size:13px;color:var(--ink-soft);margin:26px 0 0}
+.pied a{color:var(--cta)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marque">mybabyshoot</div>
+  <div id="zone"><div class="carte etat"><p>Un instant…</p></div></div>
+  <div class="pied">Une question ? <a href="tel:0647765417">06 47 76 54 17</a></div>
+</div>
+
+<div class="barre" id="barre" hidden>
+  <div class="in">
+    <div class="txt" id="barreTxt"></div>
+    <button class="btn btn-plein" id="barreGo">Valider ma sélection</button>
+  </div>
+</div>
+
+<div class="voile" id="voile" hidden>
+  <div class="v-haut">
+    <div class="t" id="vTitre"></div>
+    <button class="v-btn" id="vFermer" aria-label="Fermer">×</button>
+  </div>
+  <div class="v-img">
+    <button class="v-btn v-nav g" id="vPrec" aria-label="Photo précédente">‹</button>
+    <img id="vImg" alt="">
+    <button class="v-btn v-nav d" id="vSuiv" aria-label="Photo suivante">›</button>
+  </div>
+  <div class="v-bas"><div class="in" id="vBas"></div></div>
+</div>
+
+<script>
+/* LA GALERIE DE LA CLIENTE.
+
+   Elle regarde ses photos en apercus legers, telecharge tout par le lien de
+   transfert de Matt, met des coeurs sur celles qu'elle veut voir retouchees,
+   commande des tirages, et valide.
+
+   AUCUN PRIX NE VIENT D'ICI. La page en affiche pour que la cliente suive son
+   total, mais elle n'envoie que des identifiants de photos et des quantites :
+   le serveur refait tout le calcul (mbs-galerie-cliente, puis le panier du
+   comptoir dans mbs-panier.mjs).
+
+   ?demo=1 montre une galerie de demonstration avec des photos deja publiques
+   du site, sans rien enregistrer : c'est l'exemple que l'on peut montrer
+   avant une seance. */
+const API = "https://matt-crm.netlify.app/.netlify/functions/mbs-galerie-cliente";
+const params = new URLSearchParams(location.search);
+const JETON = (params.get("g") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+const DEMO = params.get("demo") === "1";
+const RETOUR_OK = params.get("ok") === "1";
+const zone = document.getElementById("zone");
+
+const esc = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const eur = n => String(n).replace(".", ",") + " €";
+const MOT = { grossesse: "grossesse", naissance: "naissance", bebe: "bébé" };
+
+let G = null, GRILLE = null;
+let coeurs = new Set();
+let tirages = {};            // { p004: { "30x45": 2 } }
+let adresse = {};
+let filtre = "tout";
+let vueIdx = -1;
+let verrou = false;
+
+/* ---------- les images ---------- */
+const vignette = id => DEMO ? G.demoT[id] : API + "?g=" + JETON + "&t=" + id;
+const apercu   = id => DEMO ? G.demoV[id] : API + "?g=" + JETON + "&v=" + id;
+
+/* ---------- les prix, copie exacte de mbs-panier.mjs, pour afficher ---------- */
+function prixPhotos(n){
+  n = Math.max(0, Math.min(parseInt(n, 10) || 0, GRILLE.photosMax));
+  if(!n) return 0;
+  if(n >= GRILLE.grosDes) return n * GRILLE.photoDes10;
+  if(n >= GRILLE.uneOfferteDes) return (n - 1) * GRILLE.photo;
+  return n * GRILLE.photo;
+}
+const enPlus = () => G.quota ? Math.max(0, coeurs.size - G.quota) : 0;
+function totauxTirages(){
+  const t = {}; let papier = 0, nb = 0;
+  for(const q of Object.values(tirages)) for(const [cle, n] of Object.entries(q)){
+    if(!n) continue;
+    const taille = GRILLE.tailles.find(x => x.cle === cle); if(!taille) continue;
+    t[cle] = (t[cle] || 0) + n; papier += n * taille.prix; nb += n;
+  }
+  const envoi = nb > 0 && papier < GRILLE.envoiOffertDes ? GRILLE.envoi : 0;
+  return { t, papier, nb, envoi };
+}
+function panier(){
+  const lignes = [];
+  const n = enPlus();
+  if(n > 0){
+    const offerte = n >= GRILLE.uneOfferteDes && n < GRILLE.grosDes;
+    lignes.push({ l: n + " photo" + (n > 1 ? "s" : "") + " retouchée" + (n > 1 ? "s" : "") + " en plus",
+      d: n >= GRILLE.grosDes ? GRILLE.photoDes10 + " € l'unité" : offerte ? GRILLE.photo + " € l'unité, une offerte" : GRILLE.photo + " € l'unité",
+      m: prixPhotos(n) });
+  }
+  const tt = totauxTirages();
+  GRILLE.tailles.forEach(taille => {
+    const q = tt.t[taille.cle]; if(!q) return;
+    lignes.push({ l: q + " tirage" + (q > 1 ? "s" : "") + " " + taille.nom, d: taille.prix + " € le tirage", m: q * taille.prix });
+  });
+  if(tt.envoi) lignes.push({ l: "Envoi postal", d: "offert à partir de " + GRILLE.envoiOffertDes + " € de tirages", m: tt.envoi });
+  return { lignes, total: lignes.reduce((s, x) => s + x.m, 0), papier: tt.nb > 0 };
+}
+
+/* ---------- chargement ---------- */
+function message(titre, texte){
+  zone.innerHTML = '<div class="carte etat"><h2>' + esc(titre) + '</h2><p>' + texte + '</p></div>';
+  document.getElementById("barre").hidden = true;
+}
+
+async function charger(){
+  if(DEMO){ demo(); return; }
+  if(JETON.length !== 16){
+    message("Lien incomplet", "Le lien de votre galerie semble coupé. Ouvrez-le à nouveau depuis le message reçu, ou appelez-moi au 06 47 76 54 17.");
+    return;
+  }
+  let r, j;
+  try { r = await fetch(API + "?g=" + JETON, { cache: "no-store" }); j = await r.json(); }
+  catch(e){ message("Connexion impossible", "Vérifiez votre connexion internet, puis rechargez la page."); return; }
+  if(r.status === 410) return message("Cette galerie n'est plus en ligne",
+    "Les galeries restent en ligne trois mois. Si vous avez besoin de vos photos, appelez-moi au 06 47 76 54 17.");
+  if(r.status === 409 && j.erreur === "preparation") return message("Votre galerie arrive bientôt",
+    "Je termine de la préparer. Revenez un peu plus tard, le lien restera le même.");
+  if(r.status === 429) return message("Trop d'essais", esc(j.message || ""));
+  if(!j || !j.ok) return message("Galerie introuvable",
+    "Vérifiez le lien reçu, ou appelez-moi au 06 47 76 54 17.");
+  G = j.galerie; GRILLE = j.grille;
+  installer();
+  /* Retour de Stripe : le paiement est enregistre par le webhook, qui peut
+     arriver quelques secondes apres la cliente. On relit jusqu'a le voir. */
+  if(RETOUR_OK && G.selection && G.selection.enAttente) attendrePaiement();
+}
+
+function installer(){
+  const s = G.selection;
+  coeurs = new Set(s ? s.coeurs : G.coeurs);
+  tirages = s ? JSON.parse(JSON.stringify(s.tirages || {})) : {};
+  verrou = !!(s && !s.enAttente);
+  dessiner();
+}
+
+let verification = RETOUR_OK;
+async function attendrePaiement(){
+  for(let i = 0; i < 10; i++){
+    await new Promise(r => setTimeout(r, 2500));
+    try {
+      const j = await (await fetch(API + "?g=" + JETON, { cache: "no-store" })).json();
+      if(j.ok && j.galerie.selection && j.galerie.selection.paye){ verification = false; G = j.galerie; installer(); return; }
+    } catch(e){}
+  }
+  /* Toujours rien apres 25 secondes : on n'affiche plus "je verifie" a
+     l'infini. */
+  verification = false;
+  if(vueIdx < 0 && document.getElementById("grille")) dessiner();
+}
+
+/* ---------- l'affichage ---------- */
+function dessiner(){
+  const prenom = G.prenom ? esc(G.prenom) + ", voici" : "Voici";
+  const seance = MOT[G.seance] ? "de votre séance " + MOT[G.seance] : "de votre séance";
+  const s = G.selection;
+  let h = (DEMO ? '<div class="demo"><b>Galerie de démonstration.</b> Voici ce que reçoit chaque cliente après sa séance. Rien de ce que vous faites ici n\'est enregistré.</div>' : "")
+    + '<h1>' + prenom + ' vos photos</h1>'
+    + '<p class="sous">' + G.photos.length + ' photos ' + seance + '. '
+    + (verrou ? "Votre sélection m'a bien été envoyée, merci !"
+              : (G.quota ? "Touchez une photo pour l'agrandir, et mettez un cœur sur celles que vous voulez voir retouchées."
+                         : "Toutes les plus belles photos seront retouchées. Vous pouvez mettre un cœur sur vos préférées pour me guider.")) + '</p>';
+
+  h += '<div class="haut">';
+  /* la formule et la jauge */
+  h += '<div class="carte formule"><b>Formule ' + esc(G.nomFormule) + '</b>'
+    + (G.quota ? '<p>' + G.quota + ' photos retouchées comprises, que vous choisissez.</p>'
+                 + '<div class="jauge"><i id="jauge"></i></div><div class="compte" id="compte"></div>'
+               : '<p>Toutes les plus belles photos retouchées, sans limite.</p><div class="compte" id="compte" style="margin-top:8px"></div>')
+    + '</div>';
+  /* le telechargement */
+  h += '<div class="carte dl">'
+    + (G.transfert
+      ? '<a class="btn btn-plein large" href="' + esc(G.transfert) + '" target="_blank" rel="noopener">Télécharger toutes les photos</a>'
+        + '<p>Toutes les photos de la séance, brutes et sans retouche, en pleine qualité. Le lien a une durée limitée : pensez à les enregistrer.</p>'
+      : '<b>Téléchargement</b><p>Le lien pour tout télécharger arrive très vite.</p>')
+    + '</div>';
+  h += '</div>';
+
+  if(G.retouches){
+    h += '<div class="carte retouches"><b>Vos photos retouchées sont prêtes</b>'
+      + '<p style="margin:6px 0 12px;color:var(--ink-soft);font-size:14.5px">Le lien a une durée limitée : pensez à les enregistrer.</p>'
+      + '<a class="btn btn-plein" href="' + esc(G.retouches) + '" target="_blank" rel="noopener">Télécharger mes photos retouchées</a></div>';
+  }
+  if(s && s.enAttente && !DEMO){
+    h += '<div class="carte" style="border-color:var(--gold)"><b>Votre paiement n\'est pas encore arrivé.</b>'
+      + '<p style="margin:6px 0 0;color:var(--ink-soft);font-size:14.5px">' + (verification
+        ? "Un instant, je vérifie…"
+        : RETOUR_OK
+        ? "Il peut mettre une minute à arriver. Rechargez la page dans un instant. Si votre carte a bien été débitée, tout est en ordre : je reçois votre sélection dès sa confirmation."
+        : "Votre sélection est prête. Il ne reste qu'à la régler, avec le bouton en bas de page.") + '</p></div>';
+  }
+
+  h += '<div class="filtres"><button data-f="tout" class="' + (filtre === "tout" ? "on" : "") + '">Toutes (' + G.photos.length + ')</button>'
+    + '<button data-f="coeurs" class="' + (filtre === "coeurs" ? "on" : "") + '">Mes cœurs (<span id="nbC">' + coeurs.size + '</span>)</button></div>';
+  h += '<div class="grille" id="grille"></div>';
+  zone.innerHTML = h;
+  zone.querySelectorAll(".filtres button").forEach(b => b.onclick = () => { filtre = b.dataset.f; dessiner(); });
+  if(DEMO) zone.querySelectorAll(".dl a").forEach(a => a.onclick = (e) => {
+    e.preventDefault();
+    alert("Dans votre galerie, ce bouton ouvre un lien WeTransfer ou SwissTransfer : toutes les photos de la séance, en pleine qualité.");
+  });
+  dessinerGrille();
+  majCompte();
+}
+
+function photosVisibles(){
+  return filtre === "coeurs" ? G.photos.filter(p => coeurs.has(p.id)) : G.photos;
+}
+
+const SVG_COEUR = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.6.7-1.5 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+
+function dessinerGrille(){
+  const grille = document.getElementById("grille");
+  const liste = photosVisibles();
+  if(!liste.length){ grille.outerHTML = '<div class="vide" id="grille">Pas encore de cœur. Touchez le cœur d\'une photo pour la choisir.</div>'; return; }
+  grille.innerHTML = liste.map(p => {
+    const nbT = Object.values(tirages[p.id] || {}).reduce((s, n) => s + n, 0);
+    return '<div class="case" data-id="' + p.id + '">'
+      + '<img src="' + esc(vignette(p.id)) + '" alt="Photo ' + esc(p.nom) + '" loading="lazy" decoding="async">'
+      + '<span class="num">' + esc(p.nom) + '</span>'
+      + (nbT ? '<span class="tir">' + nbT + ' tirage' + (nbT > 1 ? "s" : "") + '</span>' : "")
+      + '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
+      + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>'
+      + '</div>';
+  }).join("");
+  grille.querySelectorAll(".case").forEach(c => c.onclick = (e) => {
+    if(e.target.closest(".coeur")) return;
+    ouvrir(liste.findIndex(p => p.id === c.dataset.id), liste);
+  });
+  grille.querySelectorAll(".coeur").forEach(b => b.onclick = (e) => { e.stopPropagation(); basculer(b.dataset.c); });
+}
+
+/* ---------- les coeurs ---------- */
+let minuteur = null;
+function basculer(id){
+  if(verrou) return;
+  if(coeurs.has(id)) coeurs.delete(id);
+  else {
+    const plafond = G.quota ? G.quota + GRILLE.photosMax : 9999;
+    if(coeurs.size >= plafond){ alert("Vous pouvez choisir jusqu'à " + plafond + " photos."); return; }
+    coeurs.add(id);
+  }
+  /* Le coeur de la case, sans tout redessiner : la page ne saute pas. */
+  document.querySelectorAll('.coeur[data-c="' + id + '"]').forEach(b => b.classList.toggle("on", coeurs.has(id)));
+  if(filtre === "coeurs") dessinerGrille();
+  majCompte();
+  if(vueIdx >= 0) dessinerBasVue();
+  /* Garde cote serveur, sans envoyer un message a chaque coeur. */
+  if(!DEMO){
+    clearTimeout(minuteur);
+    minuteur = setTimeout(garderCoeurs, 1200);
+  }
+}
+function garderCoeurs(){
+  minuteur = null;
+  fetch(API + "?g=" + JETON, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "coeurs", coeurs: [...coeurs] }) }).catch(() => {});
+}
+/* La page se ferme juste apres un coeur : on l'envoie quand meme. */
+addEventListener("pagehide", () => {
+  if(!minuteur || DEMO) return;
+  clearTimeout(minuteur); minuteur = null;
+  try { navigator.sendBeacon(API + "?g=" + JETON,
+    new Blob([JSON.stringify({ action: "coeurs", coeurs: [...coeurs] })], { type: "text/plain" })); } catch(e){}
+});
+
+function majCompte(){
+  const n = coeurs.size, nbC = document.getElementById("nbC");
+  if(nbC) nbC.textContent = n;
+  const compte = document.getElementById("compte");
+  const p = panier();
+  if(compte){
+    if(G.quota){
+      const plus = enPlus();
+      const regle = verrou && G.selection && G.selection.paye;
+      compte.innerHTML = Math.min(n, G.quota) + " / " + G.quota + " choisies"
+        + (plus ? ' · <span class="plus">' + plus + ' en plus' + (regle ? ", réglée" + (plus > 1 ? "s" : "") : " : " + eur(prixPhotos(plus))) + '</span>' : "");
+      const j = document.getElementById("jauge");
+      if(j) j.style.width = Math.min(100, n / G.quota * 100) + "%";
+    } else {
+      compte.textContent = n ? n + " coup" + (n > 1 ? "s" : "") + " de cœur" : "Aucun coup de cœur pour l'instant.";
+    }
+  }
+  const barre = document.getElementById("barre"), txt = document.getElementById("barreTxt"), go = document.getElementById("barreGo");
+  barre.hidden = false;
+  if(verrou){
+    txt.innerHTML = "<b>Sélection envoyée</b><span>" + n + " photo" + (n > 1 ? "s" : "") + " choisie" + (n > 1 ? "s" : "")
+      + ". Pour la modifier, appelez-moi au 06 47 76 54 17.</span>";
+    go.hidden = true;
+    return;
+  }
+  go.hidden = false;
+  const nbT = totauxTirages().nb;
+  txt.innerHTML = "<b>" + n + (G.quota ? " / " + G.quota : "") + " cœur" + (n > 1 ? "s" : "") + "</b>"
+    + "<span>" + (p.total ? "À régler : " + eur(p.total) + (nbT ? " · " + nbT + " tirage" + (nbT > 1 ? "s" : "") : "")
+                          : (nbT ? nbT + " tirage" + (nbT > 1 ? "s" : "") : "Rien à régler")) + "</span>";
+  go.textContent = "Valider ma sélection";
+}
+
+/* ---------- la visionneuse ---------- */
+const voile = document.getElementById("voile");
+/* La visionneuse parcourt ce qui etait affiche quand on l'a ouverte : dans
+   "Mes coeurs", on passe d'un coeur a l'autre. La liste est figee a
+   l'ouverture, pour qu'un coeur retire ne fasse pas sauter la photo. */
+let vueListe = [];
+function ouvrir(i, liste){
+  if(liste) vueListe = liste;
+  if(i < 0 || !vueListe[i]) return;
+  vueIdx = i;
+  const p = vueListe[i];
+  document.getElementById("vImg").src = apercu(p.id);
+  document.getElementById("vImg").alt = "Photo " + p.nom;
+  document.getElementById("vTitre").textContent = p.nom + "  ·  " + (i + 1) + " / " + vueListe.length;
+  dessinerBasVue();
+  voile.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+function fermer(){ voile.hidden = true; vueIdx = -1; document.body.style.overflow = ""; dessinerGrille(); majCompte(); }
+function bouger(d){ if(vueIdx < 0) return; ouvrir((vueIdx + d + vueListe.length) % vueListe.length); }
+document.getElementById("vFermer").onclick = fermer;
+document.getElementById("vPrec").onclick = () => bouger(-1);
+document.getElementById("vSuiv").onclick = () => bouger(1);
+document.addEventListener("keydown", e => {
+  if(voile.hidden) return;
+  if(e.key === "Escape") fermer();
+  if(e.key === "ArrowLeft") bouger(-1);
+  if(e.key === "ArrowRight") bouger(1);
+});
+/* Le glisse du doigt, pour passer d'une photo a l'autre. */
+let xDepart = null;
+document.querySelector(".v-img").addEventListener("touchstart", e => { xDepart = e.touches[0].clientX; }, { passive: true });
+document.querySelector(".v-img").addEventListener("touchend", e => {
+  if(xDepart === null) return;
+  const dx = e.changedTouches[0].clientX - xDepart; xDepart = null;
+  if(Math.abs(dx) > 50) bouger(dx < 0 ? 1 : -1);
+});
+
+function dessinerBasVue(){
+  const p = vueListe[vueIdx]; if(!p) return;
+  const on = coeurs.has(p.id);
+  const q = tirages[p.id] || {};
+  let h = '<button class="btn btn-clair v-coeur' + (on ? " on" : "") + '" id="vCoeur"' + (verrou ? " disabled" : "") + '>'
+    + (on ? "♥ Choisie pour être retouchée" : "♡ Choisir pour être retouchée") + '</button>';
+  h += '<div class="tirages"><div class="titre">Tirages de cette photo</div>';
+  GRILLE.tailles.forEach(t => {
+    const n = q[t.cle] || 0;
+    h += '<div class="tl"><div class="n">' + esc(t.nom) + ' <small>' + t.prix + ' €</small></div>'
+      + '<div class="pas"><button data-m="' + t.cle + '"' + (verrou || !n ? " disabled" : "") + ' aria-label="Un de moins">−</button>'
+      + '<span class="q">' + n + '</span>'
+      + '<button data-p="' + t.cle + '"' + (verrou ? " disabled" : "") + ' aria-label="Un de plus">+</button></div></div>';
+  });
+  h += '</div>';
+  document.getElementById("vBas").innerHTML = h;
+  document.getElementById("vCoeur").onclick = () => basculer(p.id);
+  document.querySelectorAll("#vBas [data-p]").forEach(b => b.onclick = () => changerTirage(p.id, b.dataset.p, 1));
+  document.querySelectorAll("#vBas [data-m]").forEach(b => b.onclick = () => changerTirage(p.id, b.dataset.m, -1));
+}
+function changerTirage(id, cle, d){
+  if(verrou) return;
+  /* Le serveur refuse plus de tiragesMax tirages d'une meme taille, toutes
+     photos confondues : on previent ici, avant le recapitulatif. */
+  if(d > 0 && (totauxTirages().t[cle] || 0) >= GRILLE.tiragesMax){
+    const t = GRILLE.tailles.find(x => x.cle === cle);
+    alert("Au plus " + GRILLE.tiragesMax + " tirages en " + (t ? t.nom : cle) + " par commande. Pour davantage, appelez-moi au 06 47 76 54 17.");
+    return;
+  }
+  const q = tirages[id] = tirages[id] || {};
+  q[cle] = Math.max(0, Math.min((q[cle] || 0) + d, GRILLE.tiragesMax));
+  if(!q[cle]) delete q[cle];
+  if(!Object.keys(q).length) delete tirages[id];
+  dessinerBasVue(); majCompte();
+}
+
+/* ---------- valider ---------- */
+document.getElementById("barreGo").onclick = recap;
+
+function recap(){
+  if(verrou) return;
+  const p = panier();
+  const reste = G.quota ? G.quota - coeurs.size : 0;
+  if(G.quota && !coeurs.size && !p.papier){ alert("Mettez un cœur sur les photos que vous voulez voir retouchées."); return; }
+  if(reste > 0 && !confirm("Il vous reste " + reste + " photo" + (reste > 1 ? "s" : "") + " comprise" + (reste > 1 ? "s" : "")
+    + " dans votre formule à choisir.\n\nValider quand même ?")) return;
+
+  const n = coeurs.size, inclus = Math.min(n, G.quota);
+  let h = '<div class="carte recap"><h1 style="font-size:24px">Votre sélection</h1>'
+    + '<p class="sous" style="margin-bottom:12px">' + (G.quota
+      ? n + ' photo' + (n > 1 ? "s" : "") + ' à retoucher, dont ' + inclus + ' comprise' + (inclus > 1 ? "s" : "") + ' dans votre formule.'
+      : (n ? n + ' coup' + (n > 1 ? "s" : "") + ' de cœur pour me guider. Je retouche toutes les plus belles photos de la séance.'
+           : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>';
+  if(p.lignes.length){
+    h += p.lignes.map(l => '<div class="rl"><span>' + esc(l.l) + '<span class="d">' + esc(l.d) + '</span></span><b>' + eur(l.m) + '</b></div>').join("");
+    h += '<div class="total"><span>À régler</span><b>' + eur(p.total) + '</b></div>';
+  } else {
+    h += '<div class="rl"><span>Tout est compris dans votre formule</span><b>0 €</b></div>';
+  }
+  if(p.papier){
+    h += '<div class="titre-sec">Où envoyer vos tirages</div>'
+      + champ("adNom", "Nom inscrit sur la boîte aux lettres", adresse.nom)
+      + champ("adL1", "Adresse", adresse.ligne1)
+      + champ("adL2", "Complément d'adresse (facultatif)", adresse.ligne2)
+      + '<div class="duo">' + champ("adCp", "Code postal", adresse.cp) + champ("adVille", "Ville", adresse.ville) + '</div>';
+  }
+  h += '<div id="erreurs"></div>';
+  if(p.total > 0){
+    h += '<div class="choixpaie"><button class="btn btn-plein large" data-paie="carte">Payer ' + eur(p.total) + ' par carte</button>'
+      + (p.total >= 150 ? '<button class="btn btn-clair large" data-paie="3x">Payer en 3 fois sans frais avec Klarna</button>' : "")
+      + '</div><p class="note">Paiement sécurisé. Je reçois votre sélection dès que le paiement est confirmé.</p>';
+  } else {
+    h += '<div class="choixpaie"><button class="btn btn-plein large" data-paie="">Envoyer ma sélection</button></div>';
+  }
+  h += '<button class="btn btn-clair large" style="margin-top:8px" id="retour">Revenir aux photos</button></div>';
+  zone.innerHTML = h;
+  document.getElementById("barre").hidden = true;
+  window.scrollTo(0, 0);
+  document.getElementById("retour").onclick = () => dessiner();
+  zone.querySelectorAll("[data-paie]").forEach(b => b.onclick = () => envoyer(b.dataset.paie, b));
+}
+function champ(id, label, val){
+  return '<div class="champ"><label for="' + id + '">' + esc(label) + '</label><input id="' + id + '" value="' + esc(val || "") + '"></div>';
+}
+function lireAdresse(){
+  const v = id => ((document.getElementById(id) || {}).value || "").trim();
+  if(document.getElementById("adNom")) adresse = { nom: v("adNom"), ligne1: v("adL1"), ligne2: v("adL2"), cp: v("adCp"), ville: v("adVille") };
+}
+function erreurs(liste){
+  document.getElementById("erreurs").innerHTML = '<div class="erreurs"><ul>' + liste.map(m => "<li>" + esc(m) + "</li>").join("") + '</ul></div>';
+}
+
+async function envoyer(paiement, bouton){
+  lireAdresse();
+  if(DEMO){ erreurs(["C'est une galerie de démonstration : rien n'est envoyé ni payé ici."]); return; }
+  const tous = [...zone.querySelectorAll("[data-paie]")];
+  tous.forEach(b => b.disabled = true);
+  const texte = bouton.textContent; bouton.textContent = "Un instant…";
+  let r, j;
+  try {
+    r = await fetch(API + "?g=" + JETON, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "valider", coeurs: [...coeurs], tirages, adresse, paiement }) });
+    j = await r.json();
+  } catch(e){ j = { ok: false, messages: ["Connexion impossible. Réessayez dans un instant."] }; }
+  if(j && j.ok && j.url){ location.href = j.url; return; }
+  if(j && j.ok && j.valide){ G = j.galerie; installer(); window.scrollTo(0, 0); return; }
+  tous.forEach(b => b.disabled = false); bouton.textContent = texte;
+  if(j && j.erreur === "validee"){ erreurs(["Votre sélection a déjà été envoyée. Pour la modifier, appelez-moi au 06 47 76 54 17."]); return; }
+  erreurs((j && j.messages) || [j && j.message || "Une erreur est survenue. Réessayez, ou appelez-moi au 06 47 76 54 17."]);
+}
+
+/* ---------- la demonstration ----------
+   Des photos deja publiques sur le site, allegees exactement comme celles
+   d'une vraie galerie (images/galerie-demo : t- les vignettes, v- les
+   apercus), et une formule Essentielle. */
+function demo(){
+  const photos = Array.from({ length: 15 }, (_, i) => ({ id: "p" + String(i + 1).padStart(3, "0"), nom: "IMG_" + (4520 + i) }));
+  const num = i => String(i + 1).padStart(2, "0");
+  G = { jeton: "", prenom: "Léa", formule: "essentielle", nomFormule: "Essentielle", quota: 5, seance: "naissance",
+        transfert: "#", retouches: "", photos, coeurs: [], selection: null, statut: "envoyee",
+        demoT: Object.fromEntries(photos.map((p, i) => [p.id, "/images/galerie-demo/t-" + num(i) + ".jpg"])),
+        demoV: Object.fromEntries(photos.map((p, i) => [p.id, "/images/galerie-demo/v-" + num(i) + ".jpg"])) };
+  GRILLE = { photo: 15, photoDes10: 10, uneOfferteDes: 5, grosDes: 10, photosMax: 60,
+             tailles: [{ cle: "20x30", nom: "20 × 30 cm", prix: 10 }, { cle: "30x45", nom: "30 × 45 cm", prix: 15 },
+                       { cle: "40x60", nom: "40 × 60 cm", prix: 20 }],
+             tiragesMax: 30, envoi: 5, envoiOffertDes: 50 };
+  installer();
+}
+
+charger();
+</script>
+</body>
+</html>
