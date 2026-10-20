@@ -187,6 +187,11 @@ const API = "https://matt-crm.netlify.app/.netlify/functions/mbs-galerie-cliente
 const params = new URLSearchParams(location.search);
 const JETON = (params.get("g") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
 const DEMO = params.get("demo") === "1";
+/* L'apercu de Matt, ouvert depuis le CRM : la vraie galerie, telle que la
+   cliente la verra, mais rien n'est enregistre (ni coeur, ni commande, ni
+   "galerie ouverte"). Sinon ses essais l'attendraient a son arrivee. */
+const APERCU = !DEMO && params.get("apercu") === "1";
+const ESSAI = DEMO || APERCU;
 const RETOUR_OK = params.get("ok") === "1";
 const zone = document.getElementById("zone");
 
@@ -257,7 +262,7 @@ async function charger(){
     return;
   }
   let r, j;
-  try { r = await fetch(API + "?g=" + JETON, { cache: "no-store" }); j = await r.json(); }
+  try { r = await fetch(API + "?g=" + JETON + (APERCU ? "&apercu=1" : ""), { cache: "no-store" }); j = await r.json(); }
   catch(e){ message("Connexion impossible", "Vérifiez votre connexion internet, puis rechargez la page."); return; }
   if(r.status === 410) return message("Cette galerie n'est plus en ligne",
     "Les galeries restent en ligne trois mois. Si vous avez besoin de vos photos, appelez-moi au 06 47 76 54 17.");
@@ -301,7 +306,9 @@ function dessiner(){
   const prenom = G.prenom ? esc(G.prenom) + ", voici" : "Voici";
   const seance = MOT[G.seance] ? "de votre séance " + MOT[G.seance] : "de votre séance";
   const s = G.selection;
-  let h = (DEMO ? '<div class="demo"><b>Galerie de démonstration.</b> Voici ce que reçoit chaque cliente après sa séance. Rien de ce que vous faites ici n\'est enregistré.</div>' : "")
+  let h = (DEMO ? '<div class="demo"><b>Galerie de démonstration.</b> Voici ce que reçoit chaque cliente après sa séance. Rien de ce que vous faites ici n\'est enregistré.</div>'
+         : APERCU ? '<div class="demo"><b>Aperçu.</b> Voici ce que verra ' + (G.prenom ? esc(G.prenom) : "la cliente")
+           + '. Tu peux tout essayer : les cœurs, les tirages et la commande ne sont pas enregistrés, rien n\'est envoyé ni payé.</div>' : "")
     + '<h1>' + prenom + ' vos photos</h1>'
     + '<p class="sous">' + G.photos.length + ' photos ' + seance + '. '
     + (G.retouches ? "Vos photos retouchées sont prêtes."
@@ -398,7 +405,7 @@ function basculer(id){
   majCompte();
   if(vueIdx >= 0) dessinerBasVue();
   /* Garde cote serveur, sans envoyer un message a chaque coeur. */
-  if(!DEMO){
+  if(!ESSAI){
     clearTimeout(minuteur);
     minuteur = setTimeout(garderCoeurs, 1200);
   }
@@ -410,7 +417,7 @@ function garderCoeurs(){
 }
 /* La page se ferme juste apres un coeur : on l'envoie quand meme. */
 addEventListener("pagehide", () => {
-  if(!minuteur || DEMO) return;
+  if(!minuteur || ESSAI) return;
   clearTimeout(minuteur); minuteur = null;
   try { navigator.sendBeacon(API + "?g=" + JETON,
     new Blob([JSON.stringify({ action: "coeurs", coeurs: [...coeurs] })], { type: "text/plain" })); } catch(e){}
@@ -582,6 +589,7 @@ function erreurs(liste){
 async function envoyer(paiement, bouton){
   lireAdresse();
   if(DEMO){ erreurs(["C'est une galerie de démonstration : rien n'est envoyé ni payé ici."]); return; }
+  if(APERCU){ erreurs(["Aperçu : rien n'est envoyé ni payé. Ici, la cliente passerait au paiement (ou t'enverrait sa sélection, s'il n'y a rien à régler)."]); return; }
   const tous = [...zone.querySelectorAll("[data-paie]")];
   tous.forEach(b => b.disabled = true);
   const texte = bouton.textContent; bouton.textContent = "Un instant…";
