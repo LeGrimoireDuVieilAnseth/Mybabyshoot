@@ -425,7 +425,7 @@ function dessiner(){
            + '. Tu peux tout essayer : les cœurs, les tirages et la commande ne sont pas enregistrés, rien n\'est envoyé ni payé.</div>' : "")
     + couverture()
     + (G.retouches ? '<p class="sous">Vos photos retouchées sont prêtes.</p>'
-       : verrou ? '<p class="sous">Votre sélection m\'a bien été envoyée, merci !</p>' : "");
+       : verrou ? '<p class="sous">Votre sélection m\'a bien été envoyée, merci ! Vos photos retouchées vous seront livrées entre 10 et 15 jours, selon la charge de travail : vous les recevrez par mail.</p>' : "");
 
   /* Les retouches, quand elles sont pretes : c'est pour elles qu'elle
      revient, elles passent devant tout. */
@@ -531,7 +531,7 @@ function aideHtml(){
     + '<div class="aide-plus">'
     + '<p><b>Vos cœurs sont enregistrés au fur et à mesure.</b> Vous pouvez revenir plus tard, depuis votre téléphone ou votre ordinateur. Le filtre « Mes cœurs » les regroupe.</p>'
     + '<p><b>Toutes les photos brutes, en pleine qualité,</b> se téléchargent avec le bouton « Télécharger toutes les photos ». Le lien a une durée limitée : enregistrez-les sans attendre.</p>'
-    + '<p><b>Vos photos retouchées</b> arrivent par mail dès qu\'elles sont prêtes, et apparaissent aussi en haut de cette galerie.</p>'
+    + '<p><b>Vos photos retouchées</b> sont livrées entre 10 et 15 jours après votre sélection, selon la charge de travail. Vous les recevez par mail, et elles apparaissent aussi en haut de cette galerie.</p>'
     + (fin ? '<p>Votre galerie reste en ligne jusqu\'au ' + fin + '. Une question ? Appelez-moi au 06 47 76 54 17.</p>' : "")
     + '</div></details>';
 }
