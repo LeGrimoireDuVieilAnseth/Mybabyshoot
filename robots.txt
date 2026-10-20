@@ -9,5 +9,6 @@ Allow: /
 Disallow: /*?reservation=
 Disallow: /*?paiement=
 Disallow: /bon.html?code=
+Disallow: /galerie.html?g=
 
 Sitemap: https://www.mybabyshoot.fr/sitemap.xml

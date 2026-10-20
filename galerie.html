@@ -304,9 +304,18 @@ function dessiner(){
   let h = (DEMO ? '<div class="demo"><b>Galerie de démonstration.</b> Voici ce que reçoit chaque cliente après sa séance. Rien de ce que vous faites ici n\'est enregistré.</div>' : "")
     + '<h1>' + prenom + ' vos photos</h1>'
     + '<p class="sous">' + G.photos.length + ' photos ' + seance + '. '
-    + (verrou ? "Votre sélection m'a bien été envoyée, merci !"
+    + (G.retouches ? "Vos photos retouchées sont prêtes."
+       : verrou ? "Votre sélection m'a bien été envoyée, merci !"
               : (G.quota ? "Touchez une photo pour l'agrandir, et mettez un cœur sur celles que vous voulez voir retouchées."
                          : "Toutes les plus belles photos seront retouchées. Vous pouvez mettre un cœur sur vos préférées pour me guider.")) + '</p>';
+
+  /* Les retouches, quand elles sont pretes : c'est pour elles qu'elle
+     revient, elles passent devant tout. */
+  if(G.retouches){
+    h += '<div class="carte retouches"><b>Vos photos retouchées sont prêtes</b>'
+      + '<p style="margin:6px 0 12px;color:var(--ink-soft);font-size:14.5px">Le lien a une durée limitée : pensez à les enregistrer.</p>'
+      + '<a class="btn btn-plein" href="' + esc(G.retouches) + '" target="_blank" rel="noopener">Télécharger mes photos retouchées</a></div>';
+  }
 
   h += '<div class="haut">';
   /* la formule et la jauge */
@@ -324,11 +333,6 @@ function dessiner(){
     + '</div>';
   h += '</div>';
 
-  if(G.retouches){
-    h += '<div class="carte retouches"><b>Vos photos retouchées sont prêtes</b>'
-      + '<p style="margin:6px 0 12px;color:var(--ink-soft);font-size:14.5px">Le lien a une durée limitée : pensez à les enregistrer.</p>'
-      + '<a class="btn btn-plein" href="' + esc(G.retouches) + '" target="_blank" rel="noopener">Télécharger mes photos retouchées</a></div>';
-  }
   if(s && s.enAttente && !DEMO){
     h += '<div class="carte" style="border-color:var(--gold)"><b>Votre paiement n\'est pas encore arrivé.</b>'
       + '<p style="margin:6px 0 0;color:var(--ink-soft);font-size:14.5px">' + (verification
