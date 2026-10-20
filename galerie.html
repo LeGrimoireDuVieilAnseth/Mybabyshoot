@@ -10,7 +10,7 @@
 <title>Votre galerie | Mybabyshoot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Mulish:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@1,9..144,400&display=swap" rel="stylesheet">
 <style>
 /* Les memes couleurs et les memes polices que payer.html et le site. */
 :root{--cream:#FAF4EA;--ink:#322619;--ink-soft:#80705C;--line:#E6D8C3;--cta:#5E4430;--gold:#C2A06B;
@@ -65,11 +65,30 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .filtres button.on{background:var(--cta);border-color:var(--cta);color:var(--cream)}
 
 /* La grille. */
-.grille{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-@media(min-width:640px){.grille{grid-template-columns:repeat(4,1fr);gap:8px}}
-@media(min-width:1000px){.grille{grid-template-columns:repeat(5,1fr);gap:10px}}
-.case{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#EFE5D5;cursor:zoom-in}
-.case img{width:100%;height:100%;object-fit:cover;display:block}
+/* Des rangees justifiees, comme les galeries des photographes : chaque
+   photo garde son format (portrait ou paysage, jamais recadree), toutes les
+   photos d'une rangee ont la meme hauteur, et la rangee remplit la largeur,
+   dans l'ordre de la seance. Les rangees sont calculees en JavaScript
+   (rangeesGal) sur la largeur reelle de l'ecran. */
+.grille{display:flex;flex-direction:column}
+.rangee{display:flex}
+.case{position:relative;flex:none;height:100%;border-radius:8px;overflow:hidden;background:#EFE5D5;cursor:zoom-in}
+.case img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .45s}
+.case img.ok{opacity:1}
+
+/* La couverture : une grande photo de la seance et son prenom. */
+.couverture{position:relative;border-radius:22px;overflow:hidden;margin:0 0 16px;aspect-ratio:4/3;
+  background:#3A2C20;box-shadow:0 26px 60px -38px rgba(35,27,25,.75);cursor:zoom-in}
+@media(min-width:760px){.couverture{aspect-ratio:16/9;max-height:64vh;width:100%}}
+.couverture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s}
+.couverture img.ok{opacity:1}
+.couverture::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(20,14,9,0) 42%,rgba(20,14,9,.66) 100%)}
+.titre-c{position:absolute;left:20px;right:20px;bottom:18px;z-index:1;color:#fff}
+@media(min-width:760px){.titre-c{left:34px;bottom:30px}}
+.titre-c .kicker{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.92;margin-bottom:6px}
+.titre-c h1{color:#fff;margin:0;font-size:clamp(28px,6.4vw,50px);text-shadow:0 2px 18px rgba(0,0,0,.28)}
+.ser{font-family:'Fraunces',serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
 .case .num{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:700;color:#fff;
   background:rgba(35,27,25,.55);padding:2px 7px;border-radius:99px;letter-spacing:.02em}
 .case .tir{position:absolute;left:6px;top:6px;font-size:11px;font-weight:800;color:var(--ink);
@@ -82,6 +101,7 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .coeur.on{background:var(--coeur)}
 .coeur.on svg{fill:#fff;stroke:#fff}
 .coeur[disabled]{cursor:default}
+@media(max-width:500px){.coeur{width:32px;height:32px;right:5px;top:5px}.coeur svg{width:17px;height:17px}.case .num{font-size:10px;left:5px;bottom:5px;padding:2px 6px}}
 .vide{text-align:center;color:var(--ink-soft);padding:40px 0}
 
 /* La barre du bas, toujours visible. */
@@ -381,14 +401,12 @@ async function attendrePaiement(){
 
 /* ---------- l'affichage ---------- */
 function dessiner(){
-  const prenom = G.prenom ? esc(G.prenom) + ", voici" : "Voici";
-  const seance = MOT[G.seance] ? "de votre séance " + MOT[G.seance] : "de votre séance";
   const s = G.selection;
   let h = (DEMO ? '<div class="demo"><b>Galerie de démonstration.</b> Voici ce que reçoit chaque cliente après sa séance. Rien de ce que vous faites ici n\'est enregistré.</div>'
          : APERCU ? '<div class="demo"><b>Aperçu.</b> Voici ce que verra ' + (G.prenom ? esc(G.prenom) : "la cliente")
            + '. Tu peux tout essayer : les cœurs, les tirages et la commande ne sont pas enregistrés, rien n\'est envoyé ni payé.</div>' : "")
-    + '<h1>' + prenom + ' vos photos</h1>'
-    + '<p class="sous">' + G.photos.length + ' photos ' + seance + '. '
+    + couverture()
+    + '<p class="sous">'
     + (G.retouches ? "Vos photos retouchées sont prêtes."
        : verrou ? "Votre sélection m'a bien été envoyée, merci !"
               : (G.quota ? "Touchez une photo pour l'agrandir, et mettez un cœur sur celles que vous voulez voir retouchées."
@@ -432,6 +450,8 @@ function dessiner(){
   h += '<div class="grille" id="grille"></div>';
   zone.innerHTML = h;
   zone.querySelectorAll(".filtres button").forEach(b => b.onclick = () => { filtre = b.dataset.f; dessiner(); });
+  const cv = document.getElementById("couverture"), pc = photoDeCouverture();
+  if(cv && pc) cv.onclick = () => ouvrir(G.photos.indexOf(pc), G.photos);
   if(DEMO) zone.querySelectorAll(".dl a").forEach(a => a.onclick = (e) => {
     e.preventDefault();
     alert("Dans votre galerie, ce bouton ouvre un lien WeTransfer ou SwissTransfer : toutes les photos de la séance, en pleine qualité.");
@@ -446,25 +466,108 @@ function photosVisibles(){
 
 const SVG_COEUR = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.6.7-1.5 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
 
+/* Le format d'une photo : donne par le CRM au moment de preparer la
+   galerie (p.r), sinon lu sur la miniature des qu'elle arrive. */
+const ratiosLus = {};
+function ratioDe(p){
+  const r = Number(p.r) || ratiosLus[p.id];
+  return r > 0.2 && r < 5 ? Math.round(r * 1000) / 1000 : 1.5;
+}
+function vignetteVue(img){
+  img.classList.add("ok");
+  const c = img.closest(".case"); if(!c || !img.naturalWidth) return;
+  const p = G.photos.find(x => x.id === c.dataset.id);
+  if(p && !(Number(p.r) > 0) && !ratiosLus[p.id]){
+    ratiosLus[p.id] = img.naturalWidth / img.naturalHeight;
+    clearTimeout(minuteurFormats);
+    minuteurFormats = setTimeout(() => { if(vueIdx < 0 && document.querySelector(".grille")) dessinerGrille(); }, 250);
+  }
+}
+let minuteurFormats = null;
+/* La couverture : la premiere photo en paysage, sinon la premiere. Un
+   toucher l'ouvre en grand, comme les autres. */
+function photoDeCouverture(){
+  return G.photos.find(p => Number(p.r) > 1.2) || G.photos[0] || null;
+}
+function couverture(){
+  const p = photoDeCouverture();
+  const seance = MOT[G.seance] ? "Séance " + MOT[G.seance] : "Votre séance";
+  return '<div class="couverture" id="couverture">'
+    + (p ? '<img src="' + esc(apercu(p.id)) + '" alt="" onload="this.classList.add(\'ok\')">' : "")
+    + '<div class="titre-c"><span class="kicker">' + seance + ' · ' + G.photos.length + ' photos</span>'
+    + '<h1>' + (G.prenom ? '<span class="ser">' + esc(G.prenom) + '</span>, voici vos photos' : "Voici vos photos") + '</h1></div></div>';
+}
+
+/* Les rangees. On ajoute les photos une a une ; chaque ajout fait baisser
+   la hauteur de la rangee (elle doit tenir dans la largeur). On s'arrete au
+   nombre de photos qui donne la hauteur la plus proche de la hauteur visee.
+   Ainsi un portrait isole s'associe a sa voisine au lieu de s'etaler sur
+   tout l'ecran. La derniere rangee, si elle est incomplete, garde la
+   hauteur visee au lieu de s'etirer. */
+function reglagesGal(W){
+  return W < 500 ? { T: 168, ecart: 6 } : W < 1000 ? { T: 215, ecart: 8 } : { T: 255, ecart: 10 };
+}
+function rangeesGal(liste, W){
+  const { T, ecart } = reglagesGal(W);
+  const rows = [];
+  let i = 0;
+  while(i < liste.length){
+    let somme = 0, meilleur = null;
+    for(let j = i; j < liste.length; j++){
+      somme += ratioDe(liste[j]);
+      const n = j - i + 1, h = (W - ecart * (n - 1)) / somme, d = Math.abs(h - T);
+      if(meilleur && d > meilleur.d) break;
+      meilleur = { n, h, d };
+    }
+    rows.push({ items: liste.slice(i, i + meilleur.n), h: meilleur.h });
+    i += meilleur.n;
+  }
+  const der = rows[rows.length - 1];
+  if(der && der.h > T) { der.h = T; der.libre = true; }
+  return { rows, ecart };
+}
+let largeurGrille = 0;
 function dessinerGrille(){
   const grille = document.getElementById("grille");
   const liste = photosVisibles();
   if(!liste.length){ grille.outerHTML = '<div class="vide" id="grille">Pas encore de cœur. Touchez le cœur d\'une photo pour la choisir.</div>'; return; }
-  grille.innerHTML = liste.map(p => {
-    const nbT = Object.values(tirages[p.id] || {}).reduce((s, n) => s + n, 0);
-    return '<div class="case" data-id="' + p.id + '">'
-      + '<img src="' + esc(vignette(p.id)) + '" alt="Photo ' + esc(p.nom) + '" loading="lazy" decoding="async">'
-      + '<span class="num">' + esc(p.nom) + '</span>'
-      + (nbT ? '<span class="tir">' + nbT + ' tirage' + (nbT > 1 ? "s" : "") + '</span>' : "")
-      + '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
-      + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>'
-      + '</div>';
+  const W = largeurGrille = Math.floor(grille.clientWidth || zone.clientWidth || 343);
+  const { rows, ecart } = rangeesGal(liste, W);
+  grille.style.gap = ecart + "px";
+  grille.innerHTML = rows.map(row => {
+    const h = Math.round(row.h);
+    /* Des largeurs entieres, et le reste des arrondis sur la derniere photo :
+       la rangee tombe pile sur le bord. */
+    const larg = row.items.map(p => Math.floor(ratioDe(p) * row.h));
+    if(!row.libre){ const reste = W - ecart * (row.items.length - 1) - larg.reduce((a, b) => a + b, 0); larg[larg.length - 1] += reste; }
+    return '<div class="rangee" style="height:' + h + 'px;gap:' + ecart + 'px">'
+      + row.items.map((p, k) => caseHtml(p, larg[k])).join("") + '</div>';
   }).join("");
   grille.querySelectorAll(".case").forEach(c => c.onclick = (e) => {
     if(e.target.closest(".coeur")) return;
     ouvrir(liste.findIndex(p => p.id === c.dataset.id), liste);
   });
   grille.querySelectorAll(".coeur").forEach(b => b.onclick = (e) => { e.stopPropagation(); basculer(b.dataset.c); });
+}
+/* La largeur change (telephone tourne, fenetre redimensionnee) : on refait
+   les rangees. La hauteur seule (barre d'adresse du telephone) ne compte pas. */
+let minuteurLargeur = null;
+addEventListener("resize", () => {
+  clearTimeout(minuteurLargeur);
+  minuteurLargeur = setTimeout(() => {
+    const g = document.getElementById("grille");
+    if(g && g.classList.contains("grille") && Math.floor(g.clientWidth) !== largeurGrille) dessinerGrille();
+  }, 150);
+});
+function caseHtml(p, largeur){
+    const nbT = Object.values(tirages[p.id] || {}).reduce((s, n) => s + n, 0);
+    return '<div class="case" data-id="' + p.id + '" style="width:' + largeur + 'px">'
+      + '<img src="' + esc(vignette(p.id)) + '" alt="Photo ' + esc(p.nom) + '" loading="lazy" decoding="async" onload="vignetteVue(this)">'
+      + '<span class="num">' + esc(p.nom) + '</span>'
+      + (nbT ? '<span class="tir">' + nbT + ' tirage' + (nbT > 1 ? "s" : "") + '</span>' : "")
+      + '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
+      + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>'
+      + '</div>';
 }
 
 /* ---------- les coeurs ---------- */
@@ -808,7 +911,8 @@ async function envoyer(paiement, bouton){
    d'une vraie galerie (images/galerie-demo : t- les vignettes, v- les
    apercus), et une formule Essentielle. */
 function demo(){
-  const photos = Array.from({ length: 15 }, (_, i) => ({ id: "p" + String(i + 1).padStart(3, "0"), nom: "IMG_" + (4520 + i) }));
+  const formats = [1.499,1.499,1.284,1.499,0.667,1.499,0.667,0.667,0.667,1.667,1.503,1.499,0.667,0.667,0.667];
+  const photos = formats.map((r, i) => ({ id: "p" + String(i + 1).padStart(3, "0"), nom: "IMG_" + (4520 + i), r }));
   const num = i => String(i + 1).padStart(2, "0");
   G = { jeton: "", prenom: "Léa", formule: "essentielle", nomFormule: "Essentielle", quota: 5, seance: "naissance",
         transfert: "#", retouches: "", photos, coeurs: [], selection: null, statut: "envoyee",
