@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/images/marque/logo-compact.svg" type="image/svg+xml">
+<link rel="icon" href="/images/marque/icone-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/images/marque/apple-touch-icon.png">
+<title>Votre réservation | Mybabyshoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Mulish:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@1,9..144,400&display=swap" rel="stylesheet">
+<style>
+/* Les couleurs et les polices du site (comme payer.html et galerie.html). */
+:root{--cream:#FAF4EA;--ink:#322619;--ink-soft:#80705C;--line:#E6D8C3;--cta:#5E4430;--gold:#C2A06B;--coral:#B0824F;
+  --ok:#2E7D5B;--danger:#B4472F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Mulish,system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:620px;margin:0 auto;padding:0 16px 40px}
+.marque{text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em;padding:24px 0 18px}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(26px,6vw,34px);line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+.ser{font-family:'Fraunces',serif;font-style:italic;font-weight:400}
+.sous{color:var(--ink-soft);margin:0 0 18px;font-size:15.5px}
+.carte{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 20px 50px -34px rgba(35,27,25,.5);margin-bottom:14px}
+.etape{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.etape .n{width:28px;height:28px;border-radius:50%;background:var(--cta);color:var(--cream);font-weight:800;font-size:13px;display:grid;place-items:center;flex:none}
+.etape h2{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;margin:0}
+.formule b{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;display:block}
+.formule p{margin:4px 0 0;color:var(--ink-soft);font-size:14.5px}
+.prix{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.pl{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:15px}
+.pl b{white-space:nowrap}
+.pl .barre{color:var(--ink-soft);text-decoration:line-through;font-weight:600;margin-right:6px}
+.pl.fort{font-weight:800;font-size:16.5px}
+.pl.fort b{font-family:'Bricolage Grotesque',sans-serif;font-size:22px}
+.note{font-size:13.5px;color:var(--ink-soft);margin:8px 0 0}
+.etat{text-align:center;padding:36px 14px}
+.etat h2{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;margin:0 0 8px}
+.etat p{color:var(--ink-soft);margin:0}
+.avert{background:#FFF7E8;border:1px dashed var(--gold);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+/* le calendrier */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-nav b{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;text-transform:capitalize}
+.nav{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-size:20px;color:var(--cta);cursor:pointer}
+.nav:disabled{opacity:.3;cursor:default}
+.grille{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow{font-size:11.5px;font-weight:800;color:var(--ink-soft);text-align:center;text-transform:uppercase;padding:2px 0}
+.jour{aspect-ratio:1/1;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:inherit;font-weight:700;font-size:14.5px;color:var(--ink);cursor:pointer}
+.jour.off{background:transparent;border-color:transparent;color:#C9BCA8;cursor:default}
+.jour.vide{border:0;background:transparent}
+.jour.on{background:var(--cta);border-color:var(--cta);color:var(--cream)}
+.creneaux{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.creneau{flex:1 1 90px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-family:inherit;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
+.creneau.on{background:var(--cta);border-color:var(--cta);color:var(--cream)}
+.l{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 4px}
+/* les coordonnees */
+.duo{display:flex;gap:10px} .duo .champ{flex:1}
+.champ{margin-bottom:10px}
+.champ label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:4px}
+.champ input{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:15.5px;background:#FBF6EF;color:var(--ink)}
+.champ input:focus{outline:none;border-color:var(--cta);background:#fff}
+.btn{font-family:inherit;font-weight:800;font-size:16px;padding:15px 22px;border:0;border-radius:999px;cursor:pointer;width:100%;
+  background:var(--cta);color:var(--cream);box-shadow:0 10px 26px -12px rgba(94,68,48,.7)}
+.btn:disabled{opacity:.5;cursor:default}
+.err{background:#FDF0EC;border:1px solid #F0C9BD;color:var(--danger);border-radius:12px;padding:10px 14px;font-size:14px;margin:10px 0 0;display:none}
+.err.show{display:block}
+.pied{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:22px}
+.pied a{color:var(--cta)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marque">mybabyshoot</div>
+  <div id="zone"><div class="carte etat"><p>Un instant…</p></div></div>
+  <div class="pied">Une question ? <a href="tel:0647765417">06 47 76 54 17</a></div>
+</div>
+<script>
+/* LA RESERVATION A PRIX CONVENU.
+
+   Matt cree ce lien dans le CRM ("+" > Creer un lien de reservation >
+   Faire un prix) quand il fait un geste a une cliente. La page lit le code
+   (reserver.html?c=CODE) et affiche SES montants : la seance, la formule,
+   le tarif convenu et l'acompte qu'il a fixes. La cliente choisit son
+   creneau, donne ses coordonnees et paie l'acompte.
+
+   AUCUN PRIX NE PART D'ICI : la page n'envoie que le code, le creneau et
+   ses coordonnees. Le serveur (mbs-checkout) relit le montant et l'acompte
+   dans le code. */
+const API = "https://matt-crm.netlify.app/.netlify/functions";
+const params = new URLSearchParams(location.search);
+const CODE = (params.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+const ANNULE = params.get("annule") === "1";
+const zone = document.getElementById("zone");
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const JOURS = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+const NOM = { essentielle: "Essentielle", confort: "Confort", prestige: "Prestige" };
+const RETOUCHES = { essentielle: "5 photos retouchées, que vous choisissez", confort: "15 photos retouchées, que vous choisissez", prestige: "Toutes les plus belles photos retouchées" };
+const MOT = { grossesse: "grossesse", naissance: "naissance", bebe: "bébé" };
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const eur = n => Number(n).toLocaleString("fr-FR") + " €";
+const pad = n => (n < 10 ? "0" : "") + n;
+const dateLongue = iso => { const d = new Date(iso + "T12:00:00"); return JOURS[d.getDay()] + " " + d.getDate() + " " + MOIS[d.getMonth()]; };
+const heure = t => t.replace(":", "h");
+
+let L = null;                // le lien : seance, formule, montants
+const R = { days: null, date: null, time: null, mois: null };
+
+function message(titre, texte){ zone.innerHTML = '<div class="carte etat"><h2>' + esc(titre) + '</h2><p>' + texte + '</p></div>'; }
+
+async function charger(){
+  if(CODE.length < 6){ message("Lien incomplet", "Le lien semble coupé. Ouvrez-le à nouveau depuis le message reçu, ou appelez-moi au 06 47 76 54 17."); return; }
+  let j;
+  try { j = await (await fetch(API + "/mbs-coupon?surmesure=" + CODE + (ANNULE ? "&annule=1" : ""), { cache: "no-store" })).json(); }
+  catch(e){ message("Connexion impossible", "Vérifiez votre connexion internet, puis rechargez la page."); return; }
+  if(!j || !j.valide){
+    if(j && j.raison === "deja_utilise") return message("Ce lien a déjà servi", "Si vous venez de réserver, vous avez reçu un email de confirmation. Sinon, appelez-moi au 06 47 76 54 17.");
+    if(j && j.raison === "expire") return message("Ce lien a expiré", "Appelez-moi au 06 47 76 54 17, je vous en envoie un nouveau.");
+    if(j && j.raison === "en_cours") return message("Un paiement est en cours", "Si vous venez de quitter la page de paiement, réessayez dans quelques minutes.");
+    return message("Lien introuvable", esc((j && j.message) || "") + " Vérifiez le lien reçu, ou appelez-moi au 06 47 76 54 17.");
+  }
+  L = j;
+  dessiner();
+  chargerCreneaux();
+}
+
+function dessiner(){
+  const duo = L.seance === "duo";
+  const quoi = duo
+    ? "Pack grossesse + naissance"
+    : "Séance " + (MOT[L.seance] || "") + ", formule " + (NOM[L.gamme] || "");
+  const detail = duo
+    ? "Grossesse en formule " + NOM[L.gammes.grossesse] + " : " + RETOUCHES[L.gammes.grossesse].toLowerCase() + ".<br>"
+      + "Naissance en formule " + NOM[L.gammes.naissance] + " : " + RETOUCHES[L.gammes.naissance].toLowerCase() + "."
+    : RETOUCHES[L.gamme] + ".";
+  const reste = L.total - L.acompte;
+  let h = (ANNULE ? '<div class="avert"><b>Le paiement n\'a pas abouti</b> : votre créneau n\'est pas réservé. Vous pouvez recommencer ci-dessous.</div>' : "")
+    + '<h1>' + (L.prenom ? '<span class="ser">' + esc(L.prenom) + '</span>, votre séance est prête' : "Votre séance est prête") + '</h1>'
+    + '<p class="sous">J\'ai préparé votre réservation. Il ne vous reste qu\'à choisir votre créneau, puis à régler l\'acompte.</p>'
+    + '<div class="carte formule"><b>' + esc(quoi) + '</b>'
+    + '<p>' + detail + ' Et toutes les photos de la séance, brutes, le jour même.</p>'
+    + '<div class="prix">'
+    + '<div class="pl fort"><span>Tarif convenu</span><b>' + (L.plein > L.total ? '<span class="barre">' + eur(L.plein) + '</span>' : "") + eur(L.total) + '</b></div>'
+    + '<div class="pl"><span>Acompte à régler en ligne</span><b>' + eur(L.acompte) + '</b></div>'
+    + (reste > 0 ? '<div class="pl"><span>Solde, le jour de la séance</span><b>' + eur(reste) + '</b></div>' : '<div class="pl"><span>Le jour de la séance</span><b>rien à régler</b></div>')
+    + '</div>'
+    + (duo ? '<p class="note">Vous choisissez ici la date de votre séance grossesse. La séance naissance se cale plus tard, après la naissance.</p>' : "")
+    + '</div>'
+    + '<div class="carte"><div class="etape"><span class="n">1</span><h2>Choisissez votre créneau</h2></div><div id="cal"><p class="note">Chargement des disponibilités…</p></div></div>'
+    + '<div class="carte" id="coords" hidden><div class="etape"><span class="n">2</span><h2>Vos coordonnées</h2></div>'
+    + '<div class="duo"><div class="champ"><label for="rPrenom">Prénom</label><input id="rPrenom" autocomplete="given-name" value="' + esc(L.prenom) + '"></div>'
+    + '<div class="champ"><label for="rNom">Nom</label><input id="rNom" autocomplete="family-name"></div></div>'
+    + '<div class="champ"><label for="rEmail">Email</label><input id="rEmail" type="email" autocomplete="email" inputmode="email"></div>'
+    + '<div class="champ"><label for="rTel">Téléphone</label><input id="rTel" type="tel" autocomplete="tel" inputmode="tel"></div>'
+    + '<p class="note" id="rRecap"></p>'
+    + '<div class="err" id="rErr"></div>'
+    + '<button class="btn" id="rPayer" style="margin-top:12px">Payer l\'acompte de ' + eur(L.acompte) + '</button>'
+    + '<p class="note" style="text-align:center">Paiement sécurisé par carte. Vous recevez la confirmation par email.</p></div>';
+  zone.innerHTML = h;
+  document.getElementById("rPayer").onclick = payer;
+}
+
+async function chargerCreneaux(){
+  const cal = document.getElementById("cal");
+  try {
+    const j = await (await fetch(API + "/mbs-availability", { cache: "no-store" })).json();
+    if(!j.ok || !j.days || !j.days.length){ cal.innerHTML = '<p class="note">Aucun créneau en ligne pour le moment. Appelez-moi au 06 47 76 54 17, on trouve une date ensemble.</p>'; return; }
+    R.days = j.days;
+    if(!R.date || !j.days.some(d => d.date === R.date)){ R.date = j.days[0].date; R.time = null; }
+    if(!R.mois) R.mois = R.date.slice(0, 7);
+    dessinerCal();
+  } catch(e){
+    cal.innerHTML = '<p class="note">Impossible de charger les créneaux. Réessayez dans un instant, ou appelez-moi au 06 47 76 54 17.</p>';
+  }
+}
+
+function moisSuivant(ym, d){ let [y, m] = ym.split("-").map(Number); m += d; while(m < 1){ m += 12; y--; } while(m > 12){ m -= 12; y++; } return y + "-" + pad(m); }
+
+function dessinerCal(){
+  const libres = {}; R.days.forEach(d => libres[d.date] = d.slots);
+  const premier = R.days[0].date.slice(0, 7), dernier = R.days[R.days.length - 1].date.slice(0, 7);
+  const [y, m] = R.mois.split("-").map(Number);
+  const debut = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7, nb = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  let cases = ["Lu","Ma","Me","Je","Ve","Sa","Di"].map(d => '<span class="dow">' + d + '</span>').join("");
+  for(let i = 0; i < debut; i++) cases += '<span class="jour vide"></span>';
+  for(let d = 1; d <= nb; d++){
+    const iso = y + "-" + pad(m) + "-" + pad(d), libre = !!libres[iso];
+    cases += '<button type="button" class="jour' + (libre ? "" : " off") + (iso === R.date ? " on" : "") + '"' + (libre ? ' data-d="' + iso + '"' : " disabled") + '>' + d + '</button>';
+  }
+  const creneaux = R.date && libres[R.date]
+    ? '<div class="l">Le ' + dateLongue(R.date) + '</div><div class="creneaux">'
+      + libres[R.date].map(t => '<button type="button" class="creneau' + (t === R.time ? " on" : "") + '" data-t="' + t + '">' + heure(t) + '</button>').join("") + '</div>'
+    : '<p class="note">Choisissez un jour disponible.</p>';
+  document.getElementById("cal").innerHTML =
+    '<div class="cal-nav"><button type="button" class="nav" id="mPrec"' + (R.mois <= premier ? " disabled" : "") + ' aria-label="Mois précédent">‹</button>'
+    + '<b>' + MOIS[m - 1] + ' ' + y + '</b>'
+    + '<button type="button" class="nav" id="mSuiv"' + (R.mois >= dernier ? " disabled" : "") + ' aria-label="Mois suivant">›</button></div>'
+    + '<div class="grille">' + cases + '</div>' + creneaux;
+  document.querySelectorAll("#cal [data-d]").forEach(b => b.onclick = () => { R.date = b.dataset.d; R.time = null; dessinerCal(); majCoords(); });
+  document.querySelectorAll("#cal [data-t]").forEach(b => b.onclick = () => {
+    const premiereFois = !R.time; R.time = b.dataset.t; dessinerCal(); majCoords();
+    if(premiereFois) setTimeout(() => document.getElementById("coords").scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  });
+  const p = document.getElementById("mPrec"), s = document.getElementById("mSuiv");
+  if(p) p.onclick = () => { R.mois = moisSuivant(R.mois, -1); dessinerCal(); };
+  if(s) s.onclick = () => { R.mois = moisSuivant(R.mois, 1); dessinerCal(); };
+}
+
+function majCoords(){
+  const c = document.getElementById("coords");
+  c.hidden = !R.time;
+  if(R.time) document.getElementById("rRecap").innerHTML = "Votre créneau : <b>" + dateLongue(R.date) + " à " + heure(R.time) + "</b>.";
+}
+
+function erreur(t){ const e = document.getElementById("rErr"); e.textContent = t; e.classList.add("show"); }
+
+async function payer(){
+  const v = id => (document.getElementById(id).value || "").trim();
+  const client = { prenom: v("rPrenom"), nom: v("rNom"), email: v("rEmail"), tel: v("rTel") };
+  document.getElementById("rErr").classList.remove("show");
+  if(!R.time){ erreur("Choisissez d'abord un créneau."); return; }
+  if(!client.prenom || !client.email){ erreur("Indiquez au moins votre prénom et votre email."); return; }
+  if(!/^\S+@\S+\.\S+$/.test(client.email)){ erreur("Vérifiez votre adresse email."); return; }
+  const b = document.getElementById("rPayer"); b.disabled = true; b.textContent = "Redirection vers le paiement…";
+  let r, j;
+  try {
+    r = await fetch(API + "/mbs-checkout", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ surMesure: true, coupon: CODE, type: L.seance, paiement: "acompte", origine: "Direct",
+                             date: R.date, time: R.time, client }) });
+    j = await r.json();
+  } catch(e){ j = null; }
+  if(j && j.ok && j.url){ location.href = j.url; return; }
+  b.disabled = false; b.textContent = "Payer l'acompte de " + eur(L.acompte);
+  if(j && j.error === "slot_taken"){ erreur("Ce créneau vient d'être pris. Choisissez-en un autre."); R.time = null; majCoords(); chargerCreneaux(); return; }
+  if(j && j.error === "coupon"){ erreur((j.message || "Ce lien n'est plus valable.") + " Appelez-moi au 06 47 76 54 17."); return; }
+  erreur("Une erreur est survenue. Réessayez, ou appelez-moi au 06 47 76 54 17.");
+}
+
+charger();
+</script>
+</body>
+</html>
