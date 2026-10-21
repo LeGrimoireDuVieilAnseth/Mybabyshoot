@@ -33,6 +33,14 @@ img{display:block;max-width:100%}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--body);font-weight:700;font-size:15px;padding:16px 30px;border-radius:999px;border:0;cursor:pointer;text-decoration:none;transition:transform .22s cubic-bezier(.2,.8,.3,1),box-shadow .22s,background .22s}
 .btn-coral{background:var(--cta);color:var(--cream);box-shadow:0 10px 26px -12px rgba(94,68,48,.7)}
+/* Le lien de reservation prepare par Matt depuis le CRM : un bandeau, un bouton. */
+.prepare{display:flex;gap:16px 20px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  background:#fff;border:2px solid var(--coral);border-radius:20px;padding:18px 20px;margin:0 0 18px;box-shadow:var(--shadow-soft)}
+.prepare-t{flex:1 1 300px}
+.prepare-t b{font-family:var(--display);font-size:19px;display:block;margin-bottom:4px}
+.prepare-t p{margin:0;color:var(--ink-soft);font-size:15px;line-height:1.55}
+.prepare .btn{flex:none}
+@media(max-width:600px){.prepare .btn{width:100%}}
 .btn-coral:hover{transform:translateY(-3px);background:var(--ink);box-shadow:0 16px 32px -14px rgba(50,38,25,.8)}
 .btn-ink{background:var(--ink);color:var(--cream)}
 .btn-ink:hover{transform:translateY(-3px);background:var(--wine)}

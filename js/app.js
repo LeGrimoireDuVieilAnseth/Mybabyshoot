@@ -718,6 +718,7 @@ function render(){
   if(eN)eN.classList.remove('show'); if(eS)eS.classList.remove('show');
   const mp=document.getElementById('mctaPrice');
   if(mp)mp.innerHTML=euro(t)+'<span>séance sur mesure</span>';
+  majPrepare();
 }
 /* ---------------------------------------------------------------
    Seance en exterieur : proposee pour la grossesse (le studio reste
@@ -1335,6 +1336,57 @@ function animateCount(el){
 }
 const cio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){animateCount(en.target);cio.unobserve(en.target);}}),{threshold:.5});
 document.querySelectorAll('.num[data-count]').forEach(el=>cio.observe(el));
+
+/* ---------- Le lien de reservation prepare par Matt ----------
+   Depuis le CRM ("+" > Creer un lien de reservation), Matt envoie a une
+   cliente qui a du mal avec le site un lien ?seance=naissance&formule=confort
+   (ou ?seance=duo&grossesse=confort&naissance=prestige). Elle arrive sur la
+   formule deja choisie, avec un bandeau et un seul bouton : choisir sa
+   date. Elle peut encore tout changer, et le prix reste celui du serveur.
+   L'adresse ne porte aucune donnee personnelle. */
+(function lienPrepare(){
+  const seance=paramRetour('seance');
+  if(!seance) return;
+  const ok=id=>GAMMES.simple.some(g=>g.id===id);
+  if(seance==='duo'){
+    const g=paramRetour('grossesse'), n=paramRetour('naissance');
+    if(!ok(g)||!ok(n)) return;
+    state.section='duo'; state.duo.grossesse=g; state.duo.naissance=n;
+  } else if(MOT_SEANCE[seance] && ok(paramRetour('formule'))){
+    state.section='simple'; state.type=seance; state.gamme=paramRetour('formule');
+  } else return;
+  /* Juste sous le titre de la section : c'est la premiere chose qu'elle voit. */
+  const head=document.querySelector('#tarifs .head');
+  if(!head) return;
+  const bloc=document.createElement('div');
+  bloc.className='prepare'; bloc.id='prepare';
+  head.parentNode.insertBefore(bloc, head.nextSibling);
+  /* On l'amene sous ses yeux une fois la page posee. Les photos qui finissent
+     de charger plus haut peuvent encore pousser la page : on verifie une
+     seconde plus tard, et on recale si besoin. */
+  const viser=(doux)=>{ const el=document.getElementById('prepare'); if(el) el.scrollIntoView({behavior:doux?'smooth':'auto',block:'center'}); };
+  const aller=()=>{
+    setTimeout(()=>viser(true),300);
+    setTimeout(()=>{ const el=document.getElementById('prepare'); if(!el) return;
+      const r=el.getBoundingClientRect(); if(r.top<0||r.bottom>innerHeight) viser(false); },1600);
+  };
+  if(document.readyState==='complete') aller(); else addEventListener('load',aller);
+})();
+function majPrepare(){
+  const el=document.getElementById('prepare'); if(!el) return;
+  const t=total(), acompte=t>=PRIX.seuilAcompte?PRIX.acompteHaut:PRIX.acompteBas;
+  let quoi, date='votre date et votre heure';
+  if(state.section==='duo'){
+    const g=gammeSimple(state.duo.grossesse), n=gammeSimple(state.duo.naissance);
+    quoi='votre pack grossesse + naissance : la grossesse en formule '+g.nom+', la naissance en formule '+n.nom;
+    date='la date et l\'heure de votre séance grossesse (la séance naissance se cale plus tard, après la naissance)';
+  } else quoi='votre séance '+motSeance()+', formule '+currentGamme().nom;
+  el.innerHTML='<div class="prepare-t"><b>Votre réservation est prête</b>'
+    +'<p>J\'ai préparé '+quoi+' ('+euro(t)+'). Il ne vous reste qu\'à choisir '+date
+    +', puis à régler l\'acompte de '+euro(acompte)+' pour bloquer votre créneau. Le solde se règle le jour de la séance.</p></div>'
+    +'<button type="button" class="btn btn-coral" id="prepareGo">Choisir ma date</button>';
+  document.getElementById('prepareGo').onclick=()=>openBooking(false);
+}
 
 render();
 chargerDispoNote();
