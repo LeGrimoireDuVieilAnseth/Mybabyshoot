@@ -906,6 +906,15 @@ function openBooking(viewOnly){
   loadAvailability();
 }
 function closeBooking(){bookModal.classList.remove('show');document.body.style.overflow='';}
+/* Fermer une fenetre en touchant son fond, seulement si le geste a
+   COMMENCE sur le fond : une selection de texte commencee dans un champ et
+   relachee en dehors comptait comme un clic sur le fond, et la fenetre se
+   fermait avec tout ce qui etait rempli (vu dans le CRM, 23/10/2026). */
+function fermerAuFond(fond,fermer){
+  let depart=null;
+  fond.addEventListener('pointerdown',e=>{ depart=e.target; });
+  fond.addEventListener('click',e=>{ if(e.target===fond && depart===fond) fermer(); depart=null; });
+}
 
 /* ---------- Reservation avec un bon cadeau deja paye ----------
    La formule est fixee par le bon : la personne ne choisit que sa date. */
@@ -1286,7 +1295,7 @@ document.querySelectorAll('.js-availability').forEach(b=>b.addEventListener('cli
   gotoTarifs(()=>openBooking(true));
 }));
 document.getElementById('bookClose').addEventListener('click',closeBooking);
-bookModal.addEventListener('click',e=>{if(e.target.id==='bookModal')closeBooking();});
+fermerAuFond(bookModal,closeBooking);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBooking();});
 
 function showMsg(t,ok){const m=document.getElementById('formMsg');m.textContent=t;m.className='fmsg '+(ok?'ok':'err');}
@@ -1647,7 +1656,7 @@ setTimeout(()=>{
 
   openBtn.addEventListener('click',open);
   if(closeBtn) closeBtn.addEventListener('click',close);
-  modal.addEventListener('click',e=>{ if(e.target===modal) close(); });
+  fermerAuFond(modal,close);
 
   /* Les quinze habillages, en pastilles. Chacune montre le fond reel et la
      couleur d'accent : on choisit avec les yeux, pas avec un nom. */
