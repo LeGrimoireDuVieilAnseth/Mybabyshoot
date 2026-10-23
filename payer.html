@@ -190,7 +190,6 @@ function prixPhotos(n){
   n = Math.max(0, Math.min(parseInt(n, 10) || 0, GRILLE.photosMax));
   if(!n) return 0;
   if(n >= GRILLE.grosDes) return n * GRILLE.photoDes10;
-  if(n >= GRILLE.uneOfferteDes) return (n - 1) * GRILLE.photo;
   return n * GRILLE.photo;
 }
 
@@ -202,11 +201,9 @@ function calculer(){
 
   if(EXTRAS.photos && choix.photos > 0){
     const n = choix.photos;
-    const offerte = n >= GRILLE.uneOfferteDes && n < GRILLE.grosDes;
     lignes.push({
       libelle: n + " photo" + (n > 1 ? "s" : "") + " retouchée" + (n > 1 ? "s" : "") + " en plus",
-      detail: n >= GRILLE.grosDes ? GRILLE.photoDes10 + " € l'unité"
-            : offerte ? GRILLE.photo + " € l'unité, une offerte"
+      detail: n >= GRILLE.grosDes ? GRILLE.photoDes10 + " € l'unité, à partir de " + GRILLE.grosDes
             : GRILLE.photo + " € l'unité",
       montant: prixPhotos(n)
     });
@@ -245,13 +242,13 @@ function calculer(){
   return { lignes, total, nbTirages, envoiOffert };
 }
 
-/* "Vous en avez 9 pour 120 € ; a 10, c'est 100." On le dit quand c'est vrai
+/* "Vous en avez 4 pour 60 € ; a 5, c'est 50." On le dit quand c'est vrai
    et a son avantage : sinon le total baisserait en ajoutant une photo sans
    que personne comprenne pourquoi. */
 function conseilPhotos(n){
   if(!n || n >= GRILLE.grosDes) return null;
-  const ici = prixPhotos(n), dix = prixPhotos(GRILLE.grosDes);
-  return dix < ici ? { prix: dix, economie: ici - dix } : null;
+  const ici = prixPhotos(n), palier = prixPhotos(GRILLE.grosDes);
+  return palier < ici ? { prix: palier, economie: ici - palier } : null;
 }
 
 /* ---------- l'affichage ---------- */
@@ -355,12 +352,12 @@ function dessiner(l){
   if(EXTRAS.photos){
     h += `<div class="titre-sec">Photos retouchées en plus</div>
       <div class="art">
-        <span class="tx"><b>Photo retouchée</b><span>${GRILLE.photo} € l'unité · à partir de ${GRILLE.uneOfferteDes}, une offerte · à partir de ${GRILLE.grosDes}, ${GRILLE.photoDes10} € l'unité</span></span>
+        <span class="tx"><b>Photo retouchée</b><span>${GRILLE.photo} € l'unité · à partir de ${GRILLE.grosDes}, ${GRILLE.photoDes10} € l'unité</span></span>
         ${pas("photos", choix.photos, GRILLE.photosMax)}
       </div>
       <div class="raccourcis">
-        <button type="button" data-photos="${GRILLE.uneOfferteDes}">${GRILLE.uneOfferteDes} photos retouchées <b>${eur(prixPhotos(GRILLE.uneOfferteDes))}</b></button>
         <button type="button" data-photos="${GRILLE.grosDes}">${GRILLE.grosDes} photos retouchées <b>${eur(prixPhotos(GRILLE.grosDes))}</b></button>
+        <button type="button" data-photos="${GRILLE.grosDes * 2}">${GRILLE.grosDes * 2} photos retouchées <b>${eur(prixPhotos(GRILLE.grosDes * 2))}</b></button>
       </div>
       <div id="conseilPhotos"></div>`;
   }
