@@ -88,6 +88,21 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 @media(min-width:760px){.titre-c{left:34px;bottom:30px}}
 .titre-c .kicker{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.92;margin-bottom:6px}
 .titre-c h1{color:#fff;margin:0;font-size:clamp(28px,6.4vw,50px);text-shadow:0 2px 18px rgba(0,0,0,.28)}
+/* Deux seances en ligne : deux photos cote a cote. Sur telephone, chacune
+   plus haute que large, pour ne pas etre minuscule ; sur ordinateur, le
+   bloc garde le format large habituel. */
+.couverture.deux{display:grid;grid-template-columns:1fr 1fr;gap:4px;aspect-ratio:7/6;background:#FAF4EA;cursor:default}
+@media(min-width:760px){.couverture.deux{aspect-ratio:16/9;gap:6px}}
+.couverture.deux::after{display:none}
+.couv-s{position:relative;overflow:hidden;background:#3A2C20;cursor:pointer}
+.couv-s::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(20,14,9,.38) 0%,rgba(20,14,9,0) 30%,rgba(20,14,9,0) 48%,rgba(20,14,9,.7) 100%)}
+.couv-s .kicker{position:absolute;left:12px;top:12px;z-index:1;color:#fff;font-size:11px;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.couv-s .kicker small{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:none;opacity:.9;margin-top:2px}
+@media(min-width:760px){.couv-s .kicker{left:22px;top:20px;font-size:12.5px}.couv-s .kicker small{font-size:13px}}
+.couverture.deux .titre-c{pointer-events:none}
+.couverture.deux .titre-c h1{font-size:clamp(26px,6vw,46px)}
 .ser{font-family:'Fraunces',serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
 .case .num{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:700;color:#fff;
   background:rgba(35,27,25,.55);padding:2px 7px;border-radius:99px;letter-spacing:.02em}
@@ -105,7 +120,7 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .vide{text-align:center;color:var(--ink-soft);padding:40px 0}
 /* Galerie a deux seances : un titre par seance, et les photos deja
    choisies la premiere fois, qu'on ne rechoisit pas. */
-.sec-t{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;margin:14px 0 2px;display:flex;align-items:baseline;gap:8px}
+.sec-t{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;margin:14px 0 2px;display:flex;align-items:baseline;gap:8px;scroll-margin-top:14px}
 .sec-t:first-child{margin-top:0}
 .sec-t span{font-family:Mulish,sans-serif;font-weight:600;font-size:13px;color:var(--ink-soft)}
 .deja{position:absolute;right:6px;top:6px;font-size:11px;font-weight:800;color:#fff;background:var(--ok);
@@ -513,8 +528,13 @@ function dessiner(){
   h += '<div class="grille" id="grille"></div>';
   zone.innerHTML = h;
   zone.querySelectorAll(".filtres button").forEach(b => b.onclick = () => { filtre = b.dataset.f; dessiner(); });
-  const cv = document.getElementById("couverture"), pc = photoDeCouverture();
-  if(cv && pc) cv.onclick = () => ouvrir(G.photos.indexOf(pc), G.photos);
+  const cv = document.getElementById("couverture");
+  /* Deux seances : toucher une photo amene a l'espace de sa seance. */
+  if(cv && cv.classList.contains("deux")) cv.querySelectorAll(".couv-s").forEach(el => el.onclick = () => allerASeance(el.dataset.s));
+  else {
+    const pc = G.duo && seancesEnLigne().length ? couvertureDe(seancesEnLigne()[0]) : photoDeCouverture();
+    if(cv && pc) cv.onclick = () => ouvrir(G.photos.indexOf(pc), G.photos);
+  }
   if(DEMO) zone.querySelectorAll(".dl a").forEach(a => a.onclick = (e) => {
     e.preventDefault();
     alert("Dans votre galerie, ce bouton ouvre un lien WeTransfer ou SwissTransfer : toutes les photos de la séance, en pleine qualité.");
@@ -523,6 +543,11 @@ function dessiner(){
   majCompte();
 }
 
+function allerASeance(cle){
+  if(filtre !== "tout"){ filtre = "tout"; dessiner(); }
+  const t = document.getElementById("sec-" + cle);
+  if(t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 function photosVisibles(){
   if(filtre === "coeurs") return G.photos.filter(p => coeurs.has(p.id));
   if(DUO.includes(filtre)) return G.photos.filter(p => p.s === filtre);
@@ -599,14 +624,31 @@ function photoDeCouverture(){
   return (G.couverture && G.photos.find(p => p.id === G.couverture))
     || G.photos.find(p => Number(p.r) > 1.2) || G.photos[0] || null;
 }
+/* La photo de bienvenue d'une seance : celle que Matt a choisie pour elle,
+   sinon la premiere en paysage de la seance. */
+function couvertureDe(cle){
+  const ph = G.photos.filter(p => p.s === cle);
+  const choisie = (G.couvertures && G.couvertures[cle]) || G.couverture;
+  return ph.find(p => p.id === choisie) || ph.find(p => Number(p.r) > 1.2) || ph[0] || null;
+}
+const titreCouverture = () => '<h1>' + (G.prenom ? '<span class="ser">' + esc(G.prenom) + '</span>, voici vos photos' : "Voici vos photos") + '</h1>';
 function couverture(){
-  const p = photoDeCouverture();
+  /* Les deux seances en ligne : une photo chacune, cote a cote. */
+  if(deuxSeances()) return '<div class="couverture deux" id="couverture">'
+    + seancesEnLigne().map(k => {
+        const p = couvertureDe(k), n = G.photos.filter(x => x.s === k).length;
+        return '<div class="couv-s" data-s="' + k + '" role="button" aria-label="Voir les photos de la séance ' + k + '">'
+          + (p ? '<img src="' + esc(apercu(p.id)) + '" alt="" onload="this.classList.add(\'ok\')">' : "")
+          + '<span class="kicker">Séance ' + k + '<small>' + n + ' photos</small></span></div>';
+      }).join("")
+    + '<div class="titre-c">' + titreCouverture() + '</div></div>';
+  const p = G.duo && seancesEnLigne().length ? couvertureDe(seancesEnLigne()[0]) : photoDeCouverture();
   const seance = deuxSeances() ? "Grossesse et naissance" : G.duo && seancesEnLigne().length ? "Séance " + seancesEnLigne()[0]
     : MOT[G.seance] ? "Séance " + MOT[G.seance] : "Votre séance";
   return '<div class="couverture" id="couverture">'
     + (p ? '<img src="' + esc(apercu(p.id)) + '" alt="" onload="this.classList.add(\'ok\')">' : "")
     + '<div class="titre-c"><span class="kicker">' + seance + ' · ' + G.photos.length + ' photos</span>'
-    + '<h1>' + (G.prenom ? '<span class="ser">' + esc(G.prenom) + '</span>, voici vos photos' : "Voici vos photos") + '</h1></div></div>';
+    + titreCouverture() + '</div></div>';
 }
 
 /* Les rangees. On ajoute les photos une a une ; chaque ajout fait baisser
@@ -646,11 +688,11 @@ function dessinerGrille(){
   /* Galerie a deux seances, toutes les photos : un titre et des rangees
      pour chaque seance. Sinon une seule suite de rangees. */
   const sections = filtre === "tout" && deuxSeances()
-    ? seancesEnLigne().map(k => ({ titre: k === "grossesse" ? "Séance grossesse" : "Séance naissance", photos: liste.filter(p => p.s === k) }))
+    ? seancesEnLigne().map(k => ({ cle: k, titre: k === "grossesse" ? "Séance grossesse" : "Séance naissance", photos: liste.filter(p => p.s === k) }))
     : [{ titre: "", photos: liste }];
   const { ecart } = reglagesGal(W);
   grille.style.gap = ecart + "px";
-  grille.innerHTML = sections.map(sec => (sec.titre ? '<div class="sec-t">' + sec.titre + ' <span>' + sec.photos.length + ' photos</span></div>' : "")
+  grille.innerHTML = sections.map(sec => (sec.titre ? '<div class="sec-t" id="sec-' + sec.cle + '">' + sec.titre + ' <span>' + sec.photos.length + ' photos</span></div>' : "")
     + rangeesHtml(sec.photos, W)).join("");
   grille.querySelectorAll(".case").forEach(c => c.onclick = (e) => {
     if(e.target.closest(".coeur")) return;
