@@ -103,6 +103,14 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .coeur[disabled]{cursor:default}
 @media(max-width:500px){.coeur{width:32px;height:32px;right:5px;top:5px}.coeur svg{width:17px;height:17px}.case .num{font-size:10px;left:5px;bottom:5px;padding:2px 6px}}
 .vide{text-align:center;color:var(--ink-soft);padding:40px 0}
+/* Galerie a deux seances : un titre par seance, et les photos deja
+   choisies la premiere fois, qu'on ne rechoisit pas. */
+.sec-t{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;margin:14px 0 2px;display:flex;align-items:baseline;gap:8px}
+.sec-t:first-child{margin-top:0}
+.sec-t span{font-family:Mulish,sans-serif;font-weight:600;font-size:13px;color:var(--ink-soft)}
+.deja{position:absolute;right:6px;top:6px;font-size:11px;font-weight:800;color:#fff;background:var(--ok);
+  padding:3px 8px;border-radius:99px;box-shadow:0 2px 8px -2px rgba(0,0,0,.25)}
+.dl .btn + .btn{margin-top:8px}
 
 /* La barre du bas, toujours visible. */
 .barre{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
@@ -252,6 +260,8 @@ const MOT = { grossesse: "grossesse", naissance: "naissance", bebe: "bébé" };
 
 let G = null, GRILLE = null;
 let coeurs = new Set();
+/* Galerie a deux seances : les photos deja choisies les fois d'avant. */
+let deja = new Set();
 let tirages = {};            // { p004: { "30x45": 2 } }
 let adresse = {};
 /* Les tirages pour d'autres personnes, chacune a son adresse :
@@ -274,7 +284,21 @@ function prixPhotos(n){
   if(n >= GRILLE.uneOfferteDes) return (n - 1) * GRILLE.photo;
   return n * GRILLE.photo;
 }
-const enPlus = () => G.quota ? Math.max(0, coeurs.size - G.quota) : 0;
+/* Ce qui reste compris pour ce choix : tout le total, sauf dans une galerie
+   a deux seances ou un premier choix en a deja pris une part. */
+const reste = () => G.quota ? (G.quotaRestant != null ? G.quotaRestant : G.quota) : 0;
+const enPlus = () => G.quota ? Math.max(0, coeurs.size - reste()) : 0;
+const restera = () => Math.max(0, reste() - coeurs.size);
+/* Les seances d'une galerie a deux seances, et celle qui n'est pas encore
+   arrivee (en general la naissance). */
+const DUO = ["grossesse", "naissance"];
+const seancesEnLigne = () => (G.seances || []).map(x => x.cle);
+const seanceAVenir = () => G.duo ? DUO.find(k => !seancesEnLigne().includes(k)) || "" : "";
+const deuxSeances = () => G.duo && seancesEnLigne().length > 1;
+/* La ou les seances arrivees en dernier (la naissance, ajoutee apres coup). */
+function dernieres(){ const l = G.seances || [], m = Math.max(0, ...l.map(x => x.at || 0)); return l.filter(x => (x.at || 0) === m).map(x => x.cle); }
+const motsDe = l => l.join(" et de ");
+function seancesDe(ids){ const s = new Set(G.photos.filter(p => ids.includes(p.id)).map(p => p.s)); return DUO.filter(k => s.has(k)); }
 function totauxTirages(){
   const t = {}; let papier = 0, nb = 0;
   for(const q of Object.values(tirages)) for(const [cle, n] of Object.entries(q)){
@@ -395,7 +419,8 @@ async function charger(){
 
 function installer(){
   const s = G.selection;
-  coeurs = new Set(s ? s.coeurs : G.coeurs);
+  deja = new Set((G.passees || []).flatMap(t => t.coeurs || []));
+  coeurs = new Set((s ? s.coeurs : G.coeurs).filter(id => !deja.has(id)));
   tirages = s ? JSON.parse(JSON.stringify(s.tirages || {})) : {};
   verrou = !!(s && !s.enAttente);
   if(verrou) oublierBrouillon(); else lireBrouillon();
@@ -425,30 +450,49 @@ function dessiner(){
            + '. Tu peux tout essayer : les cœurs, les tirages et la commande ne sont pas enregistrés, rien n\'est envoyé ni payé.</div>' : "")
     + couverture()
     + (G.retouches ? '<p class="sous">Vos photos retouchées sont prêtes.</p>'
-       : verrou ? '<p class="sous">Votre sélection m\'a bien été envoyée, merci ! Vos photos retouchées vous seront livrées entre 10 et 15 jours, selon la charge de travail : vous les recevrez par mail.</p>' : "");
+       : verrou ? '<p class="sous">Votre sélection m\'a bien été envoyée, merci ! Vos photos retouchées vous seront livrées entre 10 et 15 jours, selon la charge de travail : vous les recevrez par mail.'
+         + (seanceAVenir() ? ' Les photos de votre séance ' + seanceAVenir() + ' arriveront ensuite ici, au même lien'
+           + (G.quota ? ' : vous choisirez alors avec ' + restera() + ' photo' + (restera() > 1 ? "s" : "") + ' retouchée' + (restera() > 1 ? "s" : "") + ' comprise' + (restera() > 1 ? "s" : "") + '.' : '.') : "") + '</p>'
+       : (G.passees || []).length && !s ? '<p class="sous">Les photos de votre séance ' + esc(motsDe(dernieres())) + ' sont arrivées ! '
+         + (G.quota ? 'Choisissez celles à retoucher : il vous en reste ' + reste() + ' comprise' + (reste() > 1 ? "s" : "") + '.' : 'Mettez un cœur sur vos préférées.') + '</p>' : "");
 
   /* Les retouches, quand elles sont pretes : c'est pour elles qu'elle
-     revient, elles passent devant tout. */
-  if(G.retouches){
-    h += '<div class="carte retouches"><b>Vos photos retouchées sont prêtes</b>'
+     revient, elles passent devant tout. Galerie a deux seances : une carte
+     par choix, celle de la grossesse puis celle de la naissance. */
+  const cartesRetouches = [...(G.passees || []).filter(t => t.retouches).map(t => ({ lien: t.retouches, seances: t.seances || [] })),
+    ...(G.retouches ? [{ lien: G.retouches, seances: G.duo && s ? seancesDe(s.coeurs) : [] }] : [])];
+  cartesRetouches.forEach(c => {
+    const de = c.seances.length && G.duo ? " de " + motsDe(c.seances) : "";
+    h += '<div class="carte retouches"><b>Vos photos' + esc(de) + ' retouchées sont prêtes</b>'
       + '<p style="margin:6px 0 12px;color:var(--ink-soft);font-size:14.5px">Le lien a une durée limitée : pensez à les enregistrer.</p>'
-      + '<a class="btn btn-plein" href="' + esc(G.retouches) + '" target="_blank" rel="noopener">Télécharger mes photos retouchées</a></div>';
-  }
+      + '<a class="btn btn-plein" href="' + esc(c.lien) + '" target="_blank" rel="noopener">Télécharger mes photos' + esc(de) + ' retouchées</a></div>';
+  });
 
   h += aideHtml();
 
   h += '<div class="haut">';
   /* la formule et la jauge */
-  h += '<div class="carte formule"><b>Formule ' + esc(G.nomFormule) + '</b>'
-    + (G.quota ? '<p>' + G.quota + ' photos retouchées comprises, que vous choisissez.</p>'
-                 + '<div class="jauge"><i id="jauge"></i></div><div class="compte" id="compte"></div>'
-               : '<p>Toutes les plus belles photos retouchées, sans limite.</p><div class="compte" id="compte" style="margin-top:8px"></div>')
+  /* Les photos offertes par Matt se voient : "dont 5 offertes". */
+  const offertes = G.offertes ? ', dont ' + G.offertes + ' offerte' + (G.offertes > 1 ? "s" : "") : "";
+  const avant = (G.passees || []).length;
+  h += '<div class="carte formule"><b>' + (G.duo ? 'Grossesse et naissance' : 'Formule ' + esc(G.nomFormule)) + '</b>'
+    + (G.quota
+      ? '<p>' + G.quota + ' photos retouchées comprises' + offertes
+        + (G.duo ? ', à répartir entre vos deux séances comme vous le souhaitez.' : ', que vous choisissez.')
+        + (avant ? ' Votre premier choix en a pris ' + (G.quota - reste()) + ' : il vous en reste <b>' + reste() + '</b>.' : '')
+        + (seanceAVenir() && !verrou ? ' Les photos de votre séance ' + seanceAVenir() + ' arriveront ici : choisissez dès maintenant parmi celles de la grossesse, ou attendez de tout voir.' : '')
+        + '</p><div class="jauge"><i id="jauge"></i></div><div class="compte" id="compte"></div>'
+      : '<p>Toutes les plus belles photos retouchées, sans limite.</p><div class="compte" id="compte" style="margin-top:8px"></div>')
     + '</div>';
-  /* le telechargement */
+  /* le telechargement : un lien par seance dans une galerie a deux seances */
+  const liens = G.duo ? (G.seances || []) : [{ cle: "", transfert: G.transfert }];
+  const prets = liens.filter(x => x.transfert);
   h += '<div class="carte dl">'
-    + (G.transfert
-      ? '<a class="btn btn-plein large" href="' + esc(G.transfert) + '" target="_blank" rel="noopener">Télécharger toutes les photos</a>'
-        + '<p>Toutes les photos de la séance, brutes et sans retouche, en pleine qualité. Le lien a une durée limitée : pensez à les enregistrer.</p>'
+    + (prets.length
+      ? prets.map(x => '<a class="btn btn-plein large" href="' + esc(x.transfert) + '" target="_blank" rel="noopener">Télécharger '
+          + (x.cle ? 'les photos de la ' + x.cle : 'toutes les photos') + '</a>').join("")
+        + '<p>' + (G.duo && liens.length > 1 ? 'Toutes les photos de vos séances' : 'Toutes les photos de la séance') + ', brutes et sans retouche, en pleine qualité. Le lien a une durée limitée : pensez à les enregistrer.'
+        + (liens.length > prets.length ? ' Le lien pour la ' + liens.filter(x => !x.transfert).map(x => x.cle).join(" et la ") + ' arrive très vite.' : '') + '</p>'
       : '<b>Téléchargement</b><p>Le lien pour tout télécharger arrive très vite.</p>')
     + '</div>';
   h += '</div>';
@@ -463,6 +507,8 @@ function dessiner(){
   }
 
   h += '<div class="filtres"><button data-f="tout" class="' + (filtre === "tout" ? "on" : "") + '">Toutes (' + G.photos.length + ')</button>'
+    + (deuxSeances() ? seancesEnLigne().map(k => '<button data-f="' + k + '" class="' + (filtre === k ? "on" : "") + '">'
+        + (k === "grossesse" ? "Grossesse" : "Naissance") + ' (' + G.photos.filter(p => p.s === k).length + ')</button>').join("") : "")
     + '<button data-f="coeurs" class="' + (filtre === "coeurs" ? "on" : "") + '">Mes cœurs (<span id="nbC">' + coeurs.size + '</span>)</button></div>';
   h += '<div class="grille" id="grille"></div>';
   zone.innerHTML = h;
@@ -478,7 +524,9 @@ function dessiner(){
 }
 
 function photosVisibles(){
-  return filtre === "coeurs" ? G.photos.filter(p => coeurs.has(p.id)) : G.photos;
+  if(filtre === "coeurs") return G.photos.filter(p => coeurs.has(p.id));
+  if(DUO.includes(filtre)) return G.photos.filter(p => p.s === filtre);
+  return G.photos;
 }
 
 const SVG_COEUR = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.6.7-1.5 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
@@ -518,7 +566,10 @@ function aideHtml(){
   const etapes = [
     ["Regardez vos photos.", "Touchez une photo pour l'agrandir. Sur téléphone, glissez du doigt pour passer à la suivante."],
     G.quota
-      ? ["Choisissez vos retouches ♡", "Touchez le cœur des photos que vous voulez voir retouchées. Votre formule " + esc(G.nomFormule) + " en comprend <b>" + G.quota + "</b>. "
+      ? ["Choisissez vos retouches ♡", "Touchez le cœur des photos que vous voulez voir retouchées. "
+         + (G.duo ? "Vous en avez <b>" + G.quota + "</b> comprises" + (G.offertes ? " (dont " + G.offertes + " offertes)" : "") + ", à répartir entre vos séances grossesse et naissance"
+             + ((G.passees || []).length ? " : il vous en reste <b>" + reste() + "</b>. " : ". ")
+           : "Votre formule " + esc(G.nomFormule) + " en comprend <b>" + G.quota + "</b>" + (G.offertes ? ", dont " + G.offertes + " offertes" : "") + ". ")
          + "Vous pouvez en choisir davantage : " + euro(g.photo) + " la photo, une offerte à partir de " + g.uneOfferteDes + ", et " + euro(g.photoDes10) + " l'unité à partir de " + g.grosDes + "."]
       : ["Guidez-moi avec vos cœurs ♡", "Votre formule Prestige comprend toutes les plus belles photos de la séance. Mettez un cœur sur vos préférées si vous le souhaitez : elles me guident, sans rien changer au prix."],
     ["Des tirages, si vous le souhaitez.", "En agrandissant une photo, choisissez la taille et le nombre : " + tailles + ". "
@@ -529,8 +580,9 @@ function aideHtml(){
     + '<summary><span class="aide-t"><b>Comment ça marche ?</b><span>' + etapes.length + ' étapes, quelques minutes</span></span><i></i></summary>'
     + '<ol class="etapes">' + etapes.map(e => '<li><span class="et-t">' + e[0] + '</span>' + e[1] + '</li>').join("") + '</ol>'
     + '<div class="aide-plus">'
+    + (G.duo && seanceAVenir() ? '<p><b>Deux séances, une seule galerie.</b> Vous pouvez valider dès maintenant vos photos de grossesse : quand celles de la naissance arriveront, ici même, vous choisirez avec ce qui vous reste. Ou bien attendre de tout voir pour choisir en une fois.</p>' : "")
     + '<p><b>Vos cœurs sont enregistrés au fur et à mesure.</b> Vous pouvez revenir plus tard, depuis votre téléphone ou votre ordinateur. Le filtre « Mes cœurs » les regroupe.</p>'
-    + '<p><b>Toutes les photos brutes, en pleine qualité,</b> se téléchargent avec le bouton « Télécharger toutes les photos ». Le lien a une durée limitée : enregistrez-les sans attendre.</p>'
+    + '<p><b>Toutes les photos brutes, en pleine qualité,</b> se téléchargent avec le bouton ' + (G.duo ? '« Télécharger les photos » de chaque séance' : '« Télécharger toutes les photos »') + '. Le lien a une durée limitée : enregistrez-les sans attendre.</p>'
     + '<p><b>Vos photos retouchées</b> sont livrées entre 10 et 15 jours après votre sélection, selon la charge de travail. Vous les recevez par mail, et elles apparaissent aussi en haut de cette galerie.</p>'
     + (fin ? '<p>Votre galerie reste en ligne jusqu\'au ' + fin + '. Une question ? Appelez-moi au 06 47 76 54 17.</p>' : "")
     + '</div></details>';
@@ -549,7 +601,8 @@ function photoDeCouverture(){
 }
 function couverture(){
   const p = photoDeCouverture();
-  const seance = MOT[G.seance] ? "Séance " + MOT[G.seance] : "Votre séance";
+  const seance = deuxSeances() ? "Grossesse et naissance" : G.duo && seancesEnLigne().length ? "Séance " + seancesEnLigne()[0]
+    : MOT[G.seance] ? "Séance " + MOT[G.seance] : "Votre séance";
   return '<div class="couverture" id="couverture">'
     + (p ? '<img src="' + esc(apercu(p.id)) + '" alt="" onload="this.classList.add(\'ok\')">' : "")
     + '<div class="titre-c"><span class="kicker">' + seance + ' · ' + G.photos.length + ' photos</span>'
@@ -590,9 +643,24 @@ function dessinerGrille(){
   const liste = photosVisibles();
   if(!liste.length){ grille.outerHTML = '<div class="vide" id="grille">Pas encore de cœur. Touchez le cœur d\'une photo pour la choisir.</div>'; return; }
   const W = largeurGrille = Math.floor(grille.clientWidth || zone.clientWidth || 343);
-  const { rows, ecart } = rangeesGal(liste, W);
+  /* Galerie a deux seances, toutes les photos : un titre et des rangees
+     pour chaque seance. Sinon une seule suite de rangees. */
+  const sections = filtre === "tout" && deuxSeances()
+    ? seancesEnLigne().map(k => ({ titre: k === "grossesse" ? "Séance grossesse" : "Séance naissance", photos: liste.filter(p => p.s === k) }))
+    : [{ titre: "", photos: liste }];
+  const { ecart } = reglagesGal(W);
   grille.style.gap = ecart + "px";
-  grille.innerHTML = rows.map(row => {
+  grille.innerHTML = sections.map(sec => (sec.titre ? '<div class="sec-t">' + sec.titre + ' <span>' + sec.photos.length + ' photos</span></div>' : "")
+    + rangeesHtml(sec.photos, W)).join("");
+  grille.querySelectorAll(".case").forEach(c => c.onclick = (e) => {
+    if(e.target.closest(".coeur")) return;
+    ouvrir(liste.findIndex(p => p.id === c.dataset.id), liste);
+  });
+  grille.querySelectorAll(".coeur").forEach(b => b.onclick = (e) => { e.stopPropagation(); basculer(b.dataset.c); });
+}
+function rangeesHtml(liste, W){
+  const { rows, ecart } = rangeesGal(liste, W);
+  return rows.map(row => {
     const h = Math.round(row.h);
     /* Des largeurs entieres, et le reste des arrondis sur la derniere photo :
        la rangee tombe pile sur le bord. */
@@ -601,11 +669,6 @@ function dessinerGrille(){
     return '<div class="rangee" style="height:' + h + 'px;gap:' + ecart + 'px">'
       + row.items.map((p, k) => caseHtml(p, larg[k])).join("") + '</div>';
   }).join("");
-  grille.querySelectorAll(".case").forEach(c => c.onclick = (e) => {
-    if(e.target.closest(".coeur")) return;
-    ouvrir(liste.findIndex(p => p.id === c.dataset.id), liste);
-  });
-  grille.querySelectorAll(".coeur").forEach(b => b.onclick = (e) => { e.stopPropagation(); basculer(b.dataset.c); });
 }
 /* La largeur change (telephone tourne, fenetre redimensionnee) : on refait
    les rangees. La hauteur seule (barre d'adresse du telephone) ne compte pas. */
@@ -623,18 +686,19 @@ function caseHtml(p, largeur){
       + '<img src="' + esc(vignette(p.id)) + '" alt="Photo ' + esc(p.nom) + '" loading="lazy" decoding="async" onload="vignetteVue(this)">'
       + '<span class="num">' + esc(p.nom) + '</span>'
       + (nbT ? '<span class="tir">' + nbT + ' tirage' + (nbT > 1 ? "s" : "") + '</span>' : "")
-      + '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
-      + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>'
+      + (deja.has(p.id) ? '<span class="deja">✓ Choisie</span>'
+        : '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
+          + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>')
       + '</div>';
 }
 
 /* ---------- les coeurs ---------- */
 let minuteur = null;
 function basculer(id){
-  if(verrou) return;
+  if(verrou || deja.has(id)) return;
   if(coeurs.has(id)) coeurs.delete(id);
   else {
-    const plafond = G.quota ? G.quota + GRILLE.photosMax : 9999;
+    const plafond = G.quota ? reste() + GRILLE.photosMax : 9999;
     if(coeurs.size >= plafond){ alert("Vous pouvez choisir jusqu'à " + plafond + " photos."); return; }
     coeurs.add(id);
   }
@@ -669,12 +733,12 @@ function majCompte(){
   const p = panier();
   if(compte){
     if(G.quota){
-      const plus = enPlus();
+      const plus = enPlus(), r = reste();
       const regle = verrou && G.selection && G.selection.paye;
-      compte.innerHTML = Math.min(n, G.quota) + " / " + G.quota + " choisies"
+      compte.innerHTML = Math.min(n, r) + " / " + r + " choisie" + (r > 1 ? "s" : "")
         + (plus ? ' · <span class="plus">' + plus + ' en plus' + (regle ? ", réglée" + (plus > 1 ? "s" : "") : " : " + eur(prixPhotos(plus))) + '</span>' : "");
       const j = document.getElementById("jauge");
-      if(j) j.style.width = Math.min(100, n / G.quota * 100) + "%";
+      if(j) j.style.width = (r ? Math.min(100, n / r * 100) : (n ? 100 : 0)) + "%";
     } else {
       compte.textContent = n ? n + " coup" + (n > 1 ? "s" : "") + " de cœur" : "Aucun coup de cœur pour l'instant.";
     }
@@ -689,7 +753,7 @@ function majCompte(){
   }
   go.hidden = false;
   const nbT = totauxTirages().nb;
-  txt.innerHTML = "<b>" + n + (G.quota ? " / " + G.quota : "") + " cœur" + (n > 1 ? "s" : "") + "</b>"
+  txt.innerHTML = "<b>" + n + (G.quota ? " / " + reste() : "") + " cœur" + (n > 1 ? "s" : "") + "</b>"
     + "<span>" + (p.total ? "À régler : " + eur(p.total) + (nbT ? " · " + nbT + " tirage" + (nbT > 1 ? "s" : "") : "")
                           : (nbT ? nbT + " tirage" + (nbT > 1 ? "s" : "") : "Rien à régler")) + "</span>";
   go.textContent = "Valider ma sélection";
@@ -708,7 +772,7 @@ function ouvrir(i, liste){
   const p = vueListe[i];
   document.getElementById("vImg").src = apercu(p.id);
   document.getElementById("vImg").alt = "Photo " + p.nom;
-  document.getElementById("vTitre").textContent = p.nom + "  ·  " + (i + 1) + " / " + vueListe.length;
+  document.getElementById("vTitre").textContent = p.nom + (deuxSeances() && p.s ? "  ·  " + (p.s === "grossesse" ? "Grossesse" : "Naissance") : "") + "  ·  " + (i + 1) + " / " + vueListe.length;
   dessinerBasVue();
   voile.hidden = false;
   document.body.style.overflow = "hidden";
@@ -737,8 +801,8 @@ function dessinerBasVue(){
   const p = vueListe[vueIdx]; if(!p) return;
   const on = coeurs.has(p.id);
   const q = tirages[p.id] || {};
-  let h = '<button class="btn btn-clair v-coeur' + (on ? " on" : "") + '" id="vCoeur"' + (verrou ? " disabled" : "") + '>'
-    + (on ? "♥ Choisie pour être retouchée" : "♡ Choisir pour être retouchée") + '</button>';
+  let h = '<button class="btn btn-clair v-coeur' + (on ? " on" : "") + '" id="vCoeur"' + (verrou || deja.has(p.id) ? " disabled" : "") + '>'
+    + (deja.has(p.id) ? "✓ Déjà choisie pour être retouchée" : on ? "♥ Choisie pour être retouchée" : "♡ Choisir pour être retouchée") + '</button>';
   h += '<div class="tirages"><div class="titre">Tirages de cette photo</div>';
   GRILLE.tailles.forEach(t => {
     const n = q[t.cle] || 0;
@@ -771,15 +835,18 @@ document.getElementById("barreGo").onclick = recap;
 function recap(){
   if(verrou) return;
   const p = panier();
-  const reste = G.quota ? G.quota - coeurs.size : 0;
+  const libres = G.quota ? reste() - coeurs.size : 0;
   if(G.quota && !coeurs.size && !p.papier && !envois.length){ alert("Mettez un cœur sur les photos que vous voulez voir retouchées."); return; }
-  if(reste > 0 && !confirm("Il vous reste " + reste + " photo" + (reste > 1 ? "s" : "") + " comprise" + (reste > 1 ? "s" : "")
+  /* Galerie a deux seances dont la naissance n'est pas encore la : ce qui
+     n'est pas pris maintenant lui reste pour plus tard, rien a confirmer. */
+  if(libres > 0 && !seanceAVenir() && !confirm("Il vous reste " + libres + " photo" + (libres > 1 ? "s" : "") + " comprise" + (libres > 1 ? "s" : "")
     + " dans votre formule à choisir.\n\nValider quand même ?")) return;
 
-  const n = coeurs.size, inclus = Math.min(n, G.quota);
+  const n = coeurs.size, inclus = Math.min(n, reste());
   let h = '<div class="carte recap" id="recap"><h1 style="font-size:24px">Votre sélection</h1>'
     + '<p class="sous" style="margin-bottom:12px">' + (G.quota
       ? n + ' photo' + (n > 1 ? "s" : "") + ' à retoucher, dont ' + inclus + ' comprise' + (inclus > 1 ? "s" : "") + ' dans votre formule.'
+        + (seanceAVenir() ? ' Il vous en restera ' + restera() + ' pour votre séance ' + seanceAVenir() + '.' : '')
       : (n ? n + ' coup' + (n > 1 ? "s" : "") + ' de cœur pour me guider. Je retouche toutes les plus belles photos de la séance.'
            : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>'
     + '<div id="rcLignes"></div>';
