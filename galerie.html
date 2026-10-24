@@ -285,6 +285,9 @@ const DEMO = params.get("demo") === "1";
 const APERCU = !DEMO && params.get("apercu") === "1";
 const ESSAI = DEMO || APERCU;
 const RETOUR_OK = params.get("ok") === "1";
+/* La marque de cette page. Une galerie d'une autre marque n'y est pas
+   montree : elle est "introuvable" ici, et rien ne renvoie a l'autre site. */
+const MARQUE = "mybabyshoot";
 const zone = document.getElementById("zone");
 
 const esc = s => String(s == null ? "" : s)
@@ -442,6 +445,7 @@ async function charger(){
   if(!j || !j.ok) return message("Galerie introuvable",
     "Vérifiez le lien reçu, ou appelez-moi au 06 47 76 54 17.");
   G = j.galerie; GRILLE = j.grille;
+  if((G.marque || "mybabyshoot") !== MARQUE) return message("Galerie introuvable", "Vérifiez le lien reçu, ou appelez-moi au 06 47 76 54 17.");
   installer();
   /* Retour de Stripe : le paiement est enregistre par le webhook, qui peut
      arriver quelques secondes apres la cliente. On relit jusqu'a le voir. */
@@ -506,7 +510,7 @@ function dessiner(){
   /* Les photos offertes par Matt se voient : "dont 5 offertes". */
   const offertes = G.offertes ? ', dont ' + G.offertes + ' offerte' + (G.offertes > 1 ? "s" : "") : "";
   const avant = (G.passees || []).length;
-  h += '<div class="carte formule"><b>' + (G.duo ? 'Grossesse et naissance' : 'Formule ' + esc(G.nomFormule)) + '</b>'
+  h += '<div class="carte formule"><b>' + (G.duo ? 'Grossesse et naissance' : G.nomFormule ? 'Formule ' + esc(G.nomFormule) : 'Vos photos retouchées') + '</b>'
     + (G.quota
       ? '<p>' + G.quota + ' photos retouchées comprises' + offertes
         + (G.duo ? ', à répartir entre vos deux séances comme vous le souhaitez.' : ', que vous choisissez.')
@@ -610,7 +614,7 @@ function aideHtml(){
       ? ["Choisissez vos retouches ♡", "Touchez le cœur des photos que vous voulez voir retouchées. "
          + (G.duo ? "Vous en avez <b>" + G.quota + "</b> comprises" + (G.offertes ? " (dont " + G.offertes + " offertes)" : "") + ", à répartir entre vos séances grossesse et naissance"
              + ((G.passees || []).length ? " : il vous en reste <b>" + reste() + "</b>. " : ". ")
-           : "Votre formule " + esc(G.nomFormule) + " en comprend <b>" + G.quota + "</b>" + (G.offertes ? ", dont " + G.offertes + " offertes" : "") + ". ")
+           : (G.nomFormule ? "Votre formule " + esc(G.nomFormule) + " en comprend" : "Vous en avez") + " <b>" + G.quota + "</b>" + (G.nomFormule ? "" : " comprises") + (G.offertes ? ", dont " + G.offertes + " offertes" : "") + ". ")
          + "Vous pouvez en choisir davantage : " + euro(g.photo) + " la photo, et " + euro(g.photoDes10) + " l'unité à partir de " + g.grosDes + "."]
       : ["Guidez-moi avec vos cœurs ♡", "Votre formule Prestige comprend toutes les plus belles photos de la séance. Mettez un cœur sur vos préférées si vous le souhaitez : elles me guident, sans rien changer au prix."],
     ["Des tirages, si vous le souhaitez.", "En agrandissant une photo, choisissez la taille et le nombre : " + tailles + ". "
@@ -931,7 +935,7 @@ function recap(){
   const n = coeurs.size, inclus = Math.min(n, reste());
   let h = '<div class="carte recap" id="recap"><h1 style="font-size:24px">Votre sélection</h1>'
     + '<p class="sous" style="margin-bottom:12px">' + (G.quota
-      ? n + ' photo' + (n > 1 ? "s" : "") + ' à retoucher, dont ' + inclus + ' comprise' + (inclus > 1 ? "s" : "") + ' dans votre formule.'
+      ? n + ' photo' + (n > 1 ? "s" : "") + ' à retoucher, dont ' + inclus + ' comprise' + (inclus > 1 ? "s" : "") + (G.nomFormule ? ' dans votre formule.' : '.')
         + (seanceAVenir() ? ' Il vous en restera ' + restera() + ' pour votre séance ' + seanceAVenir() + '.' : '')
       : (n ? n + ' coup' + (n > 1 ? "s" : "") + ' de cœur pour me guider. Je retouche toutes les plus belles photos de la séance.'
            : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>'
@@ -965,7 +969,7 @@ function majRecap(){
   lig.innerHTML = p.lignes.length
     ? p.lignes.map(l => '<div class="rl"><span>' + esc(l.l) + '<span class="d">' + esc(l.d) + '</span></span><b>' + eur(l.m) + '</b></div>').join("")
       + '<div class="total"><span>À régler</span><b>' + eur(p.total) + '</b></div>'
-    : '<div class="rl"><span>Tout est compris dans votre formule</span><b>0 €</b></div>';
+    : '<div class="rl"><span>' + (G.nomFormule ? 'Tout est compris dans votre formule' : 'Tout est compris') + '</span><b>0 €</b></div>';
   document.getElementById("rcPaie").innerHTML = p.total > 0
     ? '<div class="choixpaie"><button class="btn btn-plein large" data-paie="carte">Payer ' + eur(p.total) + ' par carte</button>'
       + (p.total >= 150 ? '<button class="btn btn-clair large" data-paie="3x">Payer en 3 fois sans frais avec Klarna</button>' : "")
