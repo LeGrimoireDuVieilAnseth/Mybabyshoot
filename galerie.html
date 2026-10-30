@@ -150,6 +150,19 @@ h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,5vw,34px);l
 .v-bas .in{max-width:620px;margin:0 auto}
 .v-coeur{width:100%}
 .v-coeur.on{background:var(--coeur);color:#fff}
+/* la demande de retouche, sous le coeur (29/10/2026) */
+.v-note{margin-top:12px}
+.v-note .titre{display:block;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.v-note .titre small{font-weight:600;letter-spacing:0;text-transform:none}
+.v-note textarea{width:100%;min-height:62px;resize:vertical;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;
+  font-family:inherit;font-size:16px;line-height:1.4;color:var(--ink);background:#fff}
+.v-note textarea:focus{outline:none;border-color:var(--cta)}
+.v-note p{font-size:14.5px;line-height:1.45;color:var(--ink);margin:0}
+.case .nt{position:absolute;right:50px;top:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);
+  color:var(--cta);display:grid;place-items:center;font-size:15px;font-weight:800;box-shadow:0 2px 8px -2px rgba(0,0,0,.25)}
+.rc-notes{display:grid;gap:6px}
+.rc-note{font-size:14px;line-height:1.45;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.rc-note b{margin-right:8px}
 .tirages{margin-top:12px}
 .tirages .titre{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
 .tl{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
@@ -300,6 +313,7 @@ let coeurs = new Set();
 /* Galerie a deux seances : les photos deja choisies les fois d'avant. */
 let deja = new Set();
 let tirages = {};            // { p004: { "30x45": 2 } }
+let notes = {};              // { p004: "effacer le bouton sur le front" }
 let adresse = {};
 /* Les tirages pour d'autres personnes, chacune a son adresse :
    [{ adresse:{nom,ligne1,ligne2,cp,ville}, lignes:[{ id:"p004", cle:"20x30", n:2 }] }] */
@@ -457,6 +471,7 @@ function installer(){
   deja = new Set((G.passees || []).flatMap(t => t.coeurs || []));
   coeurs = new Set((s ? s.coeurs : G.coeurs).filter(id => !deja.has(id)));
   tirages = s ? JSON.parse(JSON.stringify(s.tirages || {})) : {};
+  notes = Object.assign({}, (s ? s.notes : G.notes) || {});
   verrou = !!(s && !s.enAttente);
   if(verrou) oublierBrouillon(); else lireBrouillon();
   dessiner();
@@ -626,6 +641,7 @@ function aideHtml(){
     + '<ol class="etapes">' + etapes.map(e => '<li><span class="et-t">' + e[0] + '</span>' + e[1] + '</li>').join("") + '</ol>'
     + '<div class="aide-plus">'
     + (G.duo && seanceAVenir() ? '<p><b>Deux séances, une seule galerie.</b> Vous pouvez valider dès maintenant vos photos de grossesse : quand celles de la naissance arriveront, ici même, vous choisirez avec ce qui vous reste. Ou bien attendre de tout voir pour choisir en une fois.</p>' : "")
+    + '<p><b>Une demande précise sur une photo ?</b> Agrandissez une photo choisie : sous le cœur, écrivez-moi ce que vous voulez que je retouche (un bouton à effacer, le fond à éclaircir…).</p>'
     + '<p><b>Vos cœurs sont enregistrés au fur et à mesure.</b> Vous pouvez revenir plus tard, depuis votre téléphone ou votre ordinateur. Le filtre « Mes cœurs » les regroupe.</p>'
     + '<p><b>Toutes les photos brutes, en pleine qualité,</b> se téléchargent avec le bouton ' + (G.duo ? '« Télécharger les photos » de chaque séance' : '« Télécharger toutes les photos »') + '. Le lien a une durée limitée : enregistrez-les sans attendre.</p>'
     + '<p><b>Vos photos retouchées</b> sont livrées entre 10 et 15 jours après votre sélection, selon la charge de travail. Vous les recevez par mail, et elles apparaissent aussi en haut de cette galerie.</p>'
@@ -748,6 +764,7 @@ function caseHtml(p, largeur){
       + '<img src="' + esc(vignette(p.id)) + '" alt="Photo ' + esc(p.nom) + '" loading="lazy" decoding="async" onload="vignetteVue(this)">'
       + '<span class="num">' + esc(p.nom) + '</span>'
       + (nbT ? '<span class="tir">' + nbT + ' tirage' + (nbT > 1 ? "s" : "") + '</span>' : "")
+      + (coeurs.has(p.id) && (notes[p.id] || "").trim() ? '<span class="nt" title="Demande de retouche" aria-label="Demande de retouche">✎</span>' : "")
       + (deja.has(p.id) ? '<span class="deja">✓ Choisie</span>'
         : '<button class="coeur' + (coeurs.has(p.id) ? " on" : "") + '" data-c="' + p.id + '"'
           + (verrou ? " disabled" : "") + ' aria-label="' + (coeurs.has(p.id) ? "Retirer le cœur" : "Mettre un cœur") + '">' + SVG_COEUR + '</button>')
@@ -805,14 +822,29 @@ function basculer(id){
 function garderCoeurs(){
   minuteur = null;
   fetch(API + "?g=" + JETON, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "coeurs", coeurs: [...coeurs] }) }).catch(() => {});
+    body: JSON.stringify({ action: "coeurs", coeurs: [...coeurs], notes: notesAEnvoyer() }) }).catch(() => {});
+}
+/* Les demandes de retouche des photos choisies, et d'elles seules. */
+function notesAEnvoyer(){
+  const o = {};
+  coeurs.forEach(id => { const t = (notes[id] || "").trim(); if(t) o[id] = t.slice(0, 300); });
+  return o;
+}
+/* La demande de retouche d'une photo, gardee comme les coeurs. */
+function noter(id, texte){
+  if(verrou) return;
+  if(texte.trim()) notes[id] = texte.slice(0, 300); else delete notes[id];
+  if(!ESSAI){
+    clearTimeout(minuteur);
+    minuteur = setTimeout(garderCoeurs, 1200);
+  }
 }
 /* La page se ferme juste apres un coeur : on l'envoie quand meme. */
 addEventListener("pagehide", () => {
   if(!minuteur || ESSAI) return;
   clearTimeout(minuteur); minuteur = null;
   try { navigator.sendBeacon(API + "?g=" + JETON,
-    new Blob([JSON.stringify({ action: "coeurs", coeurs: [...coeurs] })], { type: "text/plain" })); } catch(e){}
+    new Blob([JSON.stringify({ action: "coeurs", coeurs: [...coeurs], notes: notesAEnvoyer() })], { type: "text/plain" })); } catch(e){}
 });
 
 function majCompte(){
@@ -873,6 +905,8 @@ document.getElementById("vPrec").onclick = () => bouger(-1);
 document.getElementById("vSuiv").onclick = () => bouger(1);
 document.addEventListener("keydown", e => {
   if(voile.hidden) return;
+  /* Elle ecrit une demande : les fleches restent dans son texte. */
+  if(e.target && e.target.closest && e.target.closest("textarea")){ if(e.key === "Escape") e.target.blur(); return; }
   if(e.key === "Escape") fermer();
   if(e.key === "ArrowLeft") bouger(-1);
   if(e.key === "ArrowRight") bouger(1);
@@ -892,6 +926,14 @@ function dessinerBasVue(){
   const q = tirages[p.id] || {};
   let h = '<button class="btn btn-clair v-coeur' + (on ? " on" : "") + '" id="vCoeur"' + (verrou || deja.has(p.id) ? " disabled" : "") + '>'
     + (deja.has(p.id) ? "✓ Déjà choisie pour être retouchée" : on ? "♥ Choisie pour être retouchée" : "♡ Choisir pour être retouchée") + '</button>';
+  /* La demande de retouche (29/10/2026) : un mot sur une photo choisie. */
+  if(on && !deja.has(p.id)){
+    const t = notes[p.id] || "";
+    h += verrou
+      ? (t.trim() ? '<div class="v-note"><div class="titre">Votre demande de retouche</div><p>' + esc(t) + '</p></div>' : "")
+      : '<div class="v-note"><label class="titre" for="vNote">Une demande de retouche sur cette photo&nbsp;? <small>(facultatif)</small></label>'
+        + '<textarea id="vNote" maxlength="300" rows="2" placeholder="Ex : effacer un bouton, éclaircir le fond, enlever une personne derrière…">' + esc(t) + '</textarea></div>';
+  }
   h += '<div class="tirages"><div class="titre">Tirages de cette photo</div>';
   GRILLE.tailles.forEach(t => {
     const n = q[t.cle] || 0;
@@ -903,6 +945,8 @@ function dessinerBasVue(){
   h += '</div>';
   document.getElementById("vBas").innerHTML = h;
   document.getElementById("vCoeur").onclick = () => basculer(p.id);
+  const vNote = document.getElementById("vNote");
+  if(vNote) vNote.oninput = () => noter(p.id, vNote.value);
   document.querySelectorAll("#vBas [data-p]").forEach(b => b.onclick = () => changerTirage(p.id, b.dataset.p, 1));
   document.querySelectorAll("#vBas [data-m]").forEach(b => b.onclick = () => changerTirage(p.id, b.dataset.m, -1));
 }
@@ -940,6 +984,13 @@ function recap(){
       : (n ? n + ' coup' + (n > 1 ? "s" : "") + ' de cœur pour me guider. Je retouche toutes les plus belles photos de la séance.'
            : "Pas de coup de cœur : je choisis moi-même les plus belles photos de la séance.")) + '</p>'
     + '<div id="rcLignes"></div>';
+  /* Ses demandes de retouche, pour qu'elle les relise avant d'envoyer. */
+  const avecNote = [...coeurs].filter(id => (notes[id] || "").trim());
+  if(avecNote.length){
+    const nomDe = Object.fromEntries(G.photos.map(x => [x.id, x.nom]));
+    h += '<div class="titre-sec">Vos demandes de retouche</div><div class="rc-notes">'
+      + avecNote.map(id => '<div class="rc-note"><b>' + esc(nomDe[id] || id) + '</b>' + esc(notes[id].trim()) + '</div>').join("") + '</div>';
+  }
   if(p.papier){
     h += '<div class="titre-sec">Où envoyer vos tirages</div>'
       + champ("adNom", "Nom inscrit sur la boîte aux lettres", adresse.nom)
@@ -1110,7 +1161,7 @@ async function envoyer(paiement, bouton){
   let r, j;
   try {
     r = await fetch(API + "?g=" + JETON, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "valider", coeurs: [...coeurs], tirages, adresse, paiement,
+      body: JSON.stringify({ action: "valider", coeurs: [...coeurs], notes: notesAEnvoyer(), tirages, adresse, paiement,
         envois: envois.map(e => ({ adresse: e.adresse, tirages: versTirages(e.lignes) })) }) });
     j = await r.json();
   } catch(e){ j = { ok: false, messages: ["Connexion impossible. Réessayez dans un instant."] }; }
