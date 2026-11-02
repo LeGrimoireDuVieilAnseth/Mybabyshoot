@@ -13,6 +13,10 @@ const OFFRES_CADEAU = [
   { id:'essentielle',   nom:'Essentielle',   prix:290, duo:false },
   { id:'confort',       nom:'Confort',       prix:390, duo:false },
   { id:'prestige',      nom:'Prestige',      prix:490, duo:false },
+  /* Le mini-shoot special Noel (02/11/2026) : il ne s'achete que pendant
+     l'offre (mbs-gift le verifie), mais le bon vaut 18 mois, en semaine sur
+     les creneaux habituels (choix de Matt). */
+  { id:'mini',          nom:'Mini-shoot spécial Noël', prix:97, duo:false, noel:true },
   /* Les trois anciens packs a formule unique. Plus vendus, mais des bons
      les portent encore : "ancien" les garde valides et hors affichage. */
   { id:'duo-essentiel', nom:'Duo Essentiel', prix:590, duo:true, ancien:true },
@@ -42,6 +46,7 @@ const SEANCES = {
   grossesse: 'Séance photo grossesse',
   naissance: 'Séance photo naissance',
   bebe:      'Séance photo bébé',
+  famille:   'Séance photo famille',
   duo:       'Séances photo grossesse et naissance'
 };
 
@@ -51,6 +56,7 @@ const AMBIANCES = {
   grossesse: { accent:'#C2A06B', voile:'rgba(194,160,107,.13)', motif:'ventre'  },
   naissance: { accent:'#B0824F', voile:'rgba(176,130,79,.13)',  motif:'lune'    },
   bebe:      { accent:'#A8794E', voile:'rgba(168,121,78,.13)',  motif:'lune'    },
+  famille:   { accent:'#9A7048', voile:'rgba(154,112,72,.12)',  motif:'anneaux' },
   duo:       { accent:'#8C6239', voile:'rgba(140,98,57,.12)',   motif:'anneaux' }
 };
 
@@ -76,7 +82,14 @@ const STYLES = [
   { id:'bleu-canard',  nom:'Bleu canard',      fond:'#14505A', encre:'#EFF4F3', doux:'#A3C2C4', accent:'#D9B26A', texture:'grain', clair:true },
   { id:'bleu-orage',   nom:'Bleu orage',       fond:'#DCE4E7', encre:'#25333A', doux:'#6E828C', accent:'#3E6C7E', texture:'points' },
   { id:'bleu-nuit',    nom:'Bleu nuit',        fond:'#161E33', encre:'#EDEFF6', doux:'#A2A9C0', accent:'#C4A55F', texture:'rayures', clair:true },
-  { id:'sombre',       nom:'Sombre',           fond:'#1C1B19', encre:'#F2EFE9', doux:'#A39C90', accent:'#C9A961', texture:'grain', clair:true }
+  { id:'sombre',       nom:'Sombre',           fond:'#1C1B19', encre:'#F2EFE9', doux:'#A39C90', accent:'#C9A961', texture:'grain', clair:true },
+  /* Les habillages de Noel (02/11/2026) : proposes seulement pendant l'offre
+     de Noel, mais toujours dessinables (un bon vendu garde le sien). Les
+     angles portent du houx et un sapin au lieu du motif de la seance. */
+  { id:'noel-rouge',   nom:'Noël rouge',       fond:'#B5122B', encre:'#FFF6E8', doux:'#F6D3D3', accent:'#F2C14E', texture:'flocons', clair:true, noel:true, baie:'#FFF6E8' },
+  { id:'noel-sapin',   nom:'Noël sapin',       fond:'#14492F', encre:'#FFF6E8', doux:'#C2DCCB', accent:'#F2C14E', texture:'flocons', clair:true, noel:true, baie:'#E23B4F' },
+  { id:'pain-epices',  nom:'Pain d\'épices',   fond:'#8B5A2B', encre:'#FFF6E8', doux:'#EBD2B4', accent:'#FFF3E0', texture:'glacage', clair:true, noel:true, baie:'#E23B4F' },
+  { id:'noel-neige',   nom:'Neige',            fond:'#F6F9FA', encre:'#1E2B24', doux:'#66736B', accent:'#C8102E', texture:'flocons', noel:true, baie:'#C8102E' }
 ];
 const STYLE_DEFAUT = 'creme';
 function styleDe(id){ return STYLES.find(function(x){ return x.id===id; }) || STYLES[0]; }
@@ -137,6 +150,32 @@ function motif(c,kind,x,y,taille,couleur){
       c.quadraticCurveTo(sx,sy,sx,sy+r); c.quadraticCurveTo(sx,sy,sx-r,sy);
       c.quadraticCurveTo(sx,sy,sx,sy-r); c.stroke();
     });
+  }else if(kind==='houx'){
+    // deux feuilles de houx dentelees et trois baies
+    [[-1,0.38],[1,-0.38]].forEach(([sens,ang])=>{
+      c.save(); c.rotate(ang+(sens<0?Math.PI:0));
+      c.beginPath(); c.moveTo(0,0);
+      for(let i=1;i<=4;i++){ c.quadraticCurveTo(i*18-9,-30,i*18,-14); }
+      c.quadraticCurveTo(84,0,72,14);
+      for(let i=3;i>=0;i--){ c.quadraticCurveTo(i*18+9,30,i*18,14*(i>0?1:0)); }
+      c.stroke();
+      c.beginPath(); c.moveTo(4,0); c.lineTo(76,0); c.stroke();
+      c.restore();
+    });
+    c.fillStyle=baieCouleur;
+    [[-10,-14],[10,-16],[0,4]].forEach(([bx,by])=>{ c.beginPath(); c.arc(bx,by,11,0,Math.PI*2); c.fill(); });
+  }else if(kind==='sapin'){
+    // un sapin au trait, trois etages, et son etoile
+    c.beginPath();
+    c.moveTo(0,-78); c.lineTo(34,-30); c.lineTo(18,-30); c.lineTo(48,10); c.lineTo(26,10); c.lineTo(60,56);
+    c.lineTo(-60,56); c.lineTo(-26,10); c.lineTo(-48,10); c.lineTo(-18,-30); c.lineTo(-34,-30); c.closePath();
+    c.stroke();
+    c.beginPath(); c.moveTo(-8,56); c.lineTo(-8,78); c.lineTo(8,78); c.lineTo(8,56); c.stroke();
+    c.fillStyle=baieCouleur;
+    [[-14,-2],[16,24],[-22,38],[6,-40],[28,44]].forEach(([bx,by])=>{ c.beginPath(); c.arc(bx,by,6,0,Math.PI*2); c.fill(); });
+    c.beginPath();
+    for(let i=0;i<10;i++){ const r=i%2?7:17, a=-Math.PI/2+i*Math.PI/5; c.lineTo(Math.cos(a)*r, -92+Math.sin(a)*r); }
+    c.closePath(); c.stroke();
   }else{
     // deux anneaux entrelaces
     c.beginPath(); c.arc(-24,0,40,0,Math.PI*2); c.stroke();
@@ -144,6 +183,8 @@ function motif(c,kind,x,y,taille,couleur){
   }
   c.restore();
 }
+/* La couleur des baies et des boules, fixee par l'habillage de Noel. */
+let baieCouleur='#C8102E';
 
 /* Textures de fond, tres discretes : elles doivent se sentir a l'impression
    sans jamais gener la lecture. Le motif est deterministe, pour qu'un meme
@@ -173,6 +214,22 @@ function texture(c, st){
     c.globalAlpha = st.clair ? .09 : .07;
     for(let y=22; y<H; y+=44){
       for(let x=22; x<W; x+=44){ c.beginPath(); c.arc(x,y,2.6,0,Math.PI*2); c.fill(); }
+    }
+  } else if(st.texture==='flocons' || st.texture==='glacage'){
+    // flocons a six branches (Noel), ou petits points de sucre (pain d'epices)
+    c.globalAlpha = st.clair ? .16 : .12;
+    c.lineWidth = 3; c.lineCap = 'round';
+    let n = 0;
+    for(let y=60; y<H; y+=150){
+      for(let x=((y/150)%2)*75+40; x<W; x+=150){
+        n++;
+        const t = 10 + (n*7 % 5)*3;
+        if(st.texture==='glacage'){ c.beginPath(); c.arc(x, y, t*0.35, 0, Math.PI*2); c.fill(); continue; }
+        for(let k=0;k<3;k++){
+          const a = k*Math.PI/3;
+          c.beginPath(); c.moveTo(x-Math.cos(a)*t, y-Math.sin(a)*t); c.lineTo(x+Math.cos(a)*t, y+Math.sin(a)*t); c.stroke();
+        }
+      }
     }
   } else if(st.texture==='rayures'){
     c.globalAlpha = st.clair ? .06 : .045;
@@ -206,10 +263,25 @@ function dessiner(canvas, data){
   arrondi(c,128,128,W-256,H-256,30); c.stroke();
   c.globalAlpha=1;
 
-  // le motif reste lie au type de seance, seule sa couleur suit le style
-  motif(c,amb.motif,318,322,190,st.accent);
-  c.save(); c.translate(W-318,H-322); c.rotate(Math.PI);
-  motif(c,amb.motif,0,0,190,st.accent); c.restore();
+  // le motif reste lie au type de seance, seule sa couleur suit le style ;
+  // a Noel, du houx en haut et un sapin en bas
+  if(st.noel){
+    baieCouleur=st.baie||'#C8102E';
+    motif(c,'houx',318,322,190,st.accent);
+    motif(c,'sapin',W-318,H-342,190,st.accent);
+    // pain d'epices : un glacage en zigzag le long du cadre
+    if(st.texture==='glacage'){
+      c.save(); c.strokeStyle='#FFF6E8'; c.lineWidth=6; c.globalAlpha=.85; c.beginPath();
+      for(let x=170, i=0; x<=W-170; x+=36, i++) c.lineTo(x, 168+(i%2?14:0));
+      c.stroke(); c.beginPath();
+      for(let x=170, i=0; x<=W-170; x+=36, i++) c.lineTo(x, H-168-(i%2?14:0));
+      c.stroke(); c.restore();
+    }
+  }else{
+    motif(c,amb.motif,318,322,190,st.accent);
+    c.save(); c.translate(W-318,H-322); c.rotate(Math.PI);
+    motif(c,amb.motif,0,0,190,st.accent); c.restore();
+  }
 
   c.textAlign='center'; c.textBaseline='alphabetic';
 

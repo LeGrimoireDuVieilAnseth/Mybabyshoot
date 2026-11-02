@@ -36,7 +36,50 @@ const GAMMES = {
     { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
     { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] }
   ],
+  /* Le mini-shoot special Noel : une carte a part, affichee juste au-dessus
+     de l'Essentielle pendant l'offre, pour ne pas entrer dans le pack qui
+     parcourt GAMMES.simple. */
+  mini: [
+    { id:'mini', nom:'Mini-shoot spécial Noël', sous:'Uniquement le dimanche', prix:97, retouchees:5, inclus:['Séance @T de <b>45 minutes</b>, un dimanche de décembre (6, 13, 20 ou 27)','<b>5 photos retouchées</b>, que vous choisissez','Les photos brutes ne sont pas comprises dans le mini-shoot','<b>Réglé en entier</b> à la réservation'] }
+  ]
 };
+
+/* LE MINI-SHOOT DU DIMANCHE (demande de Matt, 02/11/2026)
+   97 euros, 45 minutes, 5 photos retouchees, SANS les photos brutes.
+   Seulement les quatre dimanches de decembre (le studio est ferme le
+   dimanche le reste de l'annee), et ces dimanches ne servent qu'a lui.
+   Paye en entier a la reservation. Il s'affiche avec l'habillage de Noel et
+   s'eteint avec l'offre de Noel (reservation jusqu'au 26 au soir).
+   LES MEMES DIMANCHES, HEURES ET PRIX QUE OFFRE_MINI dans
+   netlify/mbs-lib.mjs : le serveur refuse ce qui sort de ce cadre, et c'est
+   lui qui donne les creneaux libres (mbs-availability, champ "mini"). */
+const OFFRE_MINI = {
+  types:['grossesse','naissance','bebe','famille']
+};
+
+/* LES PRIX DE NOEL (demande de Matt, 02/11/2026, sans code depuis le meme
+   jour) : pendant l'offre, 100 euros de moins sur chaque seance unique
+   (grossesse, naissance, bebe, famille), affiches directement, prix
+   habituel barre ; le pack, lui, a ses prix de Noel par seance (voir
+   prixPaireDuo). Bons cadeaux compris. Commande jusqu'au 26 decembre
+   inclus, seance quand elle veut. Le serveur seul decide (REMISE_NOEL dans
+   mbs-lib.mjs) ; ici on affiche et on compte. */
+const REMISE_NOEL = {
+  montant:100,
+  fin:Date.UTC(2026,11,26,23,0,0)          // 27 decembre 0 h, heure de Paris
+};
+/* L'habillage est allume et l'offre court encore. */
+function offreNoelActive(){
+  /* Les tests font tourner les calculs de prix hors d'une page : sans
+     document, pas d'habillage, donc pas d'offre. */
+  const h = typeof document!=='undefined' && document.documentElement;
+  return !!h && !!h.hasAttribute && h.hasAttribute('data-noel') && Date.now() < REMISE_NOEL.fin;
+}
+/* Le mini-shoot suit l'offre de Noel : meme habillage, meme fin. */
+function offreMiniActive(){ return offreNoelActive(); }
+/* Une seance naissance en 45 minutes : possible pour quelques photos, et il
+   faut le dire avant qu'elle reserve (demande de Matt). */
+const NOTE_MINI_NAISSANCE='Pour un nouveau-né, 45 minutes c\'est très court (tétée, sommeil) : le mini-shoot convient pour quelques photos. Pour une vraie séance naissance, choisissez plutôt une formule Essentielle, Confort ou Prestige.';
 
 /* Le pack deux seances : une formule par seance, et la remise sur le total.
    Les trois anciens packs imposaient la meme formule des deux cotes.
@@ -55,6 +98,11 @@ const DUO = {
 function gammeSimple(id){ return GAMMES.simple.find(g=>g.id===id)||GAMMES.simple[0]; }
 function prixPaireDuo(grossesse,naissance){
   const plein=gammeSimple(grossesse).prix+gammeSimple(naissance).prix;
+  /* Noel 2026 (demande de Matt) : pendant l'offre, le pack passe aux prix de
+     Noel, 100 euros de moins sur chaque seance, A LA PLACE de sa remise ; et
+     5 photos imprimees sont offertes, livrees chez elle. Meme regle dans
+     prixPaireDuo de mbs-lib.mjs, qui seul fait foi. */
+  if(offreNoelActive()) return { plein:plein, prix:plein-2*REMISE_NOEL.montant, remise:2*REMISE_NOEL.montant, noel:true };
   /* On arrondit au centime avant de descendre a la dizaine : sans ce
      passage, un produit qui tombe pile sur une dizaine peut valoir
      629,9999999 en binaire et perdre 10 euros. */
@@ -536,7 +584,7 @@ const state={section:'simple',type:'grossesse',gamme:'essentielle',photos:0,albu
 function euro(n){return n.toLocaleString('fr-FR')+' €';}
 /* La formule d'une seance simple. Le pack n'en a pas une seule : il a
    state.duo, une formule par seance. */
-function currentGamme(){ return gammeSimple(state.gamme); }
+function currentGamme(){ return state.section==='mini' ? GAMMES.mini[0] : gammeSimple(state.gamme); }
 /* Le prix de la seance ou du pack, avant les options. */
 function prixBase(){
   return state.section==='duo'
@@ -545,10 +593,14 @@ function prixBase(){
 }
 function bookingType(){return state.section==='duo'?'duo':state.type;}
 /* Le mot de la seance, pour "Seance @T en studio". */
-const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé' };
+/* "famille" : revenue pour Noel 2026 (bouton visible pendant l'offre), et
+   pour les bons cadeaux offerts a quelqu'un qui n'attend pas d'enfant. */
+const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé', famille:'famille' };
 function motSeance(t){ return MOT_SEANCE[t||state.type] || 'grossesse'; }
 function resolveInc(i){ return i.replace('@T', motSeance()); }
-function total(){return prixBase()+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
+/* Les 100 euros de Noel d'une seance unique (le pack a les siens). */
+function remiseNoelSeance(){ return (state.section==='simple' && offreNoelActive()) ? REMISE_NOEL.montant : 0; }
+function total(){return prixBase()-remiseNoelSeance()+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
 const totalEl=document.getElementById('totalVal');
 
 /* ---------------------------------------------------------------
@@ -635,14 +687,17 @@ function duoHtml(){
         +' data-duo="'+s.cle+'" data-duo-gamme="'+g.id+'">'
         +'<span class="duo-pick-t"><b>'+g.nom+'</b><span>'+retouchesTexte(g)+'</span>'
         +'<span class="duo-pick-brutes">+ toutes les photos brutes</span></span>'
-        +'<span class="duo-pick-p">'+euro(g.prix)+'</span></button>').join('')
+        +'<span class="duo-pick-p">'+(p.noel?'<s>'+euro(g.prix)+'</s> '+euro(g.prix-REMISE_NOEL.montant):euro(g.prix))+'</span></button>').join('')
       +'</div>').join('')
     +'</div>'
     +'<p class="duo-gal"><b>La séance naissance se programme plus tard</b> : vous réservez '
     +'aujourd\'hui la date de la grossesse, et nous fixons la seconde dès l\'arrivée de bébé.</p>'
     +'<div class="duo-sum">'
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
-      +'<span class="duo-sum-r">Remise pack duo<b>-'+euro(p.remise)+'</b></span>'
+      +(p.noel
+        ? '<span class="duo-sum-r">Prix de Noël, 100 € de moins par séance<b>-'+euro(p.remise)+'</b></span>'
+          +'<span class="duo-sum-r">Cadeau : 5 photos imprimées, livrées chez vous<b>offert</b></span>'
+        : '<span class="duo-sum-r">Remise pack duo<b>-'+euro(p.remise)+'</b></span>')
       +'<span class="duo-sum-t">Votre pack<b>'+euro(p.prix)+'</b></span>'
     +'</div>';
 }
@@ -651,21 +706,42 @@ function renderGammes(){
   const sec=state.section;
   const box=document.getElementById('gammes');
   if(sec==='duo'){ box.innerHTML=duoHtml(); return; }
-  box.innerHTML=GAMMES[sec].map(g=>{
-    const active=(state.gamme===g.id);
-    return '<button type="button" class="gamme'+(sec==='duo'?' gduo':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
+  /* Pendant l'offre, le mini-shoot est une formule comme les autres, juste
+     au-dessus de l'Essentielle (demande de Matt) : meme carte, memes
+     boutons de seance au-dessus. Le choisir passe la section a "mini". */
+  const liste=(offreMiniActive()?GAMMES.mini:[]).concat(GAMMES.simple);
+  box.innerHTML=liste.map(g=>{
+    const mini=g.id==='mini';
+    const active=sec==='mini'?mini:(state.gamme===g.id);
+    /* Pendant Noel : le prix habituel barre, le prix de Noel en rouge. */
+    const noelCarte=!mini && offreNoelActive();
+    const prixCarte=noelCarte ? g.prix-REMISE_NOEL.montant : g.prix;
+    return '<button type="button" class="gamme'+(mini?' gmini':'')+(active?' active':'')+(g.populaire?' pop':'')+'" data-gamme="'+g.id+'">'
       +(g.populaire?'<span class="gamme-tag">Le + choisi</span>':'')
-      +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+'</span>'
-        +'<span class="gamme-px"><span class="gamme-prix">'+euro(g.prix)+'</span>'
-        +'<span class="gamme-3x">ou <b>'+mensualite3(g.prix)+'/mois</b> en 3 fois sans frais</span></span></div>'
+      +(mini?'<span class="gamme-tag gamme-tag-mini">Spécial Noël</span>':'')
+      +'<div class="gamme-top"><span class="gamme-nom">'+g.nom+(g.sous?'<span class="gamme-sous">'+g.sous+'</span>':'')+'</span>'
+        +'<span class="gamme-px"><span class="gamme-prix">'+(noelCarte?'<s>'+euro(g.prix)+'</s> ':'')+euro(prixCarte)+'</span>'
+        /* Le mini-shoot se regle en une fois : pas de 3 fois. */
+        +(mini?'<span class="gamme-3x">réglé en une fois</span>'
+          :'<span class="gamme-3x">ou <b>'+mensualite3(prixCarte)+'/mois</b> en 3 fois sans frais</span>')
+        +'</span></div>'
       +'<ul class="gamme-inc">'+g.inclus.map(i=>'<li>'+resolveInc(i)+'</li>').join('')+'</ul>'
-      +'</button>';
+      +'</button>'
+      /* Un nouveau-ne en 45 minutes : on le dit juste sous la carte, avant
+         qu'elle reserve. */
+      +(mini&&sec==='mini'&&state.type==='naissance'?'<p class="mini-note">'+NOTE_MINI_NAISSANCE+'</p>':'');
   }).join('');
 }
 function render(){
   renderGammes();
   renderDuoNudge();
-  document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===(state.section==='duo'?'duo':state.type)));
+  if(typeof majAnnonceDuo==='function') majAnnonceDuo();
+  const modeActif=(state.section==='simple'||state.section==='mini')?state.type:state.section;
+  document.querySelectorAll('#typeSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===modeActif));
+  /* "Prochaine disponibilite : 3 novembre" n'a pas de sens pour une offre
+     qui ne vaut qu'en decembre : on la tait le temps de l'offre. */
+  const dn=document.getElementById('dispoNote');
+  if(dn) dn.style.display=state.section==='mini'?'none':'';
   const album=document.getElementById('optAlbum');
   if(album) album.classList.toggle('active',state.album);
   document.getElementById('photoVal').textContent=state.photos;
@@ -681,12 +757,16 @@ function render(){
       L.push({n:gs.nom+' . '+(s.cle==='grossesse'?'Grossesse':'Naissance'),
               s:retouchesTexte(gs)+' + toutes les brutes',p:gs.prix});
     });
-    L.push({n:'Remise pack duo',
+    if(p.noel){
+      L.push({n:'Prix de Noël',s:'100 € de moins sur chaque séance',p:-p.remise});
+      L.push({n:'5 photos imprimées offertes',s:'Livrées chez vous, cadeau de Noël',p:0});
+    }else L.push({n:'Remise pack duo',
             s:'Sur le total des 2 séances',p:-p.remise});
   }else{
     const g=currentGamme();
     const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
     L.push({n:g.nom+' . '+titreSeance,s:resolveInc(g.inclus[0]),p:g.prix});
+    if(remiseNoelSeance()) L.push({n:'Prix de Noël',s:'100 € de moins sur votre séance',p:-remiseNoelSeance()});
   }
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
   if(state.album)L.push({n:'Album photo imprimé',s:'Vos plus belles images réunies',p:PRIX.album});
@@ -814,13 +894,17 @@ document.getElementById('gammes').addEventListener('click',e=>{
   /* Le pack : un choix par seance, et non une formule unique. */
   const d=e.target.closest('[data-duo]');
   if(d){ state.duo[d.dataset.duo]=d.dataset.duoGamme; render(); return; }
-  const b=e.target.closest('.gamme'); if(b){ state.gamme=b.dataset.gamme; render(); }
+  const b=e.target.closest('.gamme'); if(!b) return;
+  if(b.dataset.gamme==='mini'){ state.section='mini'; }
+  else { state.section='simple'; state.gamme=b.dataset.gamme; }
+  render();
 });
 document.getElementById('typeSeg').addEventListener('click',e=>{
   const b=e.target.closest('.seg-btn'); if(!b)return;
   const mode=b.dataset.mode;
   if(mode==='duo'){ state.section='duo'; }
-  else { state.section='simple'; state.type=mode; if(!GAMMES.simple.some(g=>g.id===state.gamme)) state.gamme='essentielle'; }
+  /* Changer de seance garde la formule choisie, mini-shoot compris. */
+  else { if(state.section!=='mini') state.section='simple'; state.type=mode; if(!GAMMES.simple.some(g=>g.id===state.gamme)) state.gamme='essentielle'; }
   render();
 });
 document.getElementById('photoPlus').addEventListener('click',()=>{state.photos++;render();});
@@ -837,10 +921,16 @@ document.addEventListener('click',e=>{
 /* L'annonce de la remise, sous le titre "Votre formule" : celles qui
    hesitent entre une seance et deux doivent le voir AVANT de choisir. */
 const bandeauDuo=document.getElementById('duoAnnonce');
-if(bandeauDuo){
-  bandeauDuo.innerHTML='<b>Vous prévoyez les deux séances ?</b> Le pack grossesse + naissance '
-    +'est remisé, jusqu\'à <b>'+euro(remiseDuoMax())+' d\'économie</b>.';
+/* Redessinee a chaque rendu : pendant Noel, le pack change de cadeau. */
+function majAnnonceDuo(){
+  if(!bandeauDuo) return;
+  bandeauDuo.innerHTML=offreNoelActive()
+    ? '<b>Vous prévoyez les deux séances ?</b> Pour Noël, le pack grossesse + naissance passe aux prix de Noël, '
+      +'<b>100 € de moins sur chaque séance</b>, et <b>5 photos imprimées vous sont offertes</b>, livrées chez vous.'
+    : '<b>Vous prévoyez les deux séances ?</b> Le pack grossesse + naissance '
+      +'est remisé, jusqu\'à <b>'+euro(remiseDuoMax())+' d\'économie</b>.';
 }
+majAnnonceDuo();
 
 const optAlbum=document.getElementById('optAlbum');
 if(optAlbum) optAlbum.addEventListener('click',()=>{state.album=!state.album;render();});
@@ -889,9 +979,10 @@ let bookViewOnly=false;
    entre par ce bouton doit trouver l'option deja cochee, pas la rechercher. */
 let paiementVoulu='acompte';
 
-function openBooking(viewOnly){
+function openBooking(viewOnly,choixMini){
   bookViewOnly=!!viewOnly;
-  bookState={type:bookingType(),total:total(),acompte:bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
+  /* Le mini-shoot se paie en entier : l'"acompte" est le total. */
+  bookState={type:bookingType(),total:total(),acompte:state.section==='mini'?total():bookAcompte(total()),date:null,time:null,days:null,remise:0,coupon:'',kind:'',giftOnly:false,giftFormule:'',
     paiement:paiementVoulu,
     section:state.section,gamme:state.gamme,
     /* Le pack : une formule par seance. Le serveur refait le calcul et son
@@ -902,10 +993,37 @@ function openBooking(viewOnly){
   paiementVoulu='acompte';   // ne vaut que pour l'ouverture qui vient de se faire
   bookModal.classList.add('show');
   document.body.style.overflow='hidden';
+  if(choixMini){ renderBookChoixMini(); return; }
   bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
   loadAvailability();
 }
 function closeBooking(){bookModal.classList.remove('show');document.body.style.overflow='';}
+
+/* Le bouton du mini-shoot dans l'encadre du haut : un clic, et la fenetre
+   s'ouvre sur le choix de la seance, puis directement sur les dimanches. Le
+   configurateur passe sur le mini-shoot en meme temps, pour que le devis
+   dise la meme chose que la fenetre. */
+function ouvrirMini(){
+  if(!offreMiniActive()) return;
+  state.section='mini';
+  if(!OFFRE_MINI.types.includes(state.type)) state.type='grossesse';
+  render();
+  openBooking(false,true);
+}
+function renderBookChoixMini(){
+  bookBody.innerHTML='<div class="book-head"><span class="book-eyebrow">Mini-shoot spécial Noël · 97 €</span><h3>Pour quelle séance ?</h3>'
+    +'<p class="book-recap">45 minutes, 5 photos retouchées <span>Uniquement le dimanche</span></p></div>'
+    +'<div class="noel-choix">'
+    +OFFRE_MINI.types.map(t=>'<button type="button" class="noel-choix-b" data-choix-mini="'+t+'">Séance '+motSeance(t)+'</button>').join('')
+    +'</div>'
+    +'<p class="mini-note">'+NOTE_MINI_NAISSANCE+'</p>';
+  bookBody.querySelectorAll('[data-choix-mini]').forEach(b=>b.addEventListener('click',()=>{
+    state.type=b.dataset.choixMini; render();
+    bookState.type=state.type;
+    bookBody.innerHTML='<div class="book-info">Chargement des disponibilités...</div>';
+    loadAvailability();
+  }));
+}
 /* Fermer une fenetre en touchant son fond, seulement si le geste a
    COMMENCE sur le fond : une selection de texte commencee dans un champ et
    relachee en dehors comptait comme un clic sur le fond, et la fenetre se
@@ -1009,6 +1127,15 @@ async function loadAvailability(){
   try{
     const r=await fetch(CRM_API+'/mbs-availability',{method:'GET'});
     const j=await r.json();
+    /* Le mini-shoot n'a que ses dimanches de decembre, que le serveur
+       renvoie a part (champ "mini") : les jours habituels n'y servent pas. */
+    if(j&&bookState.section==='mini'){
+      j.days=j.mini||[];
+      if(!j.days.length){
+        bookBody.innerHTML='<div class="book-info">Tous les créneaux du mini-shoot sont pris. Appelez-moi au 06 47 76 54 17, on regarde ensemble.</div>';
+        return;
+      }
+    }
     if(!j.ok||!j.days||!j.days.length){
       bookBody.innerHTML='<div class="book-info">Aucun créneau disponible en ligne pour le moment. Appelez-moi au 06 47 76 54 17, on trouve une date ensemble.</div>';
       return;
@@ -1064,8 +1191,10 @@ function renderBookStep1(){
       +'<p class="book-recap">'+bookTypeLabel(bookState.type)
       +(bookState.giftFormule?' · formule '+bookState.giftFormule:'')
       +' <span>Séance déjà réglée</span></p></div>'
-    : '<div class="book-head"><span class="book-eyebrow">Votre réservation</span><h3>Choisissez votre créneau</h3>'
-      +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>Acompte '+bookState.acompte+' €</span></p></div>';
+    : '<div class="book-head"><span class="book-eyebrow">'+(bookState.section==='mini'?'Mini-shoot spécial Noël':'Votre réservation')+'</span><h3>Choisissez votre créneau</h3>'
+      +'<p class="book-recap">'+bookTypeLabel(bookState.type)+' <span>'+(bookState.section==='mini'
+        ? bookState.acompte+' €, réglés à la réservation'
+        : 'Acompte '+bookState.acompte+' €')+'</span></p></div>';
 
   const foot=bookViewOnly
     ? '<button type="button" class="btn btn-coral book-full" id="bookPick">Choisir une formule</button>'
@@ -1099,7 +1228,12 @@ function renderBookStep2(){
   const cadeau=bookState.kind==='cadeau';
   const libRemise=cadeau?'Bon cadeau':'Code de réduction';
   // venu avec un bon cadeau : le code est deja validé, on ne remontre pas le champ
-  const champCode=bookState.giftOnly
+  /* Le mini-shoot ne se cumule avec aucun code : on ne montre pas le
+     champ, le serveur refuse de toute facon. */
+  const champCode=bookState.section==='mini'
+    ? '<div class="promo-fixe">Mini-shoot de 45 minutes, 5 photos retouchées (les photos brutes ne sont pas comprises). Déjà à prix de Noël : il ne se cumule pas avec un code ou un bon.</div>'
+      +(bookState.type==='naissance'?'<p class="mini-note">'+NOTE_MINI_NAISSANCE+'</p>':'')
+    : bookState.giftOnly
     ? '<div class="promo-fixe">Bon cadeau <b>'+esc(bookState.coupon)+'</b> appliqué'
       +(bookState.giftFormule?' · formule '+esc(bookState.giftFormule):'')+'</div>'
     : '<div class="field promo-field"><label for="bPromo">Code de réduction ou bon cadeau <span class="opt">(facultatif)</span></label>'
@@ -1134,6 +1268,9 @@ function renderBookStep2(){
            ?(integral
                ?'<div class="book-sum-l"><span>Réglé en 3 fois, sans frais</span><b>3 &times; '+mensualite3(aPayer)+'</b></div>'
                 +'<div class="book-sum-note">Première mensualité aujourd\'hui, les deux autres à un mois d\'intervalle, prélevées par Klarna. Le détail vous est confirmé avant de valider. Rien à payer le jour de la séance.</div>'
+               :reste<=0
+               ?'<div class="book-sum-l"><span>À régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
+                +'<div class="book-sum-note">Tout est réglé à la réservation : rien à payer le jour de la séance.</div>'
                :'<div class="book-sum-l"><span>Acompte à régler maintenant</span><b>'+euro(aPayer)+'</b></div>'
                 +'<div class="book-sum-note">Le solde ('+euro(reste)+') se règle le jour de la séance.</div>')
            :'<div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
@@ -1143,7 +1280,7 @@ function renderBookStep2(){
     +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="bookBack">Retour</button>'
     /* Le bouton ne porte plus le total sur un 3 fois : "Regler 290 EUR"
        juste avant de partir chez Klarna faisait hesiter au dernier moment. */
-    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?(integral?'Régler en 3 fois sans frais':'Payer l\'acompte de '+aPayer+' €'):'Confirmer ma réservation')+'</button></div>';
+    +'<button type="button" class="btn btn-coral" id="bookPay">'+(aPayer>0?(integral?'Régler en 3 fois sans frais':reste<=0?'Payer '+aPayer+' €':'Payer l\'acompte de '+aPayer+' €'):'Confirmer ma réservation')+'</button></div>';
   bookBody.querySelectorAll('[data-regl]').forEach(b=>b.addEventListener('click',()=>{
     bookState.paiement=b.dataset.regl; renderBookStep2();
   }));
@@ -1166,7 +1303,7 @@ async function togglePromo(){
   btn.disabled=true; msg.className='promo-msg'; msg.textContent='Vérification...';
   try{
     const r=await fetch(CRM_API+'/mbs-coupon',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code,total:bookState.total})});
+      body:JSON.stringify({code,total:bookState.total,section:bookState.section})});
     const j=await r.json();
     if(j&&j.valide){ bookState.remise=j.remise; bookState.coupon=code; bookState.kind=j.kind||'promo'; renderBookStep2(); }
     else { msg.className='promo-msg err'; msg.textContent=(j&&j.message)||"Ce code n'est pas valable."; btn.disabled=false; }
@@ -1181,7 +1318,7 @@ function bookAPayer(){
   if(bookState.giftOnly) return 0;
   return Math.max(0,Math.min(bookState.acompte,bookState.total-(bookState.remise||0)));
 }
-function resetPayBtn(){const b=document.getElementById('bookPay');if(b){const p=bookAPayer();b.disabled=false;b.textContent=p>0?'Payer l\'acompte de '+p+' €':'Confirmer ma réservation';}}
+function resetPayBtn(){const b=document.getElementById('bookPay');if(b){const p=bookAPayer();b.disabled=false;b.textContent=p>0?(bookState.section==='mini'?'Payer ':'Payer l\'acompte de ')+p+' €':'Confirmer ma réservation';}}
 
 async function submitBooking(){
   const client={prenom:bookVal('bPrenom'),nom:bookVal('bNom'),email:bookVal('bEmail'),tel:bookVal('bTel')};
@@ -1536,13 +1673,60 @@ chargerDispoNote();
 function appliquerTheme(theme){
   const noel = theme === 'noel';
   document.documentElement.toggleAttribute('data-noel', noel);
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if(tc) tc.content = noel ? '#B5122B' : '#FAF4EA';
   try{ localStorage.setItem('mbsTheme', noel?'noel':'normal'); }catch(e){}
+  majOffreNoel();
 }
+
+/* L'offre de Noel suit l'habillage : visible avec lui, eteinte a la fin
+   du code meme si l'habillage reste. html[data-offre] montre l'encadre du
+   haut, le bouton Famille et le bouton du mini-shoot des formules
+   (css/noel.css). */
+function majOffreNoel(){
+  const active = offreNoelActive();
+  document.documentElement.toggleAttribute('data-offre', active);
+  if(!offreMiniActive() && state.section==='mini'){
+    state.section='simple';
+    if(!GAMMES.simple.some(g=>g.id===state.gamme)) state.gamme='essentielle';
+  }
+  /* Le bouton Famille ne se montre que pendant l'offre. */
+  if(!active && state.section!=='mini' && state.type==='famille') state.type='grossesse';
+  /* Toujours redessiner : les cartes rappellent le code pendant l'offre. */
+  render();
+}
+
+/* Le compte a rebours : la vraie fin du code, jamais une date qui recule
+   a chaque visite. */
+function majCompteNoel(){
+  const reste = Math.max(0, REMISE_NOEL.fin - Date.now());
+  const j = Math.floor(reste/864e5), h = Math.floor(reste/36e5)%24,
+        m = Math.floor(reste/6e4)%60, s = Math.floor(reste/1e3)%60;
+  const deux = n => (n<10?'0':'')+n;
+  document.querySelectorAll('[data-compte]').forEach(el=>{
+    const v = {j:j, h:deux(h), m:deux(m), s:deux(s)}[el.dataset.compte];
+    if(el.textContent !== String(v)) el.textContent = v;
+  });
+  if(!reste) majOffreNoel();
+}
+/* Les prix de l'encadre viennent des formules : ecrits en dur, ils
+   mentiraient au prochain changement de grille. */
+(function(){
+  const ul=document.getElementById('onPrix');
+  if(ul) ul.innerHTML=GAMMES.simple.map(g=>'<li><span>'+g.nom+'</span> <s>'+euro(g.prix)+'</s> <b>'+euro(g.prix-REMISE_NOEL.montant)+'</b></li>').join('');
+})();
+majOffreNoel();
+majCompteNoel();
+setInterval(majCompteNoel, 1000);
+document.querySelectorAll('.js-mini').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); ouvrirMini(); }));
 
 /* Le serveur fait foi : on le lit a chaque visite, sans bloquer la page.
    CRM_API est declare plus bas dans ce fichier : on attend la fin de la
-   lecture du script avant d'y toucher. */
+   lecture du script avant d'y toucher.
+   En apercu (?apercu=noel), on ne demande rien au serveur et on ne retient
+   rien : l'habillage pose par index.html reste le temps de la visite. */
 setTimeout(()=>{
+  if(/[?&]apercu=noel\b/.test(location.search)) return;
   fetch(CRM_API+'/mbs-theme',{cache:'no-store'})
     .then(r=>r.json())
     .then(j=>{ if(j&&j.theme) appliquerTheme(j.theme); })
@@ -1568,6 +1752,9 @@ setTimeout(()=>{
      Le pack porte les deux formules dans son identifiant,
      "duo-confort-prestige" : la grossesse d'abord, la naissance ensuite. */
   function offreCourante(){
+    /* Le mini-shoot s'offre aussi (bon de 18 mois, en semaine), seulement
+       pendant l'offre. */
+    if(state.section==='mini') return offreMiniActive()?(OFFRES.find(o=>o.id==='mini')||null):null;
     const id=state.section==='duo'
       ? 'duo-'+state.duo.grossesse+'-'+state.duo.naissance
       : state.gamme;
@@ -1579,7 +1766,7 @@ setTimeout(()=>{
   function render(){
     const offre=offreCourante();
     if(!offre){
-      body.innerHTML='<div class="book-info">Choisissez d\'abord une formule ci-contre, puis revenez ici.'
+      body.innerHTML='<div class="book-info">'+'Choisissez d\'abord une formule ci-contre, puis revenez ici.'
         +'<br><br>Une question ? Appelez Matt au 06 47 76 54 17.</div>';
       return;
     }
@@ -1588,7 +1775,14 @@ setTimeout(()=>{
     const quoi=duo?'Séances grossesse et naissance':('Séance '+motSeance());
     body.innerHTML=
       '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Offrir cette séance</h3>'
-      +'<p class="book-recap">Formule '+offre.nom+' <span>'+quoi+' · '+euro(offre.prix)+'</span></p></div>'
+      +'<p class="book-recap">Formule '+offre.nom+' <span>'+quoi+' · '+(prixBaseCadeau(offre)<offre.prix?'<s>'+euro(offre.prix)+'</s> ':'')+euro(prixBaseCadeau(offre))+'</span></p>'
+      +(packNoelCadeau(offre)
+        ? '<p class="gift-noel">Pour Noël, le pack est aux prix de Noël et <b>5 photos imprimées sont offertes</b>, livrées chez la personne.</p>'
+        : '')
+      +(noelPossible(offre)
+        ? '<p class="gift-noel">Pour Noël, offrez-la à une amie, une sœur, une collègue : une séance famille, par exemple. Le bon est valable 18 mois.</p>'
+        : '')
+      +'</div>'
       +'<div class="frow"><div class="field"><label for="gPrenom">Votre prénom</label><input id="gPrenom" type="text" autocomplete="given-name"></div>'
       +'<div class="field"><label for="gNom">Votre nom</label><input id="gNom" type="text" autocomplete="family-name"></div></div>'
       +'<div class="frow"><div class="field"><label for="gEmail">Votre email</label><input id="gEmail" type="email" autocomplete="email"></div>'
@@ -1599,17 +1793,21 @@ setTimeout(()=>{
       +'<div class="field" style="margin-top:4px"><label>Habillage du bon</label>'
       +'<div class="gstyles" id="gStyles"></div></div>'
       +'<div id="gApercuZone" style="margin:2px 0 12px"></div>'
-      +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.prix)+'</b></div>'
-      +'<div class="book-sum-note">Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
+      +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.duo?prixBaseCadeau(offre):offre.prix)+'</b></div>'
+      +(noelPossible(offre)?'<div class="book-sum-l promo"><span>Prix de Noël</span><b>- '+euro(REMISE_NOEL.montant)+'</b></div>':'')
+      +(packNoelCadeau(offre)?'<div class="book-sum-l"><span>5 photos imprimées, livrées chez elle</span><b>offert</b></div>':'')
+      +'<div class="book-sum-note">'+(offre.id==='mini'
+        ? 'Le bon couvre un mini-shoot de 45 minutes avec 5 photos retouchées (sans les photos brutes). Il est valable 18 mois, en semaine sur mes créneaux habituels. '
+        : '')+'Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
       +'Après le paiement vous recevez le bon à imprimer, avec son code unique. Elle choisira sa date elle-même. Le bon s\'utilise en une seule fois.</div></div>'
       +'<div class="book-err" id="giftErr"></div>'
       +'<div class="book-actions"><button type="button" class="btn btn-ghost" id="gCancel">Annuler</button>'
-      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(offre.prix)+'</button></div>'
+      +'<button type="button" class="btn btn-coral" id="gPay">Payer '+euro(prixBaseCadeau(offre))+'</button></div>'
       /* Le meme bouton que sur le configurateur de seance, a l'identique :
          celui qui a hesite entre offrir une seance et l'acheter pour lui
          retrouve le meme geste au meme endroit. */
       +'<button type="button" id="gPay3" class="tf"><span class="tf-p">3x</span>'
-      +'<span class="tf-t"><b>Régler le bon cadeau en 3 fois</b>'+mensualite3(offre.prix)+' par mois, sans frais, avec Klarna</span>'
+      +'<span class="tf-t"><b>Régler le bon cadeau en 3 fois</b>'+mensualite3(prixBaseCadeau(offre))+' par mois, sans frais, avec Klarna</span>'
       +'<span class="tf-fl">&rsaquo;</span></button>';
     document.getElementById('gCancel').addEventListener('click',close);
     document.getElementById('gPay').addEventListener('click',function(){ payer('carte'); });
@@ -1621,6 +1819,19 @@ setTimeout(()=>{
       const el=document.getElementById(id);
       if(el) el.addEventListener('input',function(){ majApercu(offre); });
     });
+  }
+
+  /* Le bon d'une seance unique, pendant l'offre de Noel : 100 euros de moins. */
+  function noelPossible(offre){ return !!offre && !offre.duo && offre.id!=='mini' && offreNoelActive(); }
+  /* Le bon d'un pack pendant Noel : les prix de Noel des deux seances et
+     5 photos imprimees offertes (mbs-gift le recalcule). */
+  function packNoelCadeau(offre){ return !!offre && offre.duo && !offre.ancien && offreNoelActive(); }
+  /* Ce que coute le bon : les prix de Noel pendant l'offre (le serveur
+     refait le calcul). */
+  function prixBaseCadeau(offre){
+    const m=/^duo-(essentielle|confort|prestige)-(essentielle|confort|prestige)$/.exec(offre.id||'');
+    if(packNoelCadeau(offre) && m) return prixPaireDuo(m[1],m[2]).prix;
+    return offre.prix-(noelPossible(offre)?REMISE_NOEL.montant:0);
   }
 
   /* moyen vaut 'carte' ou '3x'. Le choix est fait ICI, avant Stripe, pour
@@ -1661,10 +1872,18 @@ setTimeout(()=>{
   /* Les quinze habillages, en pastilles. Chacune montre le fond reel et la
      couleur d'accent : on choisit avec les yeux, pas avec un nom. */
   let styleChoisi = (typeof MBS_BON !== 'undefined') ? MBS_BON.STYLE_DEFAUT : 'creme';
+  /* Les habillages de Noel ne se proposent que pendant l'offre, en tete de
+     liste, et le premier est pre-choisi. Un bon deja vendu garde le sien
+     toute l'annee : bon.js sait toujours le dessiner. */
+  let stylesNoelVus=false;
   function renderStyles(offre){
     const z=document.getElementById('gStyles');
     if(!z || typeof MBS_BON==='undefined') return;
-    z.innerHTML=MBS_BON.STYLES.map(function(st){
+    const noel=offreNoelActive();
+    const liste=MBS_BON.STYLES.filter(st=>noel||!st.noel).sort((a,b)=>(b.noel?1:0)-(a.noel?1:0));
+    if(noel && !stylesNoelVus){ stylesNoelVus=true; if(styleChoisi===MBS_BON.STYLE_DEFAUT) styleChoisi=liste[0].id; }
+    if(!liste.some(st=>st.id===styleChoisi)) styleChoisi=MBS_BON.STYLE_DEFAUT;
+    z.innerHTML=liste.map(function(st){
       return '<button type="button" class="gstyle'+(st.id===styleChoisi?' on':'')+'"'
         +' data-s="'+st.id+'" title="'+st.nom+'" aria-label="'+st.nom+'"'
         +' style="background:'+st.fond+'">'
@@ -1725,7 +1944,9 @@ setTimeout(()=>{
     try{
       MBS_BON.dessiner(apercuCanvas, {
         style: styleChoisi,
-        formule: offre.nom,
+        /* Meme libelle que le vrai bon (mbs-gift) : a Noel, un pack porte
+           ses 5 photos imprimees offertes. */
+        formule: offre.nom+(packNoelCadeau(offre)?' + 5 photos imprimées offertes':''),
         seance: offre.duo ? 'duo' : state.type,
         // tant que les champs sont vides, on montre un exemple plutot qu'un blanc
         pour: lire('gPour') || 'Camille',

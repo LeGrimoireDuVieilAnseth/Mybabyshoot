@@ -124,12 +124,20 @@
   }
 }
 </script>
-<link rel="stylesheet" href="css/styles.css?v=43">
+<link rel="stylesheet" href="css/styles.css?v=45">
+<link rel="stylesheet" href="css/noel.css?v=1">
 <script>
 /* Le theme retenu de la derniere visite est applique tout de suite, sinon
    la page changerait de couleur une fois le serveur interroge. Il est
-   confirme ou corrige juste apres par js/app.js. */
-try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setAttribute('data-noel',''); }catch(e){}
+   confirme ou corrige juste apres par js/app.js.
+   ?apercu=noel dans l'adresse montre l'habillage de Noel sans l'activer
+   pour les visiteurs (rien n'est retenu). */
+try{
+  if(/[?&]apercu=noel\b/.test(location.search) || localStorage.getItem('mbsTheme')==='noel'){
+    document.documentElement.setAttribute('data-noel','');
+    var tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.content='#B5122B';
+  }
+}catch(e){}
 </script>
 </head>
 <body>
@@ -154,11 +162,49 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
 <!-- HERO -->
 <section class="hero" id="top">
   <div class="wrap hero-grid">
+    <!-- L'offre de Noel : cachee tant que html[data-offre] n'est pas pose
+         (habillage de Noel actif et offre pas encore finie, js/app.js).
+         Les prix barres viennent des formules (js/app.js), le serveur seul
+         applique la remise. -->
+    <div class="offre-noel" id="offreNoel">
+      <div class="on-txt">
+        <span class="on-tag">Offre de Noël · jusqu'au 26 décembre</span>
+        <p class="on-titre">Chez Mybabyshoot, c'est <span class="ser">vraiment Noël !</span></p>
+        <p class="on-remise">-100 € sur toutes les séances</p>
+        <p class="on-blague">Non, ce n'est pas une faute de frappe : le Père Noël a vérifié deux fois.</p>
+        <ul class="on-prix" id="onPrix"></ul>
+        <p class="on-sous">Grossesse, naissance, bébé ou famille. Réservez avant le 26 décembre, la séance peut avoir lieu plus tard. <b>Une idée cadeau originale :</b> offrez-la à une amie, une sœur, une collègue.</p>
+        <p class="on-note">Le pack grossesse + naissance aussi : 100 € de moins sur chaque séance, et 5 photos imprimées offertes, livrées chez vous. Bons cadeaux compris.</p>
+      </div>
+      <div class="on-droite">
+        <span class="on-fin">L'offre se termine dans</span>
+        <div class="on-compte" role="timer" aria-label="Temps restant avant la fin de l'offre">
+          <span><b data-compte="j">0</b>jours</span><span><b data-compte="h">00</b>heures</span><span><b data-compte="m">00</b>min</span><span><b data-compte="s">00</b>s</span>
+        </div>
+        <a href="#tarifs" class="btn btn-coral on-btn">Je réserve ma séance
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="#tarifs" class="btn on-btn on-btn-cadeau js-gift-nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 12v8H4v-8"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          J'offre une séance</a>
+      </div>
+      <!-- Le mini-shoot special Noel, aux couleurs du pain d'epices : les
+           quatre dimanches de decembre, ouverts pour lui seul (dates et
+           heures : OFFRE_MINI, mbs-lib.mjs). -->
+      <div class="on-mini">
+        <div class="on-mini-t">
+          <span class="on-mini-tag">Nouveau · uniquement le dimanche</span>
+          <p class="on-mini-titre">Le mini-shoot spécial Noël à <b>97 €</b></p>
+          <p class="on-mini-sous">45 minutes au studio et 5 photos retouchées, les dimanches 6, 13, 20 et 27 décembre : j'ouvre exceptionnellement le studio le dimanche, rien que pour eux. À offrir aussi en bon cadeau.</p>
+        </div>
+        <a href="#tarifs" class="btn on-btn on-btn-mini js-mini">Réserver un mini-shoot
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
     <div class="reveal">
       <span class="hero-badge"><span class="stars">★★★★★</span> <b id="heroRating">5,0</b> sur Google &nbsp;·&nbsp; Lyon</span>
       <h1>Ces instants ne reviennent pas.<br>Gardez-les <span class="ser">pour toujours.</span></h1>
       <div class="hero-promesse">
-        <span class="hp-tag">Quelle que soit la formule</span>
+        <span class="hp-tag">Quelle que soit la formule<span class="hors-mini"> (hors mini-shoot)</span></span>
         <b>Toutes vos photos, le jour même.</b>
         <span>Votre galerie privée est créée juste après la séance : vous y téléchargez <strong>l'intégralité des images, brutes et sans retouche</strong>. Pas une sélection choisie à votre place, pas de supplément, pas d'attente. Et c'est vous, ensuite, qui désignez celles que je retouche.</span>
       </div>
@@ -276,7 +322,7 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
       <h2>Tout est <span class="ser">déjà inclus</span></h2>
     </div>
     <div class="incl-grid reveal">
-      <div class="incl incl-top"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><path d="M11 7v6M8 10h6"/></svg></span><b>Toutes vos photos brutes</b><span class="d">Une galerie privée sera créée à la fin de votre séance : vous pourrez télécharger vos photos brutes le jour même. Elles sont toutes incluses, dans chaque formule !</span></div>
+      <div class="incl incl-top"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><path d="M11 7v6M8 10h6"/></svg></span><b>Toutes vos photos brutes</b><span class="d">Une galerie privée sera créée à la fin de votre séance : vous pourrez télécharger vos photos brutes le jour même. Elles sont toutes incluses, dans chaque formule<span class="hors-mini"> (hors mini-shoot du dimanche)</span> !</span></div>
       <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><b>Durée de séance confort</b><span class="d">Les créneaux sont espacés de 4 heures : on ne regarde jamais la montre, vous n'êtes jamais pressés par le temps.</span></div>
       <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7l4-3h8l4 3-3 3v9H7v-9z"/></svg></span><b>Dressing complet</b><span class="d">Robes, kimonos, bodys, voilages, tenues et langes pour bébé, petits accessoires. Tout est prêté sur place.</span></div>
       <div class="incl"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></span><b>Décors multiples</b><span class="d">4 à 5 décors sont installés pendant les séances naissance. Dites-moi si l'un vous plaît plus que les autres.</span></div>
@@ -323,6 +369,7 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
             <button type="button" class="seg-btn active" data-mode="grossesse">Grossesse</button>
             <button type="button" class="seg-btn" data-mode="naissance">Naissance</button>
             <button type="button" class="seg-btn" data-mode="bebe">Bébé</button>
+            <button type="button" class="seg-btn seg-famille" data-mode="famille">Famille</button>
             <button type="button" class="seg-btn seg-duo" data-mode="duo">Pack grossesse + naissance</button>
           </div>
           <div class="gammes" id="gammes"></div>
@@ -595,7 +642,7 @@ try{ if(localStorage.getItem('mbsTheme')==='noel') document.documentElement.setA
   </div>
 </div>
 
-<script src="js/bon.js?v=5"></script>
-<script src="js/app.js?v=62"></script>
+<script src="js/bon.js?v=6"></script>
+<script src="js/app.js?v=63"></script>
 </body>
 </html>

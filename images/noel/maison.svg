@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 132">
+  <!-- La maison du Pere Noel : chalet en rondins, toit enneige, fenetres
+       eclairees de l'interieur. Les lueurs vacillent comme des bougies. -->
+  <defs>
+    <radialGradient id="lueur" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFC45C" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#FFB040" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <style>
+    .halo{animation:vacille 2.3s ease-in-out infinite}
+    .halo2{animation:vacille 1.7s ease-in-out infinite reverse}
+    .vitre{animation:vitre 1.9s ease-in-out infinite}
+    .flamme{transform-box:fill-box;transform-origin:50% 100%;animation:flamme .9s ease-in-out infinite alternate}
+    .fumee{animation:monte 5s linear infinite;opacity:0}
+    .fumee.b{animation-delay:1.7s}.fumee.c{animation-delay:3.4s}
+    @keyframes vacille{0%,100%{opacity:.55}20%{opacity:.8}45%{opacity:.6}70%{opacity:.9}}
+    @keyframes vitre{0%,100%{fill:#FFD27A}35%{fill:#FFB648}70%{fill:#FFE19A}}
+    @keyframes flamme{from{transform:scaleY(.8) rotate(-4deg)}to{transform:scaleY(1.15) rotate(4deg)}}
+    @keyframes monte{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}100%{opacity:0;transform:translate(8px,-34px)}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}.fumee{opacity:.5}}
+  </style>
+  <!-- fumee de la cheminee -->
+  <circle class="fumee" cx="104" cy="22" r="5" fill="#EEF1F1"/>
+  <circle class="fumee b" cx="104" cy="22" r="6" fill="#E4E9EA"/>
+  <circle class="fumee c" cx="104" cy="22" r="4.5" fill="#F4F6F6"/>
+  <!-- cheminee -->
+  <rect x="96" y="24" width="16" height="28" fill="#9A3F2E"/>
+  <path d="M96 30 H112 M96 38 H112 M96 46 H112 M104 24 V30 M100 30 V38 M108 30 V38 M104 38 V46" stroke="#7A2E21" stroke-width="1"/>
+  <rect x="93" y="21" width="22" height="6" rx="3" fill="#FFFDF8"/>
+  <!-- murs en rondins -->
+  <rect x="22" y="62" width="106" height="66" fill="#8B5A2B"/>
+  <path d="M22 73 H128 M22 84 H128 M22 95 H128 M22 106 H128 M22 117 H128" stroke="#6B4220" stroke-width="2"/>
+  <!-- toit, et sa neige -->
+  <path d="M10 66 L75 20 L140 66 Z" fill="#5A3418"/>
+  <path d="M10 66 L75 20 L140 66" fill="none" stroke="#FFFDF8" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M20 70 q4 7 8 0 M44 70 q4 9 8 0 M98 70 q4 7 8 0 M122 70 q4 9 8 0" fill="#FFFDF8" stroke="#FFFDF8" stroke-width="3" stroke-linecap="round"/>
+  <!-- halos devant les fenetres (la lumiere qui deborde) -->
+  <circle class="halo" cx="42" cy="90" r="22" fill="url(#lueur)"/>
+  <circle class="halo2" cx="108" cy="90" r="22" fill="url(#lueur)"/>
+  <!-- fenetres -->
+  <rect class="vitre" x="31" y="80" width="22" height="20" rx="2" fill="#FFD27A" stroke="#5A3418" stroke-width="3"/>
+  <rect class="vitre" x="97" y="80" width="22" height="20" rx="2" fill="#FFD27A" stroke="#5A3418" stroke-width="3" style="animation-delay:.6s"/>
+  <!-- une bougie a chaque fenetre -->
+  <rect x="40" y="92" width="4" height="7" fill="#FFF6E8"/>
+  <ellipse class="flamme" cx="42" cy="89" rx="2" ry="3.2" fill="#FF8A1F"/>
+  <rect x="106" y="92" width="4" height="7" fill="#FFF6E8"/>
+  <ellipse class="flamme" cx="108" cy="89" rx="2" ry="3.2" fill="#FF8A1F" style="animation-delay:.4s"/>
+  <path d="M42 80 V100 M31 90 H53 M108 80 V100 M97 90 H119" stroke="#5A3418" stroke-width="2"/>
+  <!-- porte et sa couronne -->
+  <path d="M64 128 V100 a11 11 0 0 1 22 0 V128 Z" fill="#B5122B" stroke="#5A3418" stroke-width="2.5"/>
+  <circle cx="75" cy="104" r="6.5" fill="none" stroke="#1F7A4D" stroke-width="3.5"/>
+  <circle cx="75" cy="110" r="1.8" fill="#F2C14E"/>
+  <circle cx="81.5" cy="118" r="1.6" fill="#F2C14E"/>
+  <!-- neige au pied -->
+  <path d="M0 132 Q20 122 40 128 Q75 120 110 128 Q132 122 150 128 V132 Z" fill="#FFFDF8"/>
+</svg>

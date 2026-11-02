@@ -1,0 +1,366 @@
+/* =====================================================================
+   HABILLAGE DE NOEL
+   Matt l'active depuis son CRM (ou ?apercu=noel dans l'adresse pour le
+   regarder sans rien activer). Tout est sous html[data-noel] : sans
+   l'attribut, cette feuille ne change rien.
+   On ne touche ni au HTML ni aux liens ni aux boutons : la palette passe
+   au rouge, vert sapin et or, et les decors (sapin, cadeaux, sucres
+   d'orge, guirlandes, neige) sont des images de fond posees sur des
+   pseudo-elements, sans clic possible.
+   ===================================================================== */
+html[data-noel]{
+  --cream:#FFF9F1;
+  --cream-2:#F7EADB;
+  --ink:#1E2B24;
+  --ink-soft:#5E6B63;
+  --wine:#1B4D33;            /* vert sapin, pour les sections sombres */
+  --wine-deep:#0F3624;
+  --coral:#C8102E;           /* rouge de Noel, pour les accents */
+  --coral-deep:#A10E26;
+  --blush:#FBE3DE;
+  --gold:#D9A93F;
+  --line:#EBD9C4;
+  --cta:#B5122B;             /* boutons principaux en rouge */
+  --noel-or:#F2C14E;
+  --noel-sapin:#123F2A;
+  --noel-rayure:repeating-linear-gradient(-45deg,#C8102E 0 7px,#FFF9F1 7px 14px);
+}
+
+/* Le fond de page : quelques flocons tres pales, comme un papier cadeau. */
+html[data-noel] body{background:url(../images/noel/flocons.svg) 0 0/160px 160px,var(--cream)}
+html[data-noel] .gallery,
+html[data-noel] .compare,
+html[data-noel] .about{background:transparent}
+
+/* Le petit trait devant les sur-titres devient un sucre d'orge. */
+html[data-noel] .eyebrow::before{height:5px;border-radius:3px;background:var(--noel-rayure);
+  box-shadow:0 0 0 1px rgba(200,16,46,.25)}
+
+/* Les boutons principaux en rouge, le survol en vert sapin. */
+html[data-noel] .btn-coral{box-shadow:0 10px 26px -12px rgba(181,18,43,.7)}
+html[data-noel] .btn-coral:hover{background:var(--wine);box-shadow:0 16px 32px -14px rgba(27,77,51,.8)}
+
+/* La neige qui tombe : deux tailles de flocons sur une couche qui glisse
+   d'exactement une hauteur de motif, la boucle ne se voit donc pas. */
+html[data-noel] .hero::before,
+html[data-noel] .reserve::after,
+html[data-noel] .mobile-nav::before{
+  content:"";position:absolute;left:0;right:0;top:-480px;bottom:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(circle at 20px 30px,rgba(255,255,255,.85) 0 2px,transparent 2.6px),
+    radial-gradient(circle at 92px 128px,rgba(255,255,255,.7) 0 1.5px,transparent 2.1px),
+    radial-gradient(circle at 160px 62px,rgba(255,255,255,.8) 0 1.8px,transparent 2.4px),
+    radial-gradient(circle at 212px 190px,rgba(255,255,255,.6) 0 1.4px,transparent 2px),
+    radial-gradient(circle at 58px 204px,rgba(255,255,255,.75) 0 1.7px,transparent 2.3px),
+    radial-gradient(circle at 130px 226px,rgba(255,255,255,.55) 0 1.2px,transparent 1.8px),
+    radial-gradient(circle at 70px 90px,rgba(255,255,255,.9) 0 3px,transparent 3.6px),
+    radial-gradient(circle at 330px 260px,rgba(255,255,255,.85) 0 2.8px,transparent 3.4px),
+    radial-gradient(circle at 410px 40px,rgba(255,255,255,.8) 0 3.2px,transparent 3.8px),
+    radial-gradient(circle at 250px 400px,rgba(255,255,255,.75) 0 2.6px,transparent 3.2px);
+  background-size:240px 240px,240px 240px,240px 240px,240px 240px,240px 240px,240px 240px,
+    480px 480px,480px 480px,480px 480px,480px 480px;
+  animation:noel-neige 22s linear infinite;
+}
+@keyframes noel-neige{to{transform:translateY(480px)}}
+
+/* ---------- En-tete : un bandeau rouge et une guirlande lumineuse ---------- */
+html[data-noel] header,
+html[data-noel] header.scrolled{background:linear-gradient(180deg,#C8102E,#A50E25);
+  backdrop-filter:none;box-shadow:0 6px 18px -12px rgba(80,0,12,.7)}
+html[data-noel] header .brand{color:#fff}
+html[data-noel] header .nav a{color:rgba(255,255,255,.92)}
+html[data-noel] header .nav a:hover{color:var(--noel-or)}
+html[data-noel] header .nav .btn{background:#FFF9F1;color:#A50E25;box-shadow:0 8px 20px -12px rgba(0,0,0,.5)}
+html[data-noel] header .nav .btn:hover{background:var(--noel-or);color:#3B2A08}
+html[data-noel] header .burger span{background:#fff}
+html[data-noel] header::after{content:"";position:absolute;left:0;right:0;top:100%;height:30px;
+  background:url(../images/noel/guirlande.svg) 0 0/140px 34px repeat-x;pointer-events:none;
+  transition:opacity .4s;animation:noel-scintille 2.6s ease-in-out infinite alternate}
+html[data-noel] header.scrolled::after{opacity:0}
+@keyframes noel-scintille{from{filter:brightness(.9)}to{filter:brightness(1.25) saturate(1.15)}}
+/* Le lien du bon cadeau prend un petit paquet : c'est la saison des cadeaux. */
+html[data-noel] .nav .js-gift-nav,
+html[data-noel] .mobile-nav .js-gift-nav{display:inline-flex;align-items:center;gap:7px}
+html[data-noel] .nav .js-gift-nav::before{content:"";width:17px;height:17px;flex:none;
+  background:url(../images/noel/cadeau.svg) center/contain no-repeat;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.7))}
+html[data-noel] .mobile-nav .js-gift-nav::before{content:"";width:30px;height:30px;flex:none;
+  background:url(../images/noel/cadeau.svg) center/contain no-repeat}
+
+/* Menu du telephone : une nuit de Noel, guirlande en haut, neige derriere. */
+html[data-noel] .mobile-nav{background:linear-gradient(180deg,#14492F,#0C2F1F);overflow:hidden}
+html[data-noel] .mobile-nav::after{content:"";position:absolute;left:0;right:0;top:0;height:34px;
+  background:url(../images/noel/guirlande.svg) 0 0/140px 34px repeat-x;pointer-events:none}
+html[data-noel] .mobile-nav a{position:relative;z-index:1}
+html[data-noel] .mobile-nav .close{z-index:2;top:40px}
+
+/* ---------- Haut de page : une nuit verte, la neige, et le sapin ---------- */
+html[data-noel] .hero{overflow:hidden;padding-bottom:220px;background:
+  radial-gradient(70% 55% at 85% 8%,rgba(242,193,78,.20),transparent 60%),
+  radial-gradient(60% 60% at 0% 100%,rgba(200,16,46,.28),transparent 60%),
+  linear-gradient(180deg,#0F3B27 0%,#14492F 100%)}
+html[data-noel] .hero .wrap{position:relative;z-index:2}
+/* La scene posee sur la neige : la maison du Pere Noel a gauche (fenetres
+   eclairees a la bougie), au milieu le Pere Noel qui photographie ses
+   rennes (flash), le grand sapin et les cadeaux a droite. Les animations
+   vivent dans les SVG eux-memes, et s'arretent si le telephone demande
+   moins de mouvement. Seul le sol s'etire avec la largeur. */
+html[data-noel] .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:220px;
+  z-index:1;pointer-events:none;background:
+  url(../images/noel/sapin.svg) right max(20px,calc(50% - 590px)) bottom 28px/auto 190px no-repeat,
+  url(../images/noel/cadeaux.svg) right max(150px,calc(50% - 460px)) bottom 26px/auto 64px no-repeat,
+  url(../images/noel/pere-noel-photo.svg) center bottom 22px/auto 118px no-repeat,
+  url(../images/noel/maison.svg) left max(16px,calc(50% - 594px)) bottom 22px/auto 150px no-repeat,
+  url(../images/noel/sol.svg) center bottom/100% 72px no-repeat}
+html[data-noel] .hero-badge{border-color:var(--gold)}
+html[data-noel] .hero h1{color:#fff}
+html[data-noel] .hero h1 .ser{color:var(--noel-or)}
+html[data-noel] .hero-promesse{background:rgba(255,255,255,.08);border-left-color:var(--noel-or)}
+html[data-noel] .hero-promesse .hp-tag{color:var(--noel-or)}
+html[data-noel] .hero-promesse b,
+html[data-noel] .hero-promesse strong{color:#fff}
+html[data-noel] .hero-promesse span{color:rgba(255,249,241,.82)}
+html[data-noel] .hero-sub{color:rgba(255,249,241,.8)}
+html[data-noel] .hero-sub strong{color:#fff}
+html[data-noel] .hero-3x{box-shadow:0 12px 26px -14px rgba(0,0,0,.6)}
+html[data-noel] .hero-3x-b{background:var(--noel-or);color:#8E0A1F}
+html[data-noel] .hero .btn-ghost{color:#fff;border-color:rgba(255,255,255,.45)}
+html[data-noel] .hero .btn-ghost:hover{color:var(--noel-or);border-color:var(--noel-or)}
+/* Le bon cadeau, comme une etiquette nouee d'un ruban rouge. */
+html[data-noel] .hero-bon{border:2px solid var(--noel-or);box-shadow:inset 7px 0 0 var(--coral),0 14px 30px -18px rgba(0,0,0,.6);padding-left:22px}
+html[data-noel] .hero-bon>svg:first-child{color:var(--coral)}
+html[data-noel] .hero-bon:hover{border-color:#fff}
+html[data-noel] .hero-bulle-tel{border-color:var(--noel-or)}
+/* Les trois photos emballees comme un cadeau : le ruban passe dans les
+   espaces de la grille et le noeud se pose a leur croisement. */
+html[data-noel] .bento{position:relative}
+html[data-noel] .bento::before{content:"";position:absolute;left:calc(50% - 7px);width:14px;top:-8px;bottom:-8px;
+  background:linear-gradient(90deg,#E2B04A 0 2px,#C8102E 2px 12px,#E2B04A 12px);border-radius:3px;pointer-events:none}
+html[data-noel] .bento::after{content:"";position:absolute;left:calc(50% - 42px);right:-8px;
+  top:calc((100% - 14px) * .6 + 7px - 30px);height:60px;z-index:3;pointer-events:none;background:
+  url(../images/noel/noeud.svg) left center/84px 55px no-repeat,
+  linear-gradient(180deg,#E2B04A 0 2px,#C8102E 2px 12px,#E2B04A 12px) right center/calc(100% - 42px) 14px no-repeat}
+html[data-noel] .bento-tag{background:var(--coral);color:#fff}
+
+/* ---------- Ruban qui defile : rouge, bordé de sucre d'orge ---------- */
+html[data-noel] .proof-band{padding:25px 0;background:
+  var(--noel-rayure) top/100% 7px no-repeat,
+  var(--noel-rayure) bottom/100% 7px no-repeat,
+  #B5122B}
+html[data-noel] .marquee span{color:#fff}
+html[data-noel] .marquee span::after{content:"\2744\FE0E";color:var(--noel-or)}
+
+/* ---------- Chiffres et avis ---------- */
+html[data-noel] .stat{border-top:4px solid var(--coral)}
+html[data-noel] .stat:nth-child(even){border-top-color:#1F7A4D}
+html[data-noel] .rev{border-top:3px solid var(--coral)}
+html[data-noel] .rev:nth-child(even){border-top-color:#1F7A4D}
+/* Une branche de houx sous les titres centres. */
+html[data-noel] .head.center::after{content:"";display:block;width:120px;height:32px;margin:14px auto 0;
+  background:url(../images/noel/houx.svg) center/contain no-repeat}
+
+/* ---------- Compris dans chaque seance : vert sapin et guirlande ---------- */
+html[data-noel] .included{padding-top:70px}
+html[data-noel] .included::before{background:
+  url(../images/noel/guirlande.svg) 0 0/140px 34px repeat-x,
+  radial-gradient(50% 70% at 90% 10%,rgba(242,193,78,.18),transparent 60%)}
+html[data-noel] .included .eyebrow,
+html[data-noel] .included .head h2 .ser,
+html[data-noel] .incl-head h2 .ser,
+html[data-noel] .incl-link{color:var(--noel-or)}
+html[data-noel] .incl-top{box-shadow:inset 0 0 0 1px rgba(242,193,78,.55)}
+
+/* ---------- Formules et reservation ---------- */
+/* Deux sucres d'orge croises a cote du titre. */
+html[data-noel] .config .head{position:relative}
+html[data-noel] .config .head::after{content:"";position:absolute;right:0;top:-8px;width:40px;height:44px;
+  background:url(../images/noel/sucres-orge.svg) center/contain no-repeat;pointer-events:none}
+@media(min-width:981px){
+  html[data-noel] .config .head::after{right:-190px;top:-4px;width:124px;height:136px}
+}
+/* Les etapes numerotees deviennent des boules de Noel. */
+html[data-noel] .howto .hn,
+html[data-noel] .scard-h .n{position:relative;color:#fff;
+  background:radial-gradient(circle at 34% 30%,#FF6B7E 0,#C8102E 45%,#8E0A1F 100%);
+  box-shadow:0 6px 14px -6px rgba(142,10,31,.7)}
+html[data-noel] .howto .hn::before,
+html[data-noel] .scard-h .n::before{content:"";position:absolute;top:-5px;left:50%;width:11px;height:7px;
+  margin-left:-5.5px;border-radius:2px 2px 1px 1px;background:linear-gradient(90deg,#B8862E,#F2C14E,#B8862E)}
+html[data-noel] .howto li:nth-child(2) .hn,
+html[data-noel] .steps .scard:nth-child(2) .scard-h .n{background:radial-gradient(circle at 34% 30%,#5FD394 0,#1F7A4D 50%,#0F3B26 100%);
+  box-shadow:0 6px 14px -6px rgba(15,59,38,.7)}
+html[data-noel] .howto li:nth-child(3) .hn,
+html[data-noel] .steps .scard:nth-child(3) .scard-h .n{background:radial-gradient(circle at 34% 30%,#FFE59A 0,#E2B04A 50%,#A87A1F 100%);
+  color:#3B2A08;box-shadow:0 6px 14px -6px rgba(168,122,31,.7)}
+/* Chaque formule est un paquet : un ruban rouge sur le cote, noue en haut. */
+html[data-noel] .gamme{background:#fff;padding-left:40px}
+html[data-noel] .gamme::before{content:"";position:absolute;left:15px;top:-1.5px;bottom:-1.5px;width:8px;
+  background:linear-gradient(90deg,#A50E25,#E23B4F 50%,#A50E25);pointer-events:none}
+html[data-noel] .gamme::after{content:"";position:absolute;left:1px;top:-12px;width:36px;height:24px;
+  background:url(../images/noel/noeud.svg) center/contain no-repeat;pointer-events:none}
+html[data-noel] .gamme.gduo::before{background:linear-gradient(90deg,#B8862E,#F6D57E 50%,#B8862E)}
+html[data-noel] .gamme-tag{background:#1F7A4D}
+html[data-noel] .devis-h{background:linear-gradient(160deg,#14492F,#0C2F1F)}
+html[data-noel] .devis-h::after{background:radial-gradient(70% 130% at 95% 0%,rgba(242,193,78,.35),transparent 60%)}
+html[data-noel] .devis-h .eyebrow{color:var(--noel-or)}
+
+/* ---------- Contact : nuit de Noel, guirlande et neige ---------- */
+html[data-noel] .reserve{padding-top:120px}
+html[data-noel] .reserve::before{background:
+  url(../images/noel/guirlande.svg) 0 0/140px 34px repeat-x,
+  radial-gradient(55% 75% at 12% 18%,rgba(200,16,46,.25),transparent 60%)}
+html[data-noel] .reserve .wrap{z-index:1}
+html[data-noel] .reserve .head p{color:rgba(255,249,241,.75)}
+html[data-noel] .reserve .eyebrow,
+html[data-noel] .reserve .head h2 .ser,
+html[data-noel] .steps-list .sn{color:var(--noel-or)}
+
+/* ---------- Pied de page : de la neige posee sur le haut ---------- */
+html[data-noel] footer{position:relative;background:#0C2A1C;padding-top:96px}
+html[data-noel] footer::before{content:"";position:absolute;left:0;right:0;top:0;height:28px;
+  background:url(../images/noel/neige-bord.svg) 0 0/240px 28px repeat-x;pointer-events:none}
+html[data-noel] footer h4,
+html[data-noel] footer a:hover{color:var(--noel-or)}
+html[data-noel] .foot-itin{color:var(--noel-or)!important}
+html[data-noel] .foot-itin:hover{border-color:var(--noel-or)}
+
+/* ---------- Elements fixes : barre du bas, assistant, fenetres ---------- */
+html[data-noel] .mcta::before{content:"";position:absolute;left:0;right:0;top:-5px;height:5px;
+  background:var(--noel-rayure);pointer-events:none}
+/* L'assistant passe en vert et met son bonnet. */
+html[data-noel] .chat-fab{background:var(--wine);box-shadow:0 12px 30px -8px rgba(15,54,36,.55)}
+html[data-noel] .chat-fab::before{content:"";position:absolute;top:-17px;left:4px;width:40px;height:33px;
+  background:url(../images/noel/bonnet.svg) center/contain no-repeat;transform:rotate(-14deg);pointer-events:none}
+html[data-noel] .chat-head{background:var(--wine)}
+html[data-noel] .book-modal-inner{background:var(--noel-rayure) top/100% 6px no-repeat,var(--cream)}
+
+/* ---------- Telephone ---------- */
+@media(max-width:980px){
+  html[data-noel] .hero{padding-bottom:200px}
+  html[data-noel] .hero::after{height:200px}
+}
+@media(max-width:560px){
+  html[data-noel] .hero{padding-bottom:150px}
+  html[data-noel] .hero::after{height:150px;background:
+    url(../images/noel/sapin.svg) right 10px bottom 18px/auto 112px no-repeat,
+    url(../images/noel/cadeaux.svg) right 94px bottom 16px/auto 34px no-repeat,
+    url(../images/noel/pere-noel-photo.svg) left 104px bottom 14px/auto 54px no-repeat,
+    url(../images/noel/maison.svg) left 6px bottom 14px/auto 86px no-repeat,
+    url(../images/noel/sol.svg) center bottom/100% 48px no-repeat}
+  html[data-noel] header::after{height:24px;background-size:112px 27px}
+  html[data-noel] .reserve{padding-top:96px}
+  html[data-noel] footer{padding-top:84px}
+}
+
+/* =====================================================================
+   L'OFFRE DE NOEL : -100 EUROS SUR CHAQUE SEANCE, jusqu'au 26 decembre
+   html[data-offre] est pose par js/app.js quand l'habillage est actif et
+   que le code court encore. Sans lui, rien ne s'affiche.
+   Le mini-shoot du dimanche suit le meme attribut.
+   ===================================================================== */
+.offre-noel,.seg-famille,.hors-mini{display:none}
+html[data-offre] .seg-famille{display:block}
+html[data-offre] .hors-mini{display:inline}
+html[data-offre] .offre-noel{grid-column:1/-1;position:relative;z-index:3;
+  display:grid;grid-template-columns:1.35fr 1fr;gap:18px 34px;align-items:center;
+  margin:6px 0 0;padding:24px 28px 22px;border-radius:22px;
+  background:linear-gradient(#FFF9F1,#FFF9F1) padding-box,var(--noel-rayure) border-box;
+  border:6px solid transparent;box-shadow:0 26px 50px -24px rgba(0,0,0,.7)}
+/* Le noeud pose sur le cadre, comme sur un paquet. */
+html[data-offre] .offre-noel::before{content:"";position:absolute;left:22px;top:-30px;width:70px;height:46px;
+  background:url(../images/noel/noeud.svg) center/contain no-repeat;pointer-events:none}
+html[data-offre] .hero-grid{row-gap:36px}
+.on-tag{display:inline-block;background:var(--coral);color:#fff;font-weight:800;font-size:11.5px;
+  letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
+.on-titre{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,3.4vw,2.5rem);
+  line-height:1.05;letter-spacing:-.02em;color:var(--ink);margin:12px 0 8px}
+.on-titre b{color:var(--coral);white-space:nowrap}
+.on-titre .ser{color:var(--coral)}
+/* La remise, en tres gros, puis la petite blague. */
+.on-remise{margin:0 0 4px;font-family:var(--display);font-weight:800;font-size:clamp(2rem,4.6vw,3.2rem);
+  line-height:1;letter-spacing:-.03em;color:var(--coral)}
+.on-blague{margin:0 0 12px;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft)}
+/* Les trois formules, prix habituel barre puis prix avec le code. */
+.on-prix{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px}
+.on-prix li{display:inline-flex;align-items:baseline;gap:6px;background:#fff;border:1.5px solid var(--line);
+  border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--ink)}
+.on-prix li span{font-weight:700}
+.on-prix s{color:var(--ink-soft);font-size:12.5px}
+.on-prix b{font-family:var(--display);font-weight:800;color:var(--coral);font-size:15px}
+.on-note{margin:8px 0 0;font-size:12px;color:var(--ink-soft)}
+.on-btn-cadeau{background:#fff;color:#1F7A4D;border:2px solid #1F7A4D}
+.on-btn-cadeau svg{width:18px;height:18px}
+.on-btn-cadeau:hover{background:#1F7A4D;color:#fff;transform:translateY(-3px)}
+.gift-noel{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:rgba(31,122,77,.08);
+  font-size:13.5px;line-height:1.5;color:var(--ink)}
+.on-sous{font-size:14.5px;line-height:1.55;color:var(--ink-soft);margin:0}
+.on-sous b{color:var(--ink)}
+.on-droite{display:flex;flex-direction:column;gap:10px}
+.on-fin{font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral-deep);text-align:center}
+.on-compte{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.on-compte span{background:linear-gradient(180deg,#1A5638,#0F3B27);border-radius:12px;padding:8px 4px 7px;
+  text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:rgba(255,255,255,.72);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.on-compte b{display:block;font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1.05;
+  color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.on-btn{width:100%}
+
+/* Le mini-shoot dans les formules : une carte comme les autres, juste
+   au-dessus de l'Essentielle, aux couleurs du pain d'epices (Matt : "une
+   petite touche de marron et de creme" au milieu du rouge et du vert). */
+.gamme-sous{display:block;margin-top:2px;font-family:var(--body);font-size:12px;font-weight:700;
+  letter-spacing:.02em;color:#8B5A2B}
+html[data-noel] .gamme.gmini{background:linear-gradient(180deg,#FFF9F1,#FBEBD6)}
+html[data-noel] .gamme.gmini::before{background:linear-gradient(90deg,#6B4220,#C68B59 50%,#6B4220)}
+html[data-noel] .gamme.gmini .gamme-prix{color:#7E4E25}
+html[data-noel] .gamme.gmini .gamme-3x{color:#8B5A2B}
+html[data-noel] .gamme.gmini.active{border-color:#8B5A2B;box-shadow:0 0 0 2px #8B5A2B}
+html[data-noel] .gamme.gmini .gamme-inc li::before{border-color:#8B5A2B}
+.gamme-tag-mini{background:#8B5A2B!important;color:#FFF3E0}
+/* Dans la fenetre de reservation : quelle seance, avant les dates. */
+.noel-choix{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.noel-choix-b{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:18px 10px;
+  font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);cursor:pointer;transition:.2s}
+.noel-choix-b:hover{border-color:var(--coral);color:var(--coral-deep);transform:translateY(-2px)}
+
+@media(max-width:760px){
+  html[data-offre] .offre-noel{grid-template-columns:1fr;padding:22px 18px 18px;gap:16px}
+  .on-compte b{font-size:1.5rem}
+}
+@media(max-width:420px){
+  .noel-type{flex-basis:calc(50% - 4px)}
+  .on-tag{font-size:10px;letter-spacing:.04em;padding:5px 10px}
+  .on-btn{padding:15px 14px;font-size:14px;gap:7px}
+}
+/* Pendant l'offre, les quatre seances en 2 x 2 sur telephone : seule, la
+   cinquieme (Famille) prenait toute une ligne. */
+@media(max-width:560px){
+  html[data-offre] #typeSeg .seg-btn:not(.seg-duo){flex:1 1 calc(50% - 5px)}
+}
+/* Le mini-shoot special Noel, en bas de l'encadre, sur toute sa largeur :
+   un biscuit de pain d'epices, pate brune et glacage blanc en pointilles. */
+.on-mini{grid-column:1/-1;display:grid;grid-template-columns:1.35fr 1fr;gap:12px 34px;align-items:center;
+  margin-top:4px;padding:18px 20px;border-radius:18px;border:2.5px dashed #FFF6E8;
+  background:radial-gradient(120% 140% at 0% 0%,#A86F3D 0,#8B5A2B 55%,#6E4421 100%);
+  box-shadow:0 0 0 4px #8B5A2B,0 16px 30px -18px rgba(70,35,10,.8)}
+.on-mini-tag{display:inline-block;background:#FFF3E0;color:#6B4220;font-weight:800;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.on-mini-titre{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,2.4vw,1.6rem);line-height:1.1;
+  color:#FFF6E8;margin:8px 0 6px}
+.on-mini-titre b{color:#F6CF96;white-space:nowrap}
+.on-mini-sous{margin:0;font-size:14px;line-height:1.5;color:rgba(255,243,224,.9)}
+.on-btn-mini{background:#FFF3E0;color:#6B4220;box-shadow:0 10px 24px -12px rgba(50,25,8,.8)}
+.on-btn-mini:hover{background:#fff;color:#4E2E14;transform:translateY(-3px)}
+/* La mise en garde pour un nouveau-ne. */
+.mini-note{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#FFF4D6;border:1px solid #F2C14E;
+  font-size:13px;line-height:1.5;color:#5A4410}
+@media(max-width:760px){ .on-mini{grid-template-columns:1fr;padding:14px} }
+/* Le pack aux prix de Noel : le prix habituel barre, plus discret, et les
+   montants de l'addition jamais coupes en deux lignes. */
+html[data-noel] .duo-pick-p s{color:var(--ink-soft);font-size:.78em;font-weight:600;margin-right:2px}
+html[data-noel] .duo-sum span b{white-space:nowrap}
+/* Pendant Noel, le prix habituel barre devant le prix de Noel, sur les
+   cartes et dans le bon cadeau. */
+html[data-noel] .gamme-prix s{color:var(--ink-soft);font-size:.72em;font-weight:600;margin-right:3px}
+html[data-noel] .book-recap s{opacity:.7;margin-right:2px}

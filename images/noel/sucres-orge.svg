@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110">
+  <g transform="rotate(-16 44 64)">
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#E9C9C9" stroke-width="11" stroke-linecap="round"/>
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#FFFDF8" stroke-width="9" stroke-linecap="round"/>
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#D7263D" stroke-width="9" stroke-dasharray="6 6"/>
+  </g>
+  <g transform="translate(100 0) scale(-1 1) rotate(-16 44 64)">
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#E9C9C9" stroke-width="11" stroke-linecap="round"/>
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#FFFDF8" stroke-width="9" stroke-linecap="round"/>
+    <path d="M36 104 V32 A13 13 0 0 1 62 32 V40" fill="none" stroke="#1F7A4D" stroke-width="9" stroke-dasharray="6 6"/>
+  </g>
+  <g transform="translate(50 74)">
+    <path d="M0 0 Q-3 -5 -6 -3 Q-8 -7 -11 -4 Q-14 -7 -16 -3 Q-20 -4 -22 0 Q-20 4 -16 3 Q-14 7 -11 4 Q-8 7 -6 3 Q-3 5 0 0Z" fill="#1F7A4D" transform="rotate(20)"/>
+    <path d="M0 0 Q3 -5 6 -3 Q8 -7 11 -4 Q14 -7 16 -3 Q20 -4 22 0 Q20 4 16 3 Q14 7 11 4 Q8 7 6 3 Q3 5 0 0Z" fill="#23864F" transform="rotate(-20)"/>
+    <circle cx="-3" cy="-3" r="3.6" fill="#D7263D"/>
+    <circle cx="3.5" cy="-3.5" r="3.6" fill="#C8102E"/>
+    <circle cx="0" cy="2.5" r="3.6" fill="#E23B4F"/>
+  </g>
+</svg>
