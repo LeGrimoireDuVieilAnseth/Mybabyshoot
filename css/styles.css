@@ -316,6 +316,8 @@ section{padding:100px 0}
 .gamme.gduo .gamme-prix{color:var(--gold)}
 .gamme.gduo .gamme-inc li{color:rgba(252,248,242,.82)}
 .gamme.gduo .gamme-inc li::before{border-color:var(--coral)}
+/* Sous "Seance ... en studio" : le creneau de 4 h et la duree de la seance. */
+.gamme-inc .inc-sous{display:block;margin-top:2px;font-size:12.5px;font-weight:600;color:var(--coral-deep);line-height:1.35}
 /* ---- Le pack 2 seances : une colonne par seance ----
    Deux colonnes cote a cote des 560 px, l'une sous l'autre en dessous :
    sur un telephone, deux colonnes de trois formules rendraient les prix

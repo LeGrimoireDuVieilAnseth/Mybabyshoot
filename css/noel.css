@@ -258,9 +258,12 @@ html[data-noel] .book-modal-inner{background:var(--noel-rayure) top/100% 6px no-
    que le code court encore. Sans lui, rien ne s'affiche.
    Le mini-shoot du dimanche suit le meme attribut.
    ===================================================================== */
-.offre-noel,.seg-famille,.hors-mini{display:none}
+.offre-noel,.seg-famille{display:none}
 html[data-offre] .seg-famille{display:block}
-html[data-offre] .hors-mini{display:inline}
+/* !important : ".hero-promesse span" (styles.css) met les span en block et
+   l'emportait, la mention s'affichait hors de l'offre (corrige le 02/11/2026). */
+.hors-mini{display:none!important}
+html[data-offre] .hors-mini{display:inline!important}
 html[data-offre] .offre-noel{grid-column:1/-1;position:relative;z-index:3;
   display:grid;grid-template-columns:1.35fr 1fr;gap:18px 34px;align-items:center;
   margin:6px 0 0;padding:24px 28px 22px;border-radius:22px;

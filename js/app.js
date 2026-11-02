@@ -32,15 +32,15 @@ function tiragesDetail(){
 /* Gammes (formules). Modifie librement noms, prix et inclusions. */
 const GAMMES = {
   simple: [
-    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio','<b>5 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
-    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio','<b>15 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
-    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] }
+    { id:'essentielle', nom:'Essentielle', prix:290, retouchees:5, inclus:['Séance @T en studio@D','<b>5 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
+    { id:'confort', nom:'Confort', prix:390, populaire:true, retouchees:15, inclus:['Séance @T en studio@D','<b>15 photos retouchées</b>, que vous choisissez','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] },
+    { id:'prestige', nom:'Prestige', prix:490, inclus:['Séance @T en studio@D','<b>Toutes les plus belles photos retouchées</b>, sans limite','<b>Toutes les photos de la séance</b> : à récupérer le jour même, brutes et sans retouche'] }
   ],
   /* Le mini-shoot special Noel : une carte a part, affichee juste au-dessus
      de l'Essentielle pendant l'offre, pour ne pas entrer dans le pack qui
      parcourt GAMMES.simple. */
   mini: [
-    { id:'mini', nom:'Mini-shoot spécial Noël', sous:'Uniquement le dimanche', prix:97, retouchees:5, inclus:['Séance @T de <b>45 minutes</b>, un dimanche de décembre (6, 13, 20 ou 27)','<b>5 photos retouchées</b>, que vous choisissez','Les photos brutes ne sont pas comprises dans le mini-shoot','<b>Réglé en entier</b> à la réservation'] }
+    { id:'mini', nom:'Mini-shoot spécial Noël', sous:'Uniquement le dimanche', prix:97, retouchees:5, inclus:['Séance @T de <b>45 minutes</b>, un dimanche de décembre (6, 13, 20 ou 27)','<b>5 photos retouchées</b>, que vous choisissez','Les photos brutes ne sont pas comprises dans le mini-shoot'] }
   ]
 };
 
@@ -597,7 +597,15 @@ function bookingType(){return state.section==='duo'?'duo':state.type;}
    pour les bons cadeaux offerts a quelqu'un qui n'attend pas d'enfant. */
 const MOT_SEANCE = { grossesse:'grossesse', naissance:'naissance', bebe:'bébé', famille:'famille' };
 function motSeance(t){ return MOT_SEANCE[t||state.type] || 'grossesse'; }
-function resolveInc(i){ return i.replace('@T', motSeance()); }
+/* Sous "Seance ... en studio" : le creneau de 4 h reserve, et la duree
+   reelle donnee par Matt (02/11/2026) : grossesse environ 1 h 30,
+   naissance 2 h a 2 h 30. Pas de duree inventee pour bebe et famille. */
+const DUREE_SEANCE = { grossesse:'séance d\'environ 1 h 30', naissance:'séance de 2 h à 2 h 30' };
+function dureeInc(t){
+  const d = DUREE_SEANCE[t||state.type];
+  return '<span class="inc-sous">Créneau de 4 h rien que pour vous'+(d?' ('+d+')':'')+'</span>';
+}
+function resolveInc(i){ return i.replace('@T', motSeance()).replace('@D', dureeInc()); }
 /* Les 100 euros de Noel d'une seance unique (le pack a les siens). */
 function remiseNoelSeance(){ return (state.section==='simple' && offreNoelActive()) ? REMISE_NOEL.montant : 0; }
 function total(){return prixBase()-remiseNoelSeance()+state.photos*PRIX.photoSupp+(state.album?PRIX.album:0)+tiragesDetail().total+(state.ext?state.extFrais:0);}
@@ -765,7 +773,7 @@ function render(){
   }else{
     const g=currentGamme();
     const titreSeance = motSeance().charAt(0).toUpperCase()+motSeance().slice(1);
-    L.push({n:g.nom+' . '+titreSeance,s:resolveInc(g.inclus[0]),p:g.prix});
+    L.push({n:g.nom+' . '+titreSeance,s:resolveInc(g.inclus[0].replace('@D','')),p:g.prix});
     if(remiseNoelSeance()) L.push({n:'Prix de Noël',s:'100 € de moins sur votre séance',p:-remiseNoelSeance()});
   }
   if(state.photos>0)L.push({n:state.photos+' photo'+(state.photos>1?'s':'')+' supplémentaire'+(state.photos>1?'s':''),s:euro(PRIX.photoSupp)+' la photo',p:state.photos*PRIX.photoSupp});
