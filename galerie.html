@@ -452,7 +452,7 @@ async function charger(){
   try { r = await fetch(API + "?g=" + JETON + (APERCU ? "&apercu=1" : ""), { cache: "no-store" }); j = await r.json(); }
   catch(e){ message("Connexion impossible", "Vérifiez votre connexion internet, puis rechargez la page."); return; }
   if(r.status === 410) return message("Cette galerie n'est plus en ligne",
-    "Les galeries restent en ligne trois mois. Si vous avez besoin de vos photos, appelez-moi au 06 47 76 54 17.");
+    "Les galeries restent en ligne six mois. Si vous avez besoin de vos photos, appelez-moi au 06 47 76 54 17.");
   if(r.status === 409 && j.erreur === "preparation") return message("Votre galerie arrive bientôt",
     "Je termine de la préparer. Revenez un peu plus tard, le lien restera le même.");
   if(r.status === 429) return message("Trop d'essais", esc(j.message || ""));
