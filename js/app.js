@@ -150,6 +150,13 @@ document.getElementById('heroRating').textContent=CHIFFRES.note;
    ===================================================================== */
 const GOOGLE_ADS = {
   id:              'AW-965285268',
+  /* Google Tag Manager (conteneur donne par le technicien Google Ads le
+     05/11/2026, qui ne le voyait pas sur le site). Il se charge avec la
+     balise Ads, donc sous le meme consentement : "refuse" par defaut,
+     jamais charge si la visiteuse a dit non. Les conversions Reservation
+     payee et Bon cadeau achete partent deja d'ici (plus bas) : ne pas les
+     recreer dans GTM, elles compteraient deux fois. */
+  gtm:             'GTM-KW34PZ7',
   conversionResa:  'AW-965285268/GOpgCI2okeAcEJSrpMwD',   // Réservation payée
   conversionCadeau:'AW-965285268/v1ReCJCokeAcEJSrpMwD'    // Bon cadeau acheté
 };
@@ -203,6 +210,18 @@ const MESURE = (function(){
     s.async = true;
     s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GOOGLE_ADS.id);
     document.head.appendChild(s);
+    /* Le conteneur GTM, comme le code officiel de Google, mais APRES le
+       consentement par defaut ci-dessus : ses balises le lisent et restent
+       sans cookie tant que la visiteuse n'a pas accepte. Le "gtm.start"
+       est indispensable : sans lui, aucune balise "toutes les pages" ne
+       se declenche (le code colle par le technicien ne l'avait pas). */
+    if(GOOGLE_ADS.gtm){
+      window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      const t = document.createElement('script');
+      t.async = true;
+      t.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(GOOGLE_ADS.gtm);
+      document.head.appendChild(t);
+    }
   }
 
   // Une conversion ne doit compter qu'une fois, meme si la page de retour
