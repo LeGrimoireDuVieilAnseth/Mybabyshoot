@@ -99,8 +99,9 @@ function gammeSimple(id){ return GAMMES.simple.find(g=>g.id===id)||GAMMES.simple
 function prixPaireDuo(grossesse,naissance){
   const plein=gammeSimple(grossesse).prix+gammeSimple(naissance).prix;
   /* Noel 2026 (demande de Matt) : pendant l'offre, le pack passe aux prix de
-     Noel, 100 euros de moins sur chaque seance, A LA PLACE de sa remise ; et
-     5 photos imprimees sont offertes, livrees chez elle. Meme regle dans
+     Noel, 100 euros de moins sur chaque seance, A LA PLACE de sa remise.
+     Rien d'autre : les 5 photos imprimees offertes sont retirees (Matt,
+     16/11/2026 : pas de cadeau en plus sur les packs). Meme regle dans
      prixPaireDuo de mbs-lib.mjs, qui seul fait foi. */
   if(offreNoelActive()) return { plein:plein, prix:plein-2*REMISE_NOEL.montant, remise:2*REMISE_NOEL.montant, noel:true };
   /* On arrondit au centime avant de descendre a la dizaine : sans ce
@@ -723,7 +724,6 @@ function duoHtml(){
       +'<span class="duo-sum-l">Les 2 séances séparément<b>'+euro(p.plein)+'</b></span>'
       +(p.noel
         ? '<span class="duo-sum-r">Prix de Noël, 100 € de moins par séance<b>-'+euro(p.remise)+'</b></span>'
-          +'<span class="duo-sum-r">Cadeau : 5 photos imprimées, livrées chez vous<b>offert</b></span>'
         : '<span class="duo-sum-r">Remise pack duo<b>-'+euro(p.remise)+'</b></span>')
       +'<span class="duo-sum-t">Votre pack<b>'+euro(p.prix)+'</b></span>'
     +'</div>';
@@ -786,7 +786,6 @@ function render(){
     });
     if(p.noel){
       L.push({n:'Prix de Noël',s:'100 € de moins sur chaque séance',p:-p.remise});
-      L.push({n:'5 photos imprimées offertes',s:'Livrées chez vous, cadeau de Noël',p:0});
     }else L.push({n:'Remise pack duo',
             s:'Sur le total des 2 séances',p:-p.remise});
   }else{
@@ -948,12 +947,12 @@ document.addEventListener('click',e=>{
 /* L'annonce de la remise, sous le titre "Votre formule" : celles qui
    hesitent entre une seance et deux doivent le voir AVANT de choisir. */
 const bandeauDuo=document.getElementById('duoAnnonce');
-/* Redessinee a chaque rendu : pendant Noel, le pack change de cadeau. */
+/* Redessinee a chaque rendu : pendant Noel, le pack passe aux prix de Noel. */
 function majAnnonceDuo(){
   if(!bandeauDuo) return;
   bandeauDuo.innerHTML=offreNoelActive()
     ? '<b>Vous prévoyez les deux séances ?</b> Pour Noël, le pack grossesse + naissance passe aux prix de Noël, '
-      +'<b>100 € de moins sur chaque séance</b>, et <b>5 photos imprimées vous sont offertes</b>, livrées chez vous.'
+      +'<b>100 € de moins sur chaque séance</b>.'
     : '<b>Vous prévoyez les deux séances ?</b> Le pack grossesse + naissance '
       +'est remisé, jusqu\'à <b>'+euro(remiseDuoMax())+' d\'économie</b>.';
 }
@@ -1804,7 +1803,7 @@ setTimeout(()=>{
       '<div class="book-head"><span class="book-eyebrow">Bon cadeau</span><h3>Offrir cette séance</h3>'
       +'<p class="book-recap">Formule '+offre.nom+' <span>'+quoi+' · '+(prixBaseCadeau(offre)<offre.prix?'<s>'+euro(offre.prix)+'</s> ':'')+euro(prixBaseCadeau(offre))+'</span></p>'
       +(packNoelCadeau(offre)
-        ? '<p class="gift-noel">Pour Noël, le pack est aux prix de Noël et <b>5 photos imprimées sont offertes</b>, livrées chez la personne.</p>'
+        ? '<p class="gift-noel">Pour Noël, le pack est aux prix de Noël : <b>100 € de moins sur chaque séance</b>. Le bon est valable 18 mois.</p>'
         : '')
       +(noelPossible(offre)
         ? '<p class="gift-noel">Pour Noël, offrez-la à une amie, une sœur, une collègue : une séance famille, par exemple. Le bon est valable 18 mois.</p>'
@@ -1822,7 +1821,6 @@ setTimeout(()=>{
       +'<div id="gApercuZone" style="margin:2px 0 12px"></div>'
       +'<div class="book-sum"><div class="book-sum-l"><span>Formule '+offre.nom+'</span><b>'+euro(offre.duo?prixBaseCadeau(offre):offre.prix)+'</b></div>'
       +(noelPossible(offre)?'<div class="book-sum-l promo"><span>Prix de Noël</span><b>- '+euro(REMISE_NOEL.montant)+'</b></div>':'')
-      +(packNoelCadeau(offre)?'<div class="book-sum-l"><span>5 photos imprimées, livrées chez elle</span><b>offert</b></div>':'')
       +'<div class="book-sum-note">'+(offre.id==='mini'
         ? 'Le bon couvre un mini-shoot de 45 minutes avec 5 photos retouchées (sans les photos brutes). Il est valable 18 mois, en semaine sur mes créneaux habituels. '
         : '')+'Le bon couvre la formule ; les options éventuelles restent au choix de la personne. '
@@ -1850,8 +1848,8 @@ setTimeout(()=>{
 
   /* Le bon d'une seance unique, pendant l'offre de Noel : 100 euros de moins. */
   function noelPossible(offre){ return !!offre && !offre.duo && offre.id!=='mini' && offreNoelActive(); }
-  /* Le bon d'un pack pendant Noel : les prix de Noel des deux seances et
-     5 photos imprimees offertes (mbs-gift le recalcule). */
+  /* Le bon d'un pack pendant Noel : les prix de Noel des deux seances
+     (mbs-gift le recalcule). Plus de photos imprimees offertes (16/11/2026). */
   function packNoelCadeau(offre){ return !!offre && offre.duo && !offre.ancien && offreNoelActive(); }
   /* Ce que coute le bon : les prix de Noel pendant l'offre (le serveur
      refait le calcul). */
@@ -1971,9 +1969,8 @@ setTimeout(()=>{
     try{
       MBS_BON.dessiner(apercuCanvas, {
         style: styleChoisi,
-        /* Meme libelle que le vrai bon (mbs-gift) : a Noel, un pack porte
-           ses 5 photos imprimees offertes. */
-        formule: offre.nom+(packNoelCadeau(offre)?' + 5 photos imprimées offertes':''),
+        /* Meme libelle que le vrai bon (mbs-gift). */
+        formule: offre.nom,
         seance: offre.duo ? 'duo' : state.type,
         // tant que les champs sont vides, on montre un exemple plutot qu'un blanc
         pour: lire('gPour') || 'Camille',
