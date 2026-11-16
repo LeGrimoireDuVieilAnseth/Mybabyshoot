@@ -75,8 +75,31 @@ function offreNoelActive(){
   const h = typeof document!=='undefined' && document.documentElement;
   return !!h && !!h.hasAttribute && h.hasAttribute('data-noel') && Date.now() < REMISE_NOEL.fin;
 }
-/* Le mini-shoot suit l'offre de Noel : meme habillage, meme fin. */
-function offreMiniActive(){ return offreNoelActive(); }
+/* LE MINI-SHOOT SPECIAL NOEL EST RETIRE (Matt, 13/11/2026) : « si on vous prend une offre a 390 euros, vous pouvez
+   bien nous la placer un dimanche, vu que vous prenez quelqu'un qui paie beaucoup moins cher ». A la place, les
+   dimanches de decembre s'ouvrent a toutes les formules, avec un supplement (DIMANCHES_DECEMBRE). La carte, le
+   bouton et le bon du mini-shoot ne s'affichent donc plus ; le serveur le refuse aussi (OFFRE_MINI.active, mbs-lib).
+   Le code reste en sommeil : pour le rallumer, rendre offreNoelActive() ici ET passer OFFRE_MINI.active a true. */
+function offreMiniActive(){ return false; }
+
+/* LES DIMANCHES DE DECEMBRE (demande de Matt, 13/11/2026) : en decembre
+   seulement, les formules habituelles (et le pack) se reservent aussi le
+   dimanche, aux heures de la semaine, avec un supplement de 50 euros. Pas
+   pour le mini-shoot. Les 60 euros se reglent avec le solde, le jour J
+   (l'acompte ne change pas) ; avec un bon cadeau ou un code, ils se reglent
+   en ligne pour confirmer. C'est la date de la SEANCE qui compte, pas
+   l'habillage de Noel : le serveur donne ces dimanches dans ses creneaux.
+   A GARDER IDENTIQUE a DIMANCHES_DECEMBRE dans netlify/mbs-lib.mjs : le
+   serveur refuse un ecran qui n'annonce pas le supplement. */
+const DIMANCHES_DECEMBRE = {
+  dates:['2026-12-06','2026-12-13','2026-12-20','2026-12-27'],
+  supplement:50
+};
+/* Le supplement de la date choisie : 50 euros un dimanche de decembre, rien sinon, rien pour le mini-shoot. */
+function supplementDimanche(date, section){
+  return section!=='mini' && DIMANCHES_DECEMBRE.dates.indexOf(String(date||''))>=0 ? DIMANCHES_DECEMBRE.supplement : 0;
+}
+function supBook(){ return bookState ? supplementDimanche(bookState.date, bookState.section) : 0; }
 /* Une seance naissance en 45 minutes : possible pour quelques photos, et il
    faut le dire avant qu'elle reserve (demande de Matt). */
 const NOTE_MINI_NAISSANCE='Pour un nouveau-né, 45 minutes c\'est très court (tétée, sommeil) : le mini-shoot convient pour quelques photos. Pour une vraie séance naissance, choisissez plutôt une formule Essentielle, Confort ou Prestige.';
@@ -1167,6 +1190,8 @@ async function loadAvailability(){
       return;
     }
     bookState.days=j.days;
+    /* ouvert par « Voir les dimanches » : le premier dimanche de decembre encore libre */
+    if(bookState.dimanches){ const dim=j.days.find(d=>DIMANCHES_DECEMBRE.dates.indexOf(d.date)>=0); if(dim) bookState.date=dim.date; }
     if(!bookState.date||!j.days.some(d=>d.date===bookState.date))bookState.date=j.days[0].date;
     bookState.time=null;
     renderBookStep1();
@@ -1195,18 +1220,33 @@ function renderBookStep1(){
   for(let d=1;d<=nbDays;d++){
     const ds=y+'-'+bookPad(m)+'-'+bookPad(d);
     const ok=!!avail[ds], sel=ds===bookState.date;
-    cells+='<button type="button" class="book-cell'+(ok?'':' off')+(sel?' active':'')+'"'+(ok?' data-date="'+ds+'"':' disabled')+'>'+d+'</button>';
+    /* un dimanche de decembre ouvert : petit point sous le chiffre (le supplement est explique sous le calendrier) */
+    const dim=ok&&supplementDimanche(ds,bookState.section)>0;
+    cells+='<button type="button" class="book-cell'+(ok?'':' off')+(sel?' active':'')+(dim?' dim':'')+'"'+(ok?' data-date="'+ds+'"':' disabled')+'>'+d+'</button>';
   }
   const prevOff=ym<=firstMonth?' disabled':'', nextOff=ym>=lastMonth?' disabled':'';
+  /* Le petit texte du dimanche (demande de Matt, 13/11/2026) : sous le calendrier de decembre, et plus precis une
+     fois le dimanche choisi. Jamais pour le mini-shoot, qui n'a pas de supplement. */
+  const supDim=DIMANCHES_DECEMBRE.supplement;
+  const moisDim=bookState.section!=='mini' && DIMANCHES_DECEMBRE.dates.some(x=>x.slice(0,7)===ym && avail[x]);
+  const dimChoisi=supplementDimanche(bookState.date,bookState.section)>0 && !!avail[bookState.date];
+  const noteDim=dimChoisi
+    ? '<p class="book-dim on"><b>Séance un dimanche : supplément de '+supDim+' €.</b> '
+      +(bookState.giftOnly
+        ? (bookState.estResa?'Votre séance reste réglée dans votre pack ; ':'Votre séance reste réglée par votre bon ; ')+'seul ce supplément se règle en ligne pour confirmer.'
+        : 'Il se règle avec le solde, le jour de la séance : l\'acompte ne change pas.')+'</p>'
+    : moisDim
+    ? '<p class="book-dim"><span class="book-dim-pt"></span>En décembre, j\'ouvre exceptionnellement le studio le dimanche : <b>supplément de '+supDim+' €</b> pour une séance ce jour-là.</p>'
+    : '';
 
   let slotsHtml;
   if(bookState.date&&avail[bookState.date]){
     const slotBtns=bookViewOnly
       ? avail[bookState.date].map(t=>'<span class="book-slot ro">'+hLabel(t)+'</span>').join('')
       : avail[bookState.date].map(t=>'<button type="button" class="book-slot'+(t===bookState.time?' active':'')+'" data-time="'+t+'">'+hLabel(t)+'</button>').join('');
-    slotsHtml='<div class="book-l">Créneaux du '+bookDateLabel(bookState.date)+'</div><div class="book-slots">'+slotBtns+'</div>';
+    slotsHtml='<div class="book-l">Créneaux du '+bookDateLabel(bookState.date)+'</div><div class="book-slots">'+slotBtns+'</div>'+noteDim;
   }else{
-    slotsHtml='<div class="book-slot-hint">Choisissez un jour disponible dans le calendrier.</div>';
+    slotsHtml='<div class="book-slot-hint">Choisissez un jour disponible dans le calendrier.</div>'+noteDim;
   }
 
   const head=bookViewOnly
@@ -1245,11 +1285,14 @@ function renderBookStep1(){
 
 function renderBookStep2(){
   const remise=bookState.remise||0;
-  const totalNet=bookState.total-remise;
+  /* le supplement d'un dimanche de decembre (50 euros) : dans le total, il se regle avec le solde ; avec un bon ou un
+     code, il est seul a payer, en ligne */
+  const sup=supBook();
+  const totalNet=bookState.total-remise+sup;
   // un bon cadeau peut couvrir toute la seance : il ne reste alors rien a payer
   // "integral" : tout est regle maintenant, il ne reste rien pour le jour J.
   const integral=bookState.paiement==='integral';
-  const aPayer=integral?totalNet:Math.max(0,Math.min(bookState.acompte,totalNet));
+  const aPayer=integral?totalNet:bookState.giftOnly?sup:Math.max(0,Math.min(bookState.acompte,totalNet));
   const reste=totalNet-aPayer;
   const cadeau=bookState.kind==='cadeau';
   const libRemise=cadeau?'Bon cadeau':'Code de réduction';
@@ -1279,14 +1322,19 @@ function renderBookStep2(){
     +choixReglement(totalNet,remise)
     // sur un bon cadeau on n'affiche aucun montant : la personne qui l'a recu
     // n'a pas a decouvrir le prix de son cadeau
-    +(bookState.giftOnly
+    +(bookState.giftOnly&&sup
+      ?'<div class="book-sum"><div class="book-sum-l"><span>Supplément dimanche, à régler maintenant</span><b>'+euro(sup)+'</b></div>'
+       +'<div class="book-sum-note">'+(bookState.estResa?'Votre séance est déjà réglée dans votre pack':'Votre séance est déjà réglée par le bon cadeau')
+       +' : seul le supplément du dimanche se règle maintenant, en ligne. Rien à payer le jour J.</div></div>'
+      :bookState.giftOnly
       ?'<div class="book-sum"><div class="book-sum-l"><span>À régler maintenant</span><b>0 €</b></div>'
        +'<div class="book-sum-note">'+(bookState.estResa
            ?'Votre séance est déjà réglée dans votre pack. Rien à payer, ni maintenant, ni le jour J.'
            :'Votre séance est déjà réglée par le bon cadeau. Rien à payer, ni maintenant, ni le jour J.')+'</div></div>'
       :'<div class="book-sum"><div class="book-sum-l"><span>Total de la séance</span><b>'+euro(bookState.total)+'</b></div>'
-       +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>'
-               +'<div class="book-sum-l"><span>Nouveau total</span><b>'+euro(totalNet)+'</b></div>':'')
+       +(sup?'<div class="book-sum-l"><span>Supplément dimanche</span><b>+ '+euro(sup)+'</b></div>':'')
+       +(remise?'<div class="book-sum-l promo"><span>'+libRemise+'</span><b>- '+euro(remise)+'</b></div>':'')
+       +(remise||sup?'<div class="book-sum-l"><span>'+(remise?'Nouveau total':'Total avec le dimanche')+'</span><b>'+euro(totalNet)+'</b></div>':'')
        +(aPayer>0
            /* Sur un paiement en 3 fois, ecrire "a regler maintenant 290 EUR"
               fait croire qu'on prend tout d'un coup. On montre la mensualite,
@@ -1341,10 +1389,11 @@ async function togglePromo(){
 function bookVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function bookErr(msg){const e=document.getElementById('bookErr');if(e){e.textContent=msg;e.classList.add('show');}}
 function bookAPayer(){
-  if(bookState.giftOnly) return 0;
-  return Math.max(0,Math.min(bookState.acompte,bookState.total-(bookState.remise||0)));
+  /* avec un bon ou un code, seul le supplement d'un dimanche de decembre reste a payer */
+  if(bookState.giftOnly) return supBook();
+  return Math.max(0,Math.min(bookState.acompte,bookState.total-(bookState.remise||0)+supBook()));
 }
-function resetPayBtn(){const b=document.getElementById('bookPay');if(b){const p=bookAPayer();b.disabled=false;b.textContent=p>0?(bookState.section==='mini'?'Payer ':'Payer l\'acompte de ')+p+' €':'Confirmer ma réservation';}}
+function resetPayBtn(){const b=document.getElementById('bookPay');if(b){const p=bookAPayer();b.disabled=false;b.textContent=p>0?(bookState.section==='mini'||bookState.giftOnly?'Payer ':'Payer l\'acompte de ')+p+' €':'Confirmer ma réservation';}}
 
 async function submitBooking(){
   const client={prenom:bookVal('bPrenom'),nom:bookVal('bNom'),email:bookVal('bEmail'),tel:bookVal('bTel')};
@@ -1361,7 +1410,8 @@ async function submitBooking(){
         section:bookState.section,gamme:bookState.gamme,gammes:bookState.gammes||null,
         photos:bookState.photos,album:bookState.album,
         tirages:bookState.tirages||{},
-        totalAffiche:bookState.total,
+        /* le supplement du dimanche compte : le serveur refuse un ecran qui ne l'annonce pas */
+        totalAffiche:bookState.total+supBook(),
         origine:origineMemorisee(),
         paiement:bookState.paiement||'acompte',
         date:bookState.date,time:bookState.time,client,
@@ -1745,6 +1795,14 @@ majOffreNoel();
 majCompteNoel();
 setInterval(majCompteNoel, 1000);
 document.querySelectorAll('.js-mini').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); ouvrirMini(); }));
+/* Le bouton « Voir les dimanches » de l'encadre de Noel (13/11/2026) : le calendrier des disponibilites, ouvert
+   directement sur decembre, avec le petit texte du supplement. */
+function voirDimanches(){
+  openBooking(true);
+  bookState.viewMonth=DIMANCHES_DECEMBRE.dates[0].slice(0,7);
+  bookState.dimanches=true;   // loadAvailability choisit alors le premier dimanche libre
+}
+document.querySelectorAll('.js-dimanches').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); voirDimanches(); }));
 
 /* Le serveur fait foi : on le lit a chaque visite, sans bloquer la page.
    CRM_API est declare plus bas dans ce fichier : on attend la fin de la
@@ -2008,7 +2066,10 @@ setTimeout(()=>{
 
   if(/[?&]reservation=ok(&|$)/.test(location.search)){
     const sid = paramRetour('session_id');
-    MESURE.reservation(paramRetour('valeur'), sid);
+    /* Seul le supplement d'un dimanche de decembre a ete paye (seance reglee par un bon ou un code) : ce n'est pas
+       une vente de seance, Google Ads ne la compte pas, et il n'y a rien a payer le jour J. */
+    const supSeul = paramRetour('supplement')==='1';
+    if(!supSeul) MESURE.reservation(paramRetour('valeur'), sid);
 
     bookModal.classList.add('show');
     document.body.style.overflow='hidden';
@@ -2017,7 +2078,10 @@ setTimeout(()=>{
       +'<h3>Votre séance est réservée</h3>'
       +'<p class="book-recap">Un email de confirmation vient de partir <span>Pensez à vérifier vos spams</span></p></div>'
       +'<div class="book-sum"><div class="book-sum-note">'
-      +(paramRetour('integral')==='1'
+      +(supSeul
+          ? 'Le supplément du dimanche est bien réglé et votre créneau vous est réservé. '
+            +'Vous retrouverez la date, l\'heure et la facture du supplément dans l\'email. Il n\'y aura rien à payer le jour de la séance.'
+          : paramRetour('integral')==='1'
           ? 'Votre séance est réglée en totalité et votre créneau vous est réservé. '
             +'Vous retrouverez la date, l\'heure et votre facture dans l\'email. Il n\'y aura rien à payer le jour de la séance.'
           : 'Votre acompte est bien encaissé et votre créneau vous est réservé. '

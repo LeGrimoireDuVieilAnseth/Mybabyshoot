@@ -560,6 +560,13 @@ footer a:hover{color:var(--coral)}
 .book-cell.off{color:var(--line);border-color:transparent;background:transparent;cursor:default;font-weight:600}
 .book-cell.empty{border:0;background:transparent;cursor:default}
 .book-slot-hint{font-size:13.5px;color:var(--ink-soft);text-align:center;padding:14px 0 4px}
+/* Les dimanches de decembre (13/11/2026) : un point sous le chiffre, et le petit texte du supplement */
+.book-cell.dim{position:relative}
+.book-cell.dim::after{content:"";position:absolute;left:50%;bottom:5px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--coral)}
+.book-cell.dim.active::after{background:var(--cream)}
+.book-dim{margin:14px 0 2px;padding:11px 14px;border-radius:12px;background:var(--blush);font-size:13.5px;line-height:1.45;color:var(--ink)}
+.book-dim b{color:var(--coral-deep)}
+.book-dim-pt{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--coral);margin:0 7px 1px 0;vertical-align:middle}
 .book-slots{display:flex;gap:10px;flex-wrap:wrap}
 .book-slot{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:13px 22px;font-family:var(--display);font-weight:800;font-size:16px;cursor:pointer;transition:.2s}
 .book-slot:hover{border-color:var(--coral)}

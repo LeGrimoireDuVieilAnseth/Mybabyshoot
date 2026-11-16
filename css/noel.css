@@ -256,14 +256,10 @@ html[data-noel] .book-modal-inner{background:var(--noel-rayure) top/100% 6px no-
    L'OFFRE DE NOEL : -100 EUROS SUR CHAQUE SEANCE, jusqu'au 26 decembre
    html[data-offre] est pose par js/app.js quand l'habillage est actif et
    que le code court encore. Sans lui, rien ne s'affiche.
-   Le mini-shoot du dimanche suit le meme attribut.
+   Le bloc des dimanches de decembre suit le meme attribut.
    ===================================================================== */
 .offre-noel,.seg-famille{display:none}
 html[data-offre] .seg-famille{display:block}
-/* !important : ".hero-promesse span" (styles.css) met les span en block et
-   l'emportait, la mention s'affichait hors de l'offre (corrige le 02/11/2026). */
-.hors-mini{display:none!important}
-html[data-offre] .hors-mini{display:inline!important}
 html[data-offre] .offre-noel{grid-column:1/-1;position:relative;z-index:3;
   display:grid;grid-template-columns:1.35fr 1fr;gap:18px 34px;align-items:center;
   margin:6px 0 0;padding:24px 28px 22px;border-radius:22px;
@@ -341,24 +337,24 @@ html[data-noel] .gamme.gmini .gamme-inc li::before{border-color:#8B5A2B}
 @media(max-width:560px){
   html[data-offre] #typeSeg .seg-btn:not(.seg-duo){flex:1 1 calc(50% - 5px)}
 }
-/* Le mini-shoot special Noel, en bas de l'encadre, sur toute sa largeur :
-   un biscuit de pain d'epices, pate brune et glacage blanc en pointilles. */
-.on-mini{grid-column:1/-1;display:grid;grid-template-columns:1.35fr 1fr;gap:12px 34px;align-items:center;
+/* Les dimanches de decembre (13/11/2026, a la place du mini-shoot special Noel retire par Matt), en bas de
+   l'encadre, sur toute sa largeur : un biscuit de pain d'epices, pate brune et glacage blanc en pointilles. */
+.on-dim{grid-column:1/-1;display:grid;grid-template-columns:1.35fr 1fr;gap:12px 34px;align-items:center;
   margin-top:4px;padding:18px 20px;border-radius:18px;border:2.5px dashed #FFF6E8;
   background:radial-gradient(120% 140% at 0% 0%,#A86F3D 0,#8B5A2B 55%,#6E4421 100%);
   box-shadow:0 0 0 4px #8B5A2B,0 16px 30px -18px rgba(70,35,10,.8)}
-.on-mini-tag{display:inline-block;background:#FFF3E0;color:#6B4220;font-weight:800;font-size:11px;
+.on-dim-tag{display:inline-block;background:#FFF3E0;color:#6B4220;font-weight:800;font-size:11px;
   letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
-.on-mini-titre{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,2.4vw,1.6rem);line-height:1.1;
+.on-dim-titre{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,2.4vw,1.6rem);line-height:1.1;
   color:#FFF6E8;margin:8px 0 6px}
-.on-mini-titre b{color:#F6CF96;white-space:nowrap}
-.on-mini-sous{margin:0;font-size:14px;line-height:1.5;color:rgba(255,243,224,.9)}
-.on-btn-mini{background:#FFF3E0;color:#6B4220;box-shadow:0 10px 24px -12px rgba(50,25,8,.8)}
-.on-btn-mini:hover{background:#fff;color:#4E2E14;transform:translateY(-3px)}
+.on-dim-titre b{color:#F6CF96;white-space:nowrap}
+.on-dim-sous{margin:0;font-size:14px;line-height:1.5;color:rgba(255,243,224,.9)}
+.on-btn-dim{background:#FFF3E0;color:#6B4220;box-shadow:0 10px 24px -12px rgba(50,25,8,.8)}
+.on-btn-dim:hover{background:#fff;color:#4E2E14;transform:translateY(-3px)}
 /* La mise en garde pour un nouveau-ne. */
 .mini-note{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#FFF4D6;border:1px solid #F2C14E;
   font-size:13px;line-height:1.5;color:#5A4410}
-@media(max-width:760px){ .on-mini{grid-template-columns:1fr;padding:14px} }
+@media(max-width:760px){ .on-dim{grid-template-columns:1fr;padding:14px} }
 /* Le pack aux prix de Noel : le prix habituel barre, plus discret, et les
    montants de l'addition jamais coupes en deux lignes. */
 html[data-noel] .duo-pick-p s{color:var(--ink-soft);font-size:.78em;font-weight:600;margin-right:2px}
